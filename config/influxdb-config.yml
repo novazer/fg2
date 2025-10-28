@@ -15,8 +15,8 @@
     query-concurrency: 100
     query-initial-memory-bytes: 0
     query-max-memory-bytes: 0
-    query-memory-bytes: 9223372036854775807
-    query-queue-size: 100
+    query-memory-bytes: 4294967296
+    query-queue-size: 1000
     reporting-disabled: false
     secret-store: bolt
     session-length: 60
