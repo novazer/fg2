@@ -15,7 +15,7 @@ services:
   mongo-express:
     image: mongo-express
     ports:
-      - 8088:8081
+      - 127.0.0.1:4088:8081
     networks:
       - main
     environment:
@@ -29,7 +29,7 @@ services:
     networks:
       - main
     ports:
-      - 8086:8086
+      - 127.0.0.1:4086:8086
     volumes:
       - ./data/influxdb:/var/lib/influxdb2
       # - ./config/influxdb-config.yml:/etc/influxdb2/config.yml
@@ -45,7 +45,7 @@ services:
     build: ./rabbitmq
     restart: always
     ports:
-      - 1883:1883
+      - 127.0.0.1:1883:1883
     networks:
       - main
 
@@ -53,7 +53,7 @@ services:
     build: ./webapp
     restart: always
     ports:
-      - 8080:80
+      - 127.0.0.1:4080:80
     networks:
       - main
 
@@ -65,7 +65,7 @@ services:
      - influxdb
      - rabbitmq
     ports:
-      - 8081:8081
+      - 127.0.0.1:4081:8081
     networks:
       - main
     environment:
