@@ -1,4 +1,4 @@
-##Plantalytix Software Stack - Docker compose Edition
+## Plantalytix Software Stack - Docker compose Edition
 
 ### Installation
 
