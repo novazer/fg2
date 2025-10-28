@@ -1,0 +1,5 @@
+key,type,encoding,value
+fg_provisioning,namespace,,
+device_id,data,string,a353401f-030f-45fb-ab11-309bd447ee22
+mqtt_user,data,string,8bbc413f-fca8-4ee5-959a-435e0121f9cc
+mqtt_password,data,string,f839e8a5-4255-4047-a416-ec2b29a2dc18

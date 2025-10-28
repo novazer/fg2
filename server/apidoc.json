@@ -1,0 +1,11 @@
+{
+  "name": "Plantalytix",
+  "version": "0.1.0",
+  "description": "Plantalytix cloud service api documentation",
+  "title": "Plantalytix API",
+  "url" : "https://api.plantalytix-app.com",
+  "header": {
+    "title": "Plantalytix API",
+    "filename": "apidoc-header.md"
+  }
+}

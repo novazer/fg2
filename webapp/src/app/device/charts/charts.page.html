@@ -1,0 +1,48 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>{{'charts.title' | translate}}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <!-- <div class="button-row" style="float:right">
+    <button [class.active]="ts.enabled" (click)="setSpan(ts)" *ngFor="let ts of timespans">{{ts.name}}</button>
+  </div>
+  <div class="button-row">
+    <button [class.active]="m.enabled" (click)="toggleMeasure(m)" *ngFor="let m of measures">{{m.name}}</button>
+  </div> -->
+
+  <ion-row>
+    <ng-container *ngFor="let m of filtered_measures">
+      <ion-col class="onoff cooling" style="cursor: pointer;" [class.on]="m.enabled" (click)="toggleMeasure(m)">
+        <img class="icon-on" src="assets/icon/{{m.icon}}.svg" />
+        <img class="icon-off" src="assets/icon/{{m.icon}}_off.svg" />
+      </ion-col>
+    </ng-container>
+  </ion-row>
+
+  <ion-button
+    *ngFor="let tf of timespans"
+    [class]="'button-' + tf"
+    [color]="tf.enabled ? 'secondary' : 'light'"
+    (click)="setSpan(tf)"
+  >
+    {{tf.name}}
+  </ion-button>
+
+  <div #spacer style="padding: 5px, width: 100%"></div>
+
+<highcharts-chart
+*ngIf="loaded"
+[Highcharts]="Highcharts"
+constructorType="stockChart"
+[options]="chartOptions"
+[(update)]="updateFlag"
+
+
+></highcharts-chart>
+
+</ion-content>

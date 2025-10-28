@@ -1,0 +1,116 @@
+
+.onoff {
+  .icon-on {
+    display: none;
+  }
+  .icon-off {
+    display: block;
+  }
+}
+
+.onoff.on {
+  .icon-on {
+    display: block;
+  }
+  .icon-off {
+    display: none;
+  }
+}
+
+
+@media (max-width: 575px) {
+  .icon-on, .icon-off {
+    height: 40px;
+    float: left;
+    margin-right: 10px;
+  }
+  .name, .current {
+    line-height: 40px;
+    vertical-align: middle;
+  }
+  .timestamp {
+    display: block;
+  }
+}
+
+@media (min-width: 576px) {
+  .onoff {
+    text-align: center;
+  }
+  .name, .current {
+    font-size: 11pt;
+  }
+  .timestamp {
+    float: right;
+  }
+}
+
+@media (max-width: 340px) {
+  .icon-on, .icon-off {
+    height: 30px;
+    float: left;
+    margin-right: 10px;
+  }
+  .name,.current {
+    font-size: 8pt;
+    line-height: 30px;
+  }
+}
+
+
+.offline-overlay {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  right: 0px;
+  bottom: 0px;
+  z-index: 100;
+  background-color: rgba(255,255,255,0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: black;
+}
+
+.message-icon {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 50px;
+  height: 50px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  cursor: pointer;
+  background-color: var(--ion-color-secondary);
+  ion-icon {
+    font-size: 30px;
+    color: white;
+  }
+}
+
+@media (max-width: 575px) {
+  .message-icon {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 30px;
+    height: 30px;
+    border-radius: 5px;
+    ion-icon {
+      font-size: 15px;
+    }
+  }
+}
+
+
+.message-icon.warn {
+  background-color: var(--ion-color-warning);
+}
+
+.message-icon.error {
+  background-color: var(--ion-color-danger);
+}
+

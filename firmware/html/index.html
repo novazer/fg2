@@ -1,0 +1,190 @@
+<html>
+  <head>
+    <title>Plantalytix</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+
+      input[type=text], input[type=url], input[type=email], input[type=password], input[type=tel] {
+        -webkit-appearance: none; -moz-appearance: none;
+        display: block;
+        margin: 0;
+        width: 100%; height: 40px;
+        line-height: 40px; font-size: 17px;
+        border: 1px solid #bbb;
+      }
+
+      button {
+        -webkit-appearance: none; -moz-appearance: none;
+        display: block;
+        margin: 0;
+        margin-top: 5px;
+        width: 100%; height: 40px;
+        line-height: 40px; font-size: 17px;
+        border: 1px solid #bbb;
+      }
+
+      html {
+        font-family: sans-serif;
+        font-size: 120%;
+        line-height: 150%;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      .box {
+        width: 100%; height: 60px;
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+        border: 1px solid #bbb;
+        text-align: center;
+        margin-top: 5px;
+      }
+
+      .error {
+        border: 1px solid #c66;
+        background-color: #fcc;
+      }
+
+      .ok {
+        border: 1px solid #6c6;
+        background-color: #cfc;
+      }
+
+    </style>
+
+    <script>
+
+      function sendConfig() {
+        let ui = document.querySelector('#wifi-ui');
+        let form = document.querySelector('#wifi');
+        let connecting = document.querySelector('#connecting');
+        let connected = document.querySelector('#connected');
+        let error = document.querySelector('#error');
+
+        ui.classList.add('hidden');
+        connected.classList.add('hidden');
+        error.classList.add('hidden');
+        connecting.classList.remove('hidden');
+
+        let form_data = new FormData(form);
+        let payload = JSON.stringify({
+          primary: {
+            ssid: form_data.get('primary-ssid'),
+            password: form_data.get('primary-password'),
+          },
+          secondary: {
+            ssid: form_data.get('secondary-ssid'),
+            password: form_data.get('secondary-password'),
+          },
+        });
+
+        var xhr = new XMLHttpRequest();
+        var host = window.location.protocol + "//" + window.location.host;
+        var url = host + "/config";
+        xhr.open("POST", url, true);
+
+        xhr.onload = function() {
+          if(this.responseText == 'ok') {
+            connecting.classList.add('hidden');
+            connected.classList.remove('hidden');
+          }
+          else {
+            connecting.classList.add('hidden');
+            error.classList.remove('hidden');
+            ui.classList.remove('hidden');
+          }
+        }
+
+        xhr.send(payload);
+      }
+
+      function scanWifi() {
+        let scan = document.querySelector('#scan');
+        let content = document.querySelector('#scancontent');
+
+        document.querySelector('#scanning').classList.remove('hidden')
+
+        content.innerHTML = ""
+
+        var xhr = new XMLHttpRequest();
+        var host = window.location.protocol + "//" + window.location.host;
+        var url = host + "/scan";
+        xhr.open("GET", url, true);
+
+        xhr.onload = function() {
+          let wifi = JSON.parse(this.responseText)
+          if(wifi) {
+            for(let ssid of wifi) {
+              content.innerHTML += "<tr><td>" + ssid + "</td><td style=\"text-align: right;\"><button onclick=\"selectWifi('" + ssid + "')\">Select</button></td>"
+            }
+
+            scan.classList.remove('hidden');
+          }
+
+          document.querySelector('#scanning').classList.add('hidden')
+        }
+
+        xhr.send();
+      }
+
+      function selectWifi(ssid) {
+        document.querySelector('#primary-ssid').value = ssid;
+        document.querySelector('#scan').classList.add('hidden')
+      }
+
+      function cancleSelect() {
+        document.querySelector('#scan').classList.add('hidden')
+      }
+
+    </script>
+  </head>
+
+  <body>
+    <h1>Hello</h1>
+    <p>Welcome to plantalytix</p>
+
+    <div id="connecting" class="hidden box">
+      <p>connecting...</p>
+    </div>
+
+    <div id="scanning" class="hidden box">
+      <p>scanning...</p>
+    </div>
+
+    <div id="connected" class="hidden box ok">
+      <p>connection successful</p>
+    </div>
+
+    <div id="error" class="hidden box error">
+      <p>connection error</p>
+    </div>
+
+    <div id="scan" class="hidden" style="position: absolute; left: 0; right: 0; top: 0; bottom: 0; background-color: #cccccc53;">
+      <div style="position: absolute; left: 20; right: 20; top: 20; bottom: 20; background-color: #fff; border-radius: 5px;">
+        <h3>Select Network</h3>
+        <table style="width:90%;margin:5%" id="scancontent">
+        </table>
+        <button style="width:90%;margin:5%" type='button' onclick="cancleSelect()">Abort</button>
+      </div>
+    </div>
+
+    <div id="wifi-ui">
+      <form id="wifi">
+        <p>primary network</p>
+        <label for="primary-ssid">SSID</label>
+        <input id="primary-ssid" type="text" name="primary-ssid" value="">
+        <button type='button' onclick="scanWifi()">Scan</button>
+        <label for="primary-password">Password</label>
+        <input type="text" name="primary-password" value="">
+
+      </form>
+      <button type='button' onclick="sendConfig()">Save</button>
+    </div>
+
+  </body>
+
+</html>

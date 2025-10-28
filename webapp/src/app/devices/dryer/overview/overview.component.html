@@ -1,0 +1,106 @@
+<div class="offline-overlay" *ngIf="device_online == false">
+  <p>{{'devices.device-offline' | translate}}</p>
+</div>
+
+<ion-card-content>
+  <div id="open-modal" class="button message-icon" [class.warn]="severity == 1" [class.error]="severity == 2" *ngIf="has_logs" (click)="showLogs()">
+    <ion-icon name="alert-circle-outline"></ion-icon>
+  </div>
+
+  <ion-content class="ion-padding">
+    <ion-modal [isOpen]="showDeviceLog" (willDismiss)="showDeviceLog = false">
+      <ng-template>
+        <ion-header>
+          <ion-toolbar>
+            <ion-title>{{'devices.device-log' | translate}}</ion-title>
+            <ion-buttons slot="end">
+              <ion-button (click)="showDeviceLog = false">{{'misc.close' | translate}}</ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-header>
+        <ion-content class="ion-padding">
+          <ion-accordion-group>
+            <ng-container  *ngFor="let message of logs" >
+              <ion-accordion toggleIcon="caret-down" toggleIconSlot="start">
+                <ion-item slot="header" [color]="message.severity == 1 ? 'warning' : message.severity == 2 ? 'danger' : 'light'">
+                  <ion-label><span class="timestamp">{{message.time}}</span> {{message.message + '-title' | translate}}</ion-label>
+                </ion-item>
+                <div class="ion-padding" slot="content">{{message.message + '-text' | translate}}</div>
+              </ion-accordion>
+            </ng-container>
+          </ion-accordion-group>
+
+        </ion-content>
+        <ion-footer>
+          <ion-button expand="block" (click)="clearLogs()">{{'devices.clear-log' | translate}}</ion-button>
+        </ion-footer>
+      </ng-template>
+    </ion-modal>
+  </ion-content>
+
+  <div style="height: 20px"></div>
+  <h1 style="z-index: 1000" (click)="editName()" *ngIf="!editingName">{{device_name}}</h1>
+  <input style="display: none; font-size: 24px;" #nameedit type="text" [(ngModel)]="device_name" (blur)="doneEdit()"/>
+  <h3>{{'devices.dryer.title' | translate}}</h3>
+  <ion-row class="ion-justify-content-center">
+    <ion-col size="6" size-sm="3" size-xl="2">
+      <value-display
+        name="Temperature"
+        icon="temperature_neutral"
+        unit="°C"
+        [value]="data.measure(device_id, 'temperature') | async | round"
+        scale-min="0"
+        scale-max="50"
+        [limit-min]="t_l"
+        [limit-max]="t_h"
+
+      ></value-display>
+    </ion-col>
+    <ion-col size="6" size-sm="3" size-xl="2">
+      <value-display
+        name="humidity"
+        icon="humidity_neutral"
+        unit="%"
+        [value]="data.measure(device_id, 'humidity') | async | round"
+        scale-min="0"
+        scale-max="100"
+        [limit-min]="r_l"
+        [limit-max]="r_h"
+
+      ></value-display>
+    </ion-col>
+
+  </ion-row>
+  <ion-row class="ion-justify-content-center">
+    <ion-col size="6" size-sm="2" size-xl="1">
+      <div class="onoff heating" [class.on]="(data.measure(device_id, 'out_heater') | async) ?? 0 >= 0.5">
+        <img class="icon-on" src="assets/icon/heating.svg" />
+        <img class="icon-off" src="assets/icon/heating_off.svg" />
+        <!-- <div class="name">{{'outputs.heating' | translate}}</div> -->
+        <div class="current">{{data.measure(device_id, 'out_heater') | async | multiply:100 | nofract}}%</div>
+      </div>
+    </ion-col>
+    <ion-col size="6" size-sm="2" size-xl="1">
+      <div class="onoff cooling" [class.on]="(data.measure(device_id, 'out_dehumidifier') | async) != 0">
+        <img class="icon-on" src="assets/icon/dehumidify.svg" />
+        <img class="icon-off" src="assets/icon/dehumidify_off.svg" />
+        <!-- <div class="name">{{'outputs.dehumidify' | translate}}</div> -->
+        <div class="current">{{data.measure(device_id, 'out_dehumidifier') | async | onoff | translate}}</div>
+      </div>
+    </ion-col>
+  </ion-row>
+  <ion-row>
+    <ion-col size-md="2" size-sm="3" size="12" style="z-index: 1000">
+      <ion-button expand="block" [routerLink]="['/device', device_id, 'charts']">{{'devices.button-charts' | translate}}</ion-button>
+    </ion-col>
+    <ion-col size-md="2" size-sm="3" size="12" style="z-index: 1000">
+      <ion-button expand="block" [disabled]="device_online == false" [routerLink]="['/device', device_id, 'settings']">{{'devices.button-settings' | translate}}</ion-button>
+    </ion-col>
+    <!-- <ion-col size-md="2" size-sm="3" size="12" style="z-index: 1000">
+      <ion-button expand="block" [disabled]="device_online == false" [routerLink]="['/device', device_id, 'testmode']">Testmode</ion-button>
+    </ion-col> -->
+    <ion-col offset-md="6" size-md="2" size-sm="3" size="12" style="z-index: 1000">
+      <ion-button expand="block" (click)="unClaimDevice(device_id)">{{'devices.button-delete' | translate}}</ion-button>
+    </ion-col>
+  </ion-row>
+</ion-card-content>

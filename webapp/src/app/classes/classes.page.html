@@ -1,0 +1,69 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Fleet/Firmware Management</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ng-container *ngFor="let cls of classes">
+    <ion-item>
+      <ion-label>{{cls.class.name}} - {{cls.class.description}}</ion-label>
+    </ion-item>
+    <div class="ion-padding">
+      <ion-grid>
+        <ion-row>
+          <ion-col>Name:</ion-col>
+          <ion-col><ion-input label="name" [(ngModel)]="cls.class.name"></ion-input></ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col>Description:</ion-col>
+          <ion-col><ion-input label="description" [(ngModel)]="cls.class.description"></ion-input></ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col>Concurrent Upgrades:</ion-col>
+          <ion-col><ion-input label="concurrent" [(ngModel)]="cls.class.concurrent"></ion-input></ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col>Max Failes:</ion-col>
+          <ion-col><ion-input label="concurrent" [(ngModel)]="cls.class.maxfails"></ion-input></ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col>Current Firmware:</ion-col>
+          <ion-col>{{cls.class.firmware_id}}</ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col>
+            <ion-button color="secondary" (click)="updateClass(cls.class);">update</ion-button>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+      <ion-grid>
+        <ion-row>
+          <ion-col size="3">ID</ion-col>
+          <ion-col>Version</ion-col>
+          <ion-col>online</ion-col>
+          <ion-col>total</ion-col>
+          <ion-col>upgrading</ion-col>
+          <ion-col>failed</ion-col>
+          <ion-col>avg</ion-col>
+          <ion-col>max</ion-col>
+          <ion-col>rollout</ion-col>
+        </ion-row>
+        <ion-row *ngFor="let fw of cls.versions" [class.active]="fw.fw.firmware_id == cls.class.firmware_id">
+          <ion-col size="3">{{fw.fw.firmware_id || "unknown"}}</ion-col>
+          <ion-col>{{fw.fw.version}}</ion-col>
+          <ion-col>{{fw.online}}</ion-col>
+          <ion-col>{{fw.total}}</ion-col>
+          <ion-col>{{fw.updating}}</ion-col>
+          <ion-col>{{fw.failed}}</ion-col>
+          <ion-col>{{fw.avgtime / 1000}}</ion-col>
+          <ion-col>{{fw.maxtime / 1000}}</ion-col>
+          <ion-col><ion-button *ngIf="fw.fw.firmware_id" color="secondary" (click)="rollout(cls.class, fw.fw.firmware_id);">rollout</ion-button></ion-col>
+        </ion-row>
+      </ion-grid>
+    </div>
+  </ng-container>
+</ion-content>

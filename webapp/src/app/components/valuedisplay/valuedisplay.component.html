@@ -1,0 +1,105 @@
+<div class="container">
+<!--   
+  <div class="placer">
+    <img style="width:100%;height:auto;" src="/assets/icon/{{icon}}.svg" />
+  </div> -->
+  <svg 
+    version="1.1"
+    baseProfile="full"
+    viewBox="0 0 500 500">
+
+    <g stroke="#eee" fill="none" stroke-width="10">
+      <circle cx="250" cy="250" r="190" />
+    </g>
+
+    <g stroke="#eee" fill="none" stroke-width="5" *ngIf="!isNaN(limit_min)">
+      <circle cx="250" cy="250" r="175" />
+    </g>
+    
+    <g attr.stroke="{{color_limit}}" fill="none" stroke-width="5" stroke-linecap="button" *ngIf="!isNaN(limit_min)">
+      <!-- <path [attr.d]="'M 250 450 A 200 200 0 ' + arc_end.long + ' 1 ' + arc_end.x + ' ' + arc_end.y" /> -->
+      <path attr.d="{{limit_arc}}" />      
+    </g>    
+
+    <g attr.stroke="{{color}}" fill="none" stroke-width="10" stroke-linecap="button">
+        <!-- <path [attr.d]="'M 250 450 A 200 200 0 ' + arc_end.long + ' 1 ' + arc_end.x + ' ' + arc_end.y" /> -->
+        <path attr.d="{{value_arc}}" />    
+    </g>    
+
+    <polygon points="55,250 45,242 45,258" attr.fill="{{color}}" attr.transform="rotate({{rot_value}} 250 250)"/>
+
+    <!-- <line x1="150" x2="350" y1="250" y2="250" style="stroke:black;stroke-width:4"/> -->
+    <text 
+      x="250" 
+      y="225" 
+      font-family="Open Sans" 
+      font-size="60px" 
+      style="font-weight: 300;"
+      text-anchor="middle"
+      attr.fill="{{color}}"
+    >
+      {{value}}
+    </text>    
+
+    <text 
+      x="250" 
+      y="265" 
+      font-family="Open Sans" 
+      font-size="30px" 
+      text-anchor="middle"
+    >
+      {{unit}}
+    </text>
+
+    <image x="190" y="285" width="120" height="120" attr.xlink:href="./assets/icon/{{icon}}.svg" />
+
+    <text 
+      x="420"
+      y="260"
+      font-family="Open Sans" 
+      font-size="20px" 
+      text-anchor="end"
+      attr.transform="rotate({{rot_min - 180}} 250 250)"
+      *ngIf="!isNaN(limit_min) && rot_min > 90"
+    >
+      {{limit_min}}
+    </text>
+
+    <text
+      x="80"
+      y="250"
+      font-family="Open Sans"
+      font-size="20px"
+      text-anchor="begin"
+      attr.transform="rotate({{rot_min}} 250 250)"
+      *ngIf="!isNaN(limit_min) && rot_min < 90"
+    >
+      {{limit_min}}
+    </text>
+
+    <text
+      x="420"
+      y="260"
+      font-family="Open Sans"
+      font-size="20px"
+      text-anchor="end"
+      attr.transform="rotate({{rot_max - 180}} 250 250)"
+      *ngIf="!isNaN(limit_max) && rot_max > 90"
+    >
+      {{limit_max}}
+    </text>
+
+    <text
+      x="80" 
+      y="250" 
+      font-family="Open Sans" 
+      font-size="20px" 
+      text-anchor="begin"
+      attr.transform="rotate({{rot_max}} 250 250)"
+      *ngIf="!isNaN(limit_max) && rot_max < 90"
+    >
+      {{limit_max}}
+    </text>
+
+  </svg>
+</div>

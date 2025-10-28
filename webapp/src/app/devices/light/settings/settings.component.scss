@@ -1,0 +1,21 @@
+.save-overlay {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  right: 0px;
+  bottom: 0px;
+  z-index: 100;
+  background-color: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .inner {
+    color: white;
+    text-align: center;
+    ion-spinner {
+      width: 100px;
+      height: 100px;
+    }
+  }
+}

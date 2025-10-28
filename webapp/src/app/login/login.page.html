@@ -1,0 +1,166 @@
+<!-- <ion-content [fullscreen]="true">
+  <div id="container">
+    <ion-item>
+      <ion-label position="floating">Username</ion-label>
+      <ion-input placeholder="user" [(ngModel)]="username" (keydown.enter)="login()" type="text"></ion-input>
+    </ion-item>
+    <ion-item lines="none">
+      <ion-label position="floating">Password</ion-label>
+      <ion-input placeholder="password" [(ngModel)]="password" (keydown.enter)="login()" type="password"></ion-input>
+    </ion-item>
+
+    <ion-button color="secondary" expand="block" (click)="login()">{{'buttons.login'}}</ion-button>
+  </div>
+</ion-content> -->
+<ion-content class="maxwidth">
+  <div class="outer">
+    <div class="inner">
+    <div style="text-align: center;">
+      <img src="assets/plantalytix_logo.png" style="width:60%;height:auto"/>
+    </div>
+
+    <ion-card color="danger" *ngIf="message == 1">
+      <ion-card-header>
+        <ion-card-title>Login failed</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>Incorrect email/password</ion-card-content>
+    </ion-card>
+
+    <ion-card color="danger" *ngIf="message == 2">
+      <ion-card-header>
+        <ion-card-title>Login failed</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>You need to activate your account first</ion-card-content>
+    </ion-card>
+
+    <ion-card color="danger" *ngIf="message == 3">
+      <ion-card-header>
+        <ion-card-title>Login failed</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>Connection error</ion-card-content>
+    </ion-card>
+
+    <ion-card color="danger" *ngIf="message == 4">
+      <ion-card-header>
+        <ion-card-title>Error</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>Passwords don't match</ion-card-content>
+    </ion-card>
+
+    <ion-card color="danger" *ngIf="message == 5">
+      <ion-card-header>
+        <ion-card-title>Error</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>Invalid activation code</ion-card-content>
+    </ion-card>
+
+    <ion-card color="success" *ngIf="message == 6">
+      <ion-card-header>
+        <ion-card-title>Account created</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>An activation code has been sent to your email address.</ion-card-content>
+    </ion-card>
+
+    <ion-card color="success" *ngIf="message == 7">
+      <ion-card-header>
+        <ion-card-title>Account activated</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>Your account has been activated, you can now <a href="/login">login</a></ion-card-content>
+    </ion-card>
+
+    <ion-card color="danger" *ngIf="message == 8">
+      <ion-card-header>
+        <ion-card-title>Error</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>Email allready in use</ion-card-content>
+    </ion-card>
+
+    <ion-card color="success" *ngIf="message == 9">
+      <ion-card-header>
+        <ion-card-title>Sent</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>Recovery link was sent</ion-card-content>
+    </ion-card>
+
+    <ion-card color="danger" *ngIf="message == 10">
+      <ion-card-header>
+        <ion-card-title>Error</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>Wrong password token</ion-card-content>
+    </ion-card>
+
+    <ng-container *ngIf="mode == 0">
+      <ion-item>
+        <ion-label position="floating">email</ion-label>
+        <ion-input placeholder="user" [(ngModel)]="username" (keydown.enter)="login()" type="text"></ion-input>
+      </ion-item>
+      <ion-item lines="none">
+        <ion-label position="floating">password</ion-label>
+        <ion-input placeholder="password" [(ngModel)]="password" (keydown.enter)="login()" type="password"></ion-input>
+      </ion-item>
+    </ng-container>
+
+    <ng-container *ngIf="mode == 1">
+      <ion-item>
+        <ion-label position="floating">email</ion-label>
+        <ion-input placeholder="user" [(ngModel)]="username" (keydown.enter)="register()" type="text"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label position="floating">password</ion-label>
+        <ion-input placeholder="password" [(ngModel)]="password" (keydown.enter)="register()" type="password"></ion-input>
+      </ion-item>
+      <ion-item lines="none">
+        <ion-label position="floating">repeat password</ion-label>
+        <ion-input placeholder="password" [(ngModel)]="repeat" (keydown.enter)="register()" type="password"></ion-input>
+      </ion-item>
+      <ion-item lines="none">
+        <ion-label>Ich akzeptiere die <a (click)="presentModal()">Datenschutzbedingungen</a></ion-label>
+        <ion-checkbox [(ngModel)]="dsvgo_agreed" slot="start" ></ion-checkbox>
+      </ion-item>
+    </ng-container>
+
+    <ion-button [disabled]="working" color="secondary" expand="block" (click)="login()" *ngIf="mode == 0">Login</ion-button>
+    <ion-button [disabled]="working || !dsvgo_agreed" color="secondary" expand="block" (click)="register()" *ngIf="mode == 1">Create Account</ion-button>
+
+    <ion-button [disabled]="working" color="secondary" expand="block" (click)="mode = 1; message = 0" *ngIf="mode == 0">Create Account</ion-button>
+    <ion-button [disabled]="working" color="secondary" expand="block" (click)="mode = 0; message = 0" *ngIf="mode == 1">Login existing Account</ion-button>
+
+    <ng-container *ngIf="mode == 2">
+      <ion-item lines="none">
+        <ion-label position="floating">email</ion-label>
+        <ion-input placeholder="user" [(ngModel)]="username" (keydown.enter)="sendRecovery()" type="text"></ion-input>
+      </ion-item>
+    </ng-container>
+
+    <ion-button [disabled]="working" color="secondary" expand="block" (click)="sendRecovery()" *ngIf="mode == 2">Send recovery link</ion-button>
+
+    <p style="text-align: center;" *ngIf="mode == 0"><a (click)="mode = 2">forgot password</a></p>
+    <p style="text-align: center;" *ngIf="mode == 2"><a (click)="mode = 0">back to login</a></p>
+
+    <ng-container *ngIf="mode == 3">
+      <ion-item>
+        <ion-label position="floating">password</ion-label>
+        <ion-input placeholder="password" [(ngModel)]="password" (keydown.enter)="recover()" type="password"></ion-input>
+      </ion-item>
+      <ion-item lines="none">
+        <ion-label position="floating">repeat password</ion-label>
+        <ion-input placeholder="password" [(ngModel)]="repeat" (keydown.enter)="recover()" type="password"></ion-input>
+      </ion-item>
+    </ng-container>
+
+    <ion-button [disabled]="working" color="secondary" expand="block" (click)="recover()" *ngIf="mode == 3">Change Password</ion-button>
+
+    <ion-card color="success" *ngIf="mode == 4">
+      <ion-card-header>
+        <ion-card-title>Success</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>Password was changed, you can now <a (click)="mode=0">login</a></ion-card-content>
+    </ion-card>
+
+    </div>
+  </div>
+</ion-content>
+<!-- <ion-grid style="height: 100%">
+  <ion-row justify-content-center align-items-center style="height: 100%">
+  </ion-row>
+</ion-grid> -->

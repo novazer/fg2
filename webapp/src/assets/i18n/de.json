@@ -1,0 +1,221 @@
+{
+  "misc": {
+    "on": "Ein",
+    "off": "Aus",
+    "day": "Tag",
+    "night": "Nacht",
+    "confirm": "Änderungen bestätigen",
+    "error": "Fehler",
+    "success": "Erfolg",
+    "close": "Schließen",
+    "saving": "speichern...",
+    "save": "Speichern",
+    "settings": "Einstellungen"
+  },
+
+  "settings": {
+    "daynight": "Tag/Nacht Zyklus",
+    "daybreak": "Sonnenaufgang",
+    "nightfall": "Sonnenuntergang",
+    "day-climate": "Klima TAG",
+    "night-climate": "Klima NACHT",
+    "climate": "Klima",
+    "temperature": "Temperatur",
+    "humidity": "Luftfeuchtigkeit",
+    "co2": "CO2",
+    "co2-day": "CO2 Tag",
+    "co2-night": "CO2 Nacht",
+    "co2-on": "Anreicherung Einschalten",
+    "co2-off": "Anreicherung Ausschalten",
+    "lights": "Licht",
+    "sunrise": "Sonnenaufgangsperiode",
+    "sunset": "Sonnenuntergangsperiode",
+    "lightlimit": "Maximalleistung",
+    "speed": "Geschwindigkeit",
+    "maxspeed": "Maximalgeschwindigkeit",
+    "minspeed": "Minimalgeschwindigkeit",
+    "general": "Allgemein",
+    "templimit": "Temperaturlimit",
+    "fanspeeds": "Lüftergeschwindigkeit",
+    "externalfan": "Klemmlüfter",
+    "internalfan": "Interne lüfter (Minimalgeschwindigkeit)",
+    "use-daynight": "Tag/Nacht Zyklus verwenden",
+    "timer": "Timer",
+    "timer-ontime": "Einschaltzeitpunkt",
+    "timer-duration": "Einschaltdauer",
+    "timer-add": "Zeitslot hinzufügen",
+    "timer-remove": "Zeitslot entfernen"
+  },
+
+  "menu": {
+    "devices": "Geräte",
+    "account": "Benutzer",
+    "logout": "Ausloggen"
+  },
+  "account": {
+    "title": "Benutzer",
+    "change-password": "Passwort ändern",
+    "new-password": "Neues Passwort",
+    "repeat-password": "Passwort wiederhohlen",
+    "logout": "Ausloggen",
+    "messages": {
+      "pwmatch": "Passwörter stimmen nicht überein",
+      "confail": "Verbindungsproblem",
+      "changed": "Passwort wurde geändert"
+    }
+  },
+  "device-list": {
+    "title": "Meine Geräte",
+    "claim": "GERÄTECODE HIER EINGEBEN",
+    "claim-button": "Hinzufügen"
+  },
+  "charts": {
+    "title": "Graphen"
+  },
+
+  "devices": {
+    "button-settings": "Einstellungen",
+    "page-settings": "Einstellungen",
+    "button-charts": "Graphen",
+    "button-delete": "Löschen",
+    "device-offline": "Gerät offline",
+    "device-log": "Logs",
+    "clear-log": "Logs löschen",
+
+    "fridge": {
+      "title": "Plantalytix FRIDGE GROW",
+      "workmode": "Arbeitsmodus",
+      "workmode-small": "Kleine Pflanzen",
+      "workmode-default": "Große Pflanzen",
+      "workmode-temp": "Gewächshaus",
+      "workmode-dry": "Trocknung",
+      "workmode-breed": "Keimung",
+      "workmode-off": "AUS",
+      "settings": {
+        "floating-day": "Benutzerspezifizierte Tageslänge für Tag/Nacht Zyklus verwenden (statt 24h)",
+        "float-start": "Start des ersten Tags",
+        "day_duration": "Gesamtdauer Tag/Nacht Zyklus",
+        "light_duration": "Dauer der Beleuchtungsperiode"
+      }
+    },
+
+    "fan": {
+      "title": "Plantalytix AIR",
+      "workmode": "Arbeitsmodus",
+      "workmode-fixed": "Konstante Geschwindigkeit",
+      "workmode-temp": "Temperaturgeregelt",
+      "workmode-hum": "Luftfeuchtigkeitsgeregelt",
+      "workmode-temphum": "Temperatur- & Luftfeuchtigkeitsgeregelt",
+      "co2inject": {
+        "name": "Automatische Geschwindigkeitsreduktion",
+        "description": "Dieser Lüfter ist mit einer Plantalytix Smart Socket im CO2 Modus verbunden und seine Geschwindigkeit wird wärend der CO2 Begasung automatisch reduziert!",
+        "clear": "Verbindung aufheben"
+      }
+    },
+
+    "light": {
+      "title": "Plantalytix LIGHT"
+    },
+
+    "plug": {
+      "title": "Plantalytix SMART SOCKET",
+      "workmode": "Arbeitsmodus",
+      "workmode-heater": "Heizung",
+      "workmode-cooler": "Kühlung",
+      "workmode-humidify": "Befeuchter",
+      "workmode-dehumidify": "Entfeuchter",
+      "workmode-co2": "CO2 Anreicherung",
+      "workmode-watering": "Bewässerung",
+      "workmode-off": "Aus",
+      "workmode-timer": "Timer",
+      "workmode-light": "Beleuchtung",
+      "co2sensor-title": "CO2 Sensor erforderlich!",
+      "co2sensor-text": "Dieser Arbeitsmodus erfordert einen optional erhältlichen CO2 Sensor.",
+      "settings": {
+        "heater-name": "Heizen",
+        "heater-name-day": "Heizen - Tags",
+        "heater-name-night": "Heizen - Nachts",
+        "heater-on": "Einschaltpunkt",
+        "heater-on-desc": "Steckdose wird EIN geschaltet wenn die gemessene Temperatur UNTER diesen Wert sinkt.",
+        "heater-off": "Ausschaltpunkt",
+        "heater-off-desc": "Steckdose wird AUS geschaltet wenn die gemessene Temperatur ÜBER diesen Wert steigt.",
+        "cooler-name": "Kühlen",
+        "cooler-name-day": "Kühlen - Tags",
+        "cooler-name-night": "Kühlen - Nachts",
+        "cooler-on": "Einschaltpunkt",
+        "cooler-on-desc": "Steckdose wird EIN geschaltet wenn die gemessene Temperatur ÜBER diesen Wert steigt.",
+        "cooler-off": "Ausschaltpunkt",
+        "cooler-off-desc": "Steckdose wird AUS geschaltet wenn die gemessene Temperatur UNTER diesen Wert sinkt.",
+        "humidify-name": "Befeuchten",
+        "humidify-name-day": "Befeuchten - Tags",
+        "humidify-name-night": "Befeuchten - Nachts",
+        "humidify-on": "Einschaltpunkt",
+        "humidify-on-desc": "Steckdose wird EIN geschaltet wenn die gemessene Luftfeuchtigkeit UNTER diesen Wert sinkt.",
+        "humidify-off": "Ausschaltpunkt",
+        "humidify-off-desc": "Steckdose wird AUS geschaltet wenn die gemessene Luftfeuchtigkeit ÜBER diesen Wert steigt.",
+        "dehumidify-name": "Entfeuchten",
+        "dehumidify-name-day": "Entfeuchten - Tags",
+        "dehumidify-name-night": "Entfeuchten - Nachts",
+        "dehumidify-on": "Einschaltpunkt",
+        "dehumidify-on-desc": "Steckdose wird EIN geschaltet wenn die gemessene Luftfeuchtigkeit ÜBER diesen Wert steigt.",
+        "dehumidify-off": "Ausschaltpunkt",
+        "dehumidify-off-desc": "Steckdose wird AUS geschaltet wenn die gemessene Luftfeuchtigkeit UNTER diesen Wert sinkt.",
+        "co2": {
+          "dayonly": "Nur tagsüber aktivieren",
+          "mode": "CO2 Modus",
+          "mode-periodic": "Periodische Begasung",
+          "mode-const": "Konstante Begasung",
+          "period": "Begasungsperiode",
+          "duration": "Begasungsdauer",
+          "fan": "Automatische Lüfter Dimmung",
+          "fanspeed": "Lüftergeschwindigkeit wärend der Begasung",
+          "no-fan": "Kein Lüfter / deaktiviert",
+          "value": "CO2 Zielwerte",
+          "on": "Steckdose einschalten bei",
+          "off": "Steckdose ausschalten bei"
+        },
+        "limits": {
+          "title": "Schutzfunktionen",
+          "overtemperature": {
+            "enabled": "Übertemperaturschutz aktivieren",
+            "limit": "Temperaturgrenze",
+            "limit-desc": "Steckdose wird beim überschreiten dieser Temperatur ausgeschaltet",
+            "hysteresis": "Wiedereinschalt Hysterese",
+            "hysteresis-desc": "Temperatur muss diesen Wert unter die Temperaturgrenze fallen damit die Steckdose wiedereingeschaltet wird"
+          },
+          "undertemperature": {
+            "enabled": "Untertemperaturschutz aktivieren",
+            "limit": "Temperaturgrenze",
+            "limit-desc": "Steckdose wird beim unterschreiten dieser Temperatur ausgeschaltet",
+            "hysteresis": "Wiedereinschalt Hysterese",
+            "hysteresis-desc": "Temperatur muss diesen Wert über die Temperaturgrenze steigen damit die Steckdose wiedereingeschaltet wird"
+          },
+          "time": {
+            "enabled": "Minimale Schaltzeiten",
+            "min_on": "Minimale Einschaltdauer",
+            "min_on-desc": "Die Steckdose bleibt, nach dem Einschalten, für mindestens diese Zeit eingeschaltet",
+            "min_off": "Minimale Ausschaltdauer",
+            "min_off-desc": "Die Steckdose bleibt, nach dem Ausschalten, für mindestens diese Zeit ausgeschaltet"
+          }
+        }
+      }
+    }
+  },
+
+
+  "message-lost-connection-title": "Verbindungsproblem",
+  "message-lost-connection-text": "Die Verbindung zwischen deinem Gerät und unserem Server ist abgebrochen und wurde wiederhergestellt. Wenn dieser Fehler oft auftritt überprüfe bitte dein WLAN und deine Internetverbindung.",
+  "message-device-booted-title": "Gerät ist neu gestarted",
+  "message-device-booted-text": "Dein Gerät ist neu gestarted. Wenn dieser Fehler oft auftritt überprüfe bitte die Stromversorgung.",
+  "message-buffer-overflow-title": "Verbindungsproblem.",
+  "message-buffer-overflow-text": "Daten konnten nicht zum Server übertragen werden. Bitte Internetverbindung und WLAN überprüfen.",
+  "message-co2-low-title": "Niedriger CO2 Wert",
+  "message-co2-low-text": "CO2 Flasche prüfen!",
+  "message-device-firmware-update-title": "Update",
+  "message-device-firmware-update-text": "Die Software von deinem Gerät wurde geupdated.",
+  "message-ext-sensor-deviate": "Externer und interner Sensor weichen ab! Sensorplazierung überprüfen!",
+  "message-ext-sensor-fail": "Externer Sensor ist ausgefallen!"
+
+
+}
+

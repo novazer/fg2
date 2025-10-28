@@ -1,0 +1,18 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>{{'misc.settings' | translate}}</ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content>
+  <ng-container [ngSwitch]="device_type">
+    <fan-settings [device_id]="device_id" *ngSwitchCase="'fan'"></fan-settings>
+    <fridge-settings [device_id]="device_id" *ngSwitchCase="'fridge'"></fridge-settings>
+    <fridge-settings [device_id]="device_id" *ngSwitchCase="'fridge2'"></fridge-settings>
+    <light-settings [device_id]="device_id" *ngSwitchCase="'light'"></light-settings>
+    <plug-settings [device_id]="device_id" *ngSwitchCase="'plug'"></plug-settings>
+    <dryer-settings [device_id]="device_id" *ngSwitchCase="'dryer'"></dryer-settings>
+  </ng-container>
+</ion-content>

@@ -1,0 +1,233 @@
+{
+  "misc": {
+    "on": "On",
+    "off": "Off",
+    "day": "Day",
+    "night": "Night",
+    "confirm": "Confirm changes",
+    "error": "Error",
+    "success": "Success",
+    "close": "Close",
+    "saving": "saving...",
+    "save": "save",
+    "settings": "Settings"
+  },
+
+  "settings": {
+    "daynight": "Day/Night cycle",
+    "daybreak": "Daybreak",
+    "nightfall": "Nightfall",
+    "day-climate": "Daytime climate",
+    "night-climate": "Nighttime climate",
+    "climate": "Climate",
+    "temperature": "Temperature",
+    "humidity": "Humidity",
+    "co2": "CO2",
+    "co2-day": "CO2 Daytime",
+    "co2-night": "CO2 Nighttime",
+    "co2-on": "Injection Start",
+    "co2-off": "Injection End",
+    "lights": "Lights",
+    "sunrise": "Sunrise period",
+    "sunset": "Sunset period",
+    "lightlimit": "Maximum power",
+    "speed": "Speed",
+    "maxspeed": "Maximum speed",
+    "minspeed": "Minimum speed",
+    "general": "General",
+    "templimit": "Temperature limit",
+    "fanspeeds": "Fan speeds",
+    "externalfan": "External fan",
+    "internalfan": "Internal fans (minimum)",
+    "use-daynight": "Use Day/Night Cycle",
+    "timer": "Timer",
+    "timer-ontime": "Turn-ON Time",
+    "timer-duration": "Duration",
+    "timer-add": "Add Timeslot",
+    "timer-remove": "Remove Timeslot"
+  },
+
+  "menu": {
+    "devices": "Devices",
+    "account": "Account",
+    "logout": "Logout",
+    "diagnostics": "Diagnostics",
+    "fleet": "Fleet"
+  },
+  "account": {
+    "title": "Account",
+    "change-password": "Change Password",
+    "new-password": "New Password",
+    "repeat-password": "Repeat Password",
+    "logout": "Logout",
+    "messages": {
+      "pwmatch": "Passwords don't match",
+      "confail": "Connection failed",
+      "changed": "Your password was changed"
+    }
+  },
+  "device-list": {
+    "title": "Device list",
+    "claim": "ENTER DEVICE CODE",
+    "claim-button": "Claim"
+  },
+  "charts": {
+    "title": "Charts"
+  },
+  "diagnostics": {
+    "serialnumber": "Device serial number",
+    "show": "Show data"
+  },
+
+  "devices": {
+    "button-settings": "Settings",
+    "page-settings": "Settings",
+    "button-charts": "Charts",
+    "button-delete": "Delete",
+    "device-offline": "device offline",
+    "device-log": "Logs",
+    "clear-log": "Clear log",
+
+    "fridge": {
+      "title": "Plantalytix FRIDGE GROW",
+      "workmode": "Control mode",
+      "workmode-small": "Small Plants",
+      "workmode-default": "Big Plants",
+      "workmode-temp": "Greenhouse",
+      "workmode-dry": "Drying",
+      "workmode-breed": "Germination",
+      "workmode-off": "Off",
+      "settings": {
+        "floating-day": "Use custom duration for day/night cycle",
+        "float-start": "Start of first variable day",
+        "day_duration": "Duration of full day/night cycle",
+        "light_duration": "Duration of lighting period"
+      }
+    },
+
+    "dryer": {
+      "title": "Plantalytix FRIDGE DRY",
+      "presets": "Presets",
+      "preset-none": "Custom settings",
+      "preset-slow": "Slow drying",
+      "preset-medium": "Normal drying",
+      "preset-fast": "Fast drying"
+    },
+
+    "fan": {
+      "title": "Plantalytix AIR",
+      "workmode": "Control mode",
+      "workmode-fixed": "Fixed Speed",
+      "workmode-temp": "Temperature controlled",
+      "workmode-hum": "Humidity controller",
+      "workmode-temphum": "Temperature & Humidity controlled",
+      "co2inject": {
+        "name": "Automatic speed reduction",
+        "description": "This fan is paired to a Plantaltix smart socket in CO2 injection mode and its speed will automatically be reduced during CO2 injection",
+        "clear": "Clear pairing"
+      }
+    },
+
+    "light": {
+      "title": "Plantalytix LIGHT"
+    },
+
+    "plug": {
+      "title": "Plantalytix SMART SOCKET",
+      "workmode": "Control mode",
+      "workmode-heater": "Heating",
+      "workmode-cooler": "Cooling",
+      "workmode-humidify": "Humidification",
+      "workmode-dehumidify": "Dehumidification",
+      "workmode-co2": "CO2 Injection",
+      "workmode-watering": "Watering",
+      "workmode-off": "Off",
+      "workmode-timer": "Timer",
+      "workmode-light": "Lighting",
+      "co2sensor-title": "CO2 Sensor required!",
+      "co2sensor-text": "This mode requires an optional CO2 sensor to work.",
+      "settings": {
+        "heater-name": "Heating",
+        "heater-day": "Heating - Daytime",
+        "heater-night": "Heating - Nighttime",
+        "heater-on": "Turn ON Point",
+        "heater-on-desc": "Turns output ON when the measured temperature falls BELOW this value",
+        "heater-off": "Turn OFF Point",
+        "heater-off-desc": "Turns output OFF when the measured temperature rises ABOVE this value",
+        "cooler-name": "Cooling",
+        "cooler-day": "Cooling - Daytime",
+        "cooler-night": "Cooling - Nighttime",
+        "cooler-on": "Turn ON Point",
+        "cooler-on-desc": "Turns output ON when the measured temperature rises ABOVE this value",
+        "cooler-off": "Turn OFF Point",
+        "cooler-off-desc": "Turns output OFF when the measured temperature falls BELOW this value",
+        "humidify-name": "Humidification",
+        "humidify-day": "Humidification - Daytime",
+        "humidify-night": "Humidification - Nighttime",
+        "humidify-on": "Turn ON Point",
+        "humidify-on-desc": "Turns output ON when the measured humidity falls BELOW this value",
+        "humidify-off": "Turn OFF Point",
+        "humidify-off-desc": "Turns output OFF when the measured humidity rises ABOVE this value",
+        "dehumidify-name": "Dehumidification",
+        "dehumidify-day": "Dehumidification - Daytime",
+        "dehumidify-night": "Dehumidification - Nighttime",
+        "dehumidify-on": "Turn ON Point",
+        "dehumidify-on-desc": "Turns output ON when the measured humidity rises ABOVE this value",
+        "dehumidify-off": "Turn OFF Point",
+        "dehumidify-off-desc": "Turns output OFF when the measured humidity falls BELOW this value",
+        "co2": {
+          "dayonly": "Only inject CO2 during daytime",
+          "mode": "CO2 Mode",
+          "mode-periodic": "Periodic injection",
+          "mode-const": "Constant injection",
+          "period": "CO2 injection period",
+          "duration": "CO2 injection duration",
+          "fan": "Automatic fanspeed reduction",
+          "fanspeed": "Fanspeed during injection",
+          "no-fan": "No fan selected / disabled",
+          "value": "CO2 injection target",
+          "on": "Turn socket on at",
+          "off": "Turn socket off at"
+        },
+        "limits": {
+          "title": "Protections",
+          "overtemperature": {
+            "enabled": "Enable overtemperature protection",
+            "limit": "Temperature limit",
+            "limit-desc": "Socket will be disabled if measured temperature rises above this limit",
+            "hysteresis": "Reenable hysteresis",
+            "hysteresis-desc": "Temperature must fall this value below limit for socket to be reenabled"
+          },
+          "undertemperature": {
+            "enabled": "Enable undertemperature protection",
+            "limit": "Temperature limit",
+            "limit-desc": "Socket will be disabled if measured temperature falls below this limit",
+            "hysteresis": "Reenable hysteresis",
+            "hysteresis-desc": "Temperature must rise this value above limit for socket to be reenabled"
+          },
+          "time": {
+            "enabled": "Enable time limits",
+            "min_on": "Minimal ON time",
+            "min_on-desc": "Socket will not turn off for a minimum of this time after being turned on",
+            "min_off": "Minimal OFF time",
+            "min_off-desc": "Socket will not turn on for a minimum of this time after being turned off"
+          }
+        }
+      }
+    }
+  },
+
+  "message-lost-connection-title": "Connection problem",
+  "message-lost-connection-text": "The connection between your device and our sever was lost and has been reestablished. If this messages appeares regulary please check your wifi and internet connection",
+  "message-device-booted-title": "Device rebooted",
+  "message-device-booted-text": "Your device has rebooted. If this messages appeares regulary please check your power connection",
+  "message-buffer-overflow-title": "Connection problem",
+  "message-buffer-overflow-text": "Data could not be transfered to the server and was lost. Please check your internet connection or wifi.",
+  "message-co2-low-title": "Low CO2",
+  "message-co2-low-text": "Check your CO2 bottle!",
+  "message-device-firmware-update-title": "Update",
+  "message-device-firmware-update-text": "The software of your device was updated",
+  "message-ext-sensor-deviate": "External and internal sensor differ! Check sensor placement!",
+  "message-ext-sensor-fail": "External sensor has failed!"
+}
+

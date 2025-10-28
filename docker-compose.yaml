@@ -1,0 +1,102 @@
+version: '3'
+
+services:
+  mongodb:
+    image: mongo
+    restart: always
+    networks:
+      - main
+    volumes:
+     - ./data/mongodb:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_ADMINUSERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_ADMINPASSWORD}
+
+  mongo-express:
+    image: mongo-express
+    ports:
+      - 8088:8081
+    networks:
+      - main
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGODB_ADMINUSERNAME}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGODB_ADMINPASSWORD}
+      ME_CONFIG_MONGODB_SERVER: "mongodb"
+
+  influxdb:
+    image: influxdb:2
+    restart: always
+    networks:
+      - main
+    ports:
+      - 8086:8086
+    volumes:
+      - ./data/influxdb:/var/lib/influxdb2
+      # - ./config/influxdb-config.yml:/etc/influxdb2/config.yml
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: "setup"
+      DOCKER_INFLUXDB_INIT_USERNAME: ${INFLUXDB_USERNAME}
+      DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUXDB_PASSWORD}
+      DOCKER_INFLUXDB_INIT_ORG: ${INFLUXDB_ORG}
+      DOCKER_INFLUXDB_INIT_BUCKET: ${INFLUXDB_BUCKET}
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUXDB_TOKEN}
+
+  rabbitmq:
+    build: ./rabbitmq
+    restart: always
+    ports:
+      - 1883:1883
+    networks:
+      - main
+
+  webapp:
+    build: ./webapp
+    restart: always
+    ports:
+      - 8080:80
+    networks:
+      - main
+
+  server:
+    build: ./server
+    restart: always
+    links:
+     - mongodb
+     - influxdb
+     - rabbitmq
+    ports:
+      - 8081:8081
+    networks:
+      - main
+    environment:
+      SECRET_KEY: ${TOKEN_SECRET_KEY}
+      PORT: ${API_PORT}
+      API_URL_EXTERNAL: ${API_URL_EXTERNAL}
+      DB_HOST: "mongodb"
+      DB_PORT: "27017"
+      DB_DATABASE: ${MONGODB_DATABASE}
+      DB_USER: ${MONGODB_ADMINUSERNAME}
+      DB_PASSWORD: ${MONGODB_ADMINPASSWORD}
+      MQTT_URL: "rabbitmq"
+      INFLUXDB_TOKEN: ${INFLUXDB_TOKEN}
+      INFLUXDB_HOST: 'influxdb'
+      INFLUXDB_BUCKET: ${INFLUXDB_BUCKET}
+      INFLUXDB_ORG: ${INFLUXDB_ORG}
+      AUTOMATION_TOKEN: ${AUTOMATION_TOKEN}
+      LOG_FORMAT: "combined"
+      LOG_DIR: "/var/log/plantalytix"
+      ENABLE_SELF_REGISTRATION: ${ENABLE_SELF_REGISTRATION}
+      SELF_REGISTRATION_PASSWORD: ${SELF_REGISTRATION_PASSWORD}
+      ADMINUSER_USERNAME: ${ADMINUSER_USERNAME}
+      ADMINUSER_PASSWORD: ${ADMINUSER_PASSWORD}
+      REQUIRE_ACTIVATION: ${REQUIRE_ACTIVATION}
+      ACTIVATION_SENDER: ${ACTIVATION_SENDER}
+      ACTIVATION_SMTP_SERVER: ${ACTIVATION_SMTP_SERVER}
+      ACTIVATION_SMTP_PORT: ${ACTIVATION_SMTP_PORT}
+      ACTIVATION_SMTP_USER: ${ACTIVATION_SMTP_USER}
+      ACTIVATION_SMTP_SECURE: ${ACTIVATION_SMTP_SECURE}
+      ACTIVATION_SMTP_PASSWORD: ${ACTIVATION_SMTP_PASSWORD}
+
+networks:
+  main:
+    driver: bridge

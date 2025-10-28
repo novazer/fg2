@@ -1,0 +1,5 @@
+.pio
+.pio_backup
+.vscode/*
+.vscode
+default_wifi.csv

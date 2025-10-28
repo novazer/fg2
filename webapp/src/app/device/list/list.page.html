@@ -1,0 +1,51 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>{{'device-list.title' | translate}}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-card *ngFor="let device of all_devices">
+    <ion-card-content [ngSwitch]="device.device_type">
+      <fan-overview [device_id]="device.device_id" [device_name]="device.name" *ngSwitchCase="'fan'"></fan-overview>
+      <fridge-overview [device_id]="device.device_id" [device_name]="device.name" *ngSwitchCase="'fridge2'"></fridge-overview>
+      <fridge-overview [device_id]="device.device_id" [device_name]="device.name" *ngSwitchCase="'fridge'"></fridge-overview>
+      <light-overview [device_id]="device.device_id" [device_name]="device.name" *ngSwitchCase="'light'"></light-overview>
+      <plug-overview [device_id]="device.device_id" [device_name]="device.name" *ngSwitchCase="'plug'"></plug-overview>
+      <dryer-overview [device_id]="device.device_id" [device_name]="device.name" *ngSwitchCase="'dryer'"></dryer-overview>
+      <!-- <hr>
+      <p>{{device.device_id}}</p>
+      <p>{{device.device_class[0].name}}</p>
+      <p>{{data.measure(device.device_id, 'temperature') | async | round:1}}°C</p>
+      <p>{{data.measure(device.device_id, 'humidity') | async | round}}%</p>
+      <p>{{data.measure(device.device_id, 'co2') | async | round}}PPM</p>
+
+      <p>heat: {{data.measure(device.device_id, 'out_heater') | async | onoff}}</p>
+      <p>dehum: {{data.measure(device.device_id, 'out_dehumidifier') | async | onoff}}</p>
+      <p>co2: {{data.measure(device.device_id, 'out_co2') | async | onoff}}</p>
+      <p>light: {{data.measure(device.device_id, 'out_light') | async | nofract}}%</p>
+
+      <a [routerLink]="['/device', device.device_id]">Show</a>&nbsp;
+      <a [routerLink]="['/device', device.device_id, 'charts']">Charts</a>&nbsp;
+      <a [routerLink]="['/device', device.device_id, 'settings']">Settings</a>&nbsp;
+      <a [routerLink]="['/device', device.device_id, 'testmode']">Testmode</a>
+      <a style="float:right" (click)="unClaimDevice(device.device_id)">delete</a>
+      <hr> -->
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-content>
+      <ion-item>
+        <ion-label position="floating">{{'device-list.claim' | translate}}</ion-label>
+        <ion-input placeholder="device_id" [(ngModel)]="id"></ion-input>
+      </ion-item>
+      <ion-button color="secondary" expand="block" (click)="claimDevice();">{{'device-list.claim-button' | translate}}</ion-button>
+    </ion-card-content>
+  </ion-card>
+
+
+</ion-content>

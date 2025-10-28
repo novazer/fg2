@@ -1,0 +1,28 @@
+.container {
+  text-align: center;
+}
+
+h1 {
+  text-align: center;
+  display: inline-block;
+  padding: 0;
+  margin: 0;
+  font-size: 16px;
+  font-family: 'Open Sans';
+  line-height: 50px;
+  vertical-align: middle;
+  text-transform: uppercase;
+}
+
+i {
+  float: left;
+  font-size: 50px;
+}
+
+.placer {
+  position: absolute;
+  top: 57%;
+  left: 43%;
+  right: 43%;
+  bottom: 0%;  
+}

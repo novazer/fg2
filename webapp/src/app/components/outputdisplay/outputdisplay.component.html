@@ -1,0 +1,6 @@
+<div class="onoff heating" [class.on]="measurement != 0">
+  <img class="icon-on" [src]="onicon" />
+  <img class="icon-off" [src]="officon" />
+  <div class="name">{{name}}</div>
+  <div class="current">{{measurement | onoff | translate}}</div>
+</div>

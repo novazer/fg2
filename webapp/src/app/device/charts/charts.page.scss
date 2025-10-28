@@ -1,0 +1,153 @@
+highcharts-chart {
+  width: 100%;
+  height:calc(100vh - 180px);
+  display:block;
+}
+
+.measure-select {
+  border:1px solid black;
+  margin: 2px;
+  border-radius: 5px;
+  text-align: center;
+  i {
+    font-size: 200%;
+  }
+  h4 {
+    margin-top: 5px;
+    font-size: 11pt;
+  }
+  input {
+    display: inline-block;
+    width: auto;
+  }
+  ul {
+    list-style: none;
+    margin: 0px;
+    padding: 0px;
+    text-align: left;
+    li {
+      margin: 0px;
+      padding: 0px;
+    }
+  }
+}
+
+
+.button {
+  top: 5px;
+}
+
+.measure-select.active {
+  background-color: lighten(green, 60);
+}
+
+.onoff {
+  padding: 2px;
+  max-width: 50px;
+}
+
+@media screen and ((max-width: 320px) or (max-height: 600px)) {
+  .onoff {
+    padding: 2px;
+    max-width: 30px;
+  }
+
+  ion-button {
+    font-size: 10px;
+    padding:2px;
+    height: 20px;
+  }
+}
+
+chart {
+  position: absolute;
+  top: 100px;
+  left: 0px;
+  right: 0px;
+  bottom: 10px;
+}
+
+.overlay {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  img {
+    display: inline;
+    height: 10vw;
+    width: auto;
+  }
+  span {
+    padding-left: 10px;
+    font-size: 3vw;
+    font-weight: bold;
+    display: inline-block;
+  }
+  position: absolute;
+  bottom: 150px;
+  left: 50px;
+  height: 10vw;
+}
+
+@media only screen and (min-width: 600px) {
+  .overlay {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    img {
+      display: inline;
+      height: 60px;
+      width: auto;
+    }
+    span {
+      padding-left: 10px;
+      font-size: 20px;
+      font-weight: bold;
+      display: inline-block;
+    }
+    position: absolute;
+    bottom: 150px;
+    left: 50px;
+    height: 60px;
+  }
+}
+.onoff {
+  text-align: center;
+  padding: 0px 0px;
+  i {
+    color: grey;
+    font-size: 40px;
+  }
+  // .name {
+  //   // font-size: 8px;
+  // }
+  .icon-on {
+    display: none;
+  }
+  .icon-off {
+    display: block;
+  }
+}
+
+.onoff.on {
+  i {
+    color: red;
+  }
+  .icon-on {
+    display: block;
+  }
+  .icon-off {
+    display: none;
+  }
+}
+
+.onoff.cooling.on {
+  i {
+    color: blue;
+  }
+}
+
+.onoff.lights.on {
+  i {
+    color: #ffe300;
+  }
+}

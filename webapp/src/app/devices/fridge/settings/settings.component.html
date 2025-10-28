@@ -1,0 +1,264 @@
+<ng-container *ngIf="settings">
+
+  <div class="save-overlay" *ngIf="saving">
+    <div class="inner">
+      <p><ion-spinner color="light"></ion-spinner></p>
+      <p>{{'misc.saving' | translate}}</p>
+    </div>
+  </div>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>{{'devices.fridge.workmode' | translate}}</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-item>
+        <ion-select *ngIf="workmodes" [(ngModel)]="settings.workmode" [interfaceOptions]="{'cssClass': 'wider-popover'}" (ngModelChange)="changeWorkmode()">
+          <ion-select-option *ngFor="let mode of workmodes" [value]="mode.value">{{mode.name}}</ion-select-option>
+        </ion-select>
+      </ion-item>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card *ngIf="has_daycycle">
+    <ion-card-header>
+      <ion-card-title>
+        <i class="icon-light"></i> {{'settings.daynight' | translate}}
+      </ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+
+      <ion-item>
+        <ion-label>{{'devices.fridge.settings.floating-day' | translate}}</ion-label>
+        <ion-checkbox labelPlacement="end" [(ngModel)]="settings.daynight.floating">{{'devices.fridge.settings.floating-day' | translate}}</ion-checkbox>
+      </ion-item>
+
+      <ng-container *ngIf="settings.daynight.floating">
+
+        <ion-item>
+          <ion-label>{{'devices.fridge.settings.float-start' | translate}}</ion-label>
+          <!-- <ion-datetime displayFormat="HH:mm" pickerFormat="HH mm" presentation="time" [(ngModel)]="daybreak" (ngModelChange)="selectCustomPreset()"></ion-datetime> -->
+          <ion-datetime-button datetime="floating"></ion-datetime-button>
+
+          <ion-modal [keepContentsMounted]="true">
+            <ng-template>
+              <ion-datetime id="floating" presentation="date-time" hourCycle="h23" [(ngModel)]="settings.daynight.float_start" minuteValues="0,15,30,45"></ion-datetime>
+            </ng-template>
+          </ion-modal>
+
+        </ion-item>
+
+        <ion-item lines="none">
+          <ion-label>{{'devices.fridge.settings.day_duration' | translate}}</ion-label>
+          <ion-item lines="none">{{settings.daynight.day_duration}} h</ion-item>
+        </ion-item>
+        <ion-item lines="none">
+          <ion-button size="small" fill="clear" (click)="settings.daynight.day_duration = settings.daynight.day_duration - 0.25" [disabled]="settings.daynight.day_duration <= 0"><ion-icon name="remove-circle"></ion-icon></ion-button>
+          <ion-range [(ngModel)]="settings.daynight.day_duration" min="0" max="48" step="0.25"></ion-range>
+          <ion-button size="small" fill="clear" (click)="settings.daynight.day_duration = settings.daynight.day_duration + 0.25" [disabled]="settings.daynight.day_duration >= 48"><ion-icon name="add-circle"></ion-icon></ion-button>
+        </ion-item>
+
+        <ion-item lines="none">
+          <ion-label>{{'devices.fridge.settings.light_duration' | translate}}</ion-label>
+          <ion-item lines="none">{{settings.daynight.light_duration}} h</ion-item>
+        </ion-item>
+        <ion-item lines="none">
+          <ion-button size="small" fill="clear" (click)="settings.daynight.light_duration = settings.daynight.light_duration - 0.25" [disabled]="settings.daynight.light_duration <= 0"><ion-icon name="remove-circle"></ion-icon></ion-button>
+          <ion-range [(ngModel)]="settings.daynight.light_duration" min="0" [max]="settings.daynight.day_duration" step="0.25"></ion-range>
+          <ion-button size="small" fill="clear" (click)="settings.daynight.light_duration = settings.daynight.light_duration + 0.25" [disabled]="settings.daynight.light_duration >= settings.daynight.day_duration"><ion-icon name="add-circle"></ion-icon></ion-button>
+        </ion-item>
+      </ng-container>
+
+      <ng-container *ngIf="!settings.daynight.floating">
+        <ion-item>
+          <ion-label>{{'settings.daybreak' | translate}}</ion-label>
+          <!-- <ion-datetime displayFormat="HH:mm" pickerFormat="HH mm" presentation="time" [(ngModel)]="daybreak" (ngModelChange)="selectCustomPreset()"></ion-datetime> -->
+          <ion-datetime-button datetime="datetime"></ion-datetime-button>
+
+          <ion-modal [keepContentsMounted]="true">
+            <ng-template>
+              <ion-datetime id="datetime" presentation="time" hourCycle="h23" [(ngModel)]="daybreak" minuteValues="0,15,30,45"></ion-datetime>
+            </ng-template>
+          </ion-modal>
+
+        </ion-item>
+        <ion-item lines="none">
+          <ion-label>{{'settings.nightfall' | translate}}</ion-label>
+          <ion-datetime-button datetime="datetime2"></ion-datetime-button>
+
+          <ion-modal [keepContentsMounted]="true">
+            <ng-template>
+              <ion-datetime id="datetime2" presentation="time" hourCycle="h23" [(ngModel)]="nightfall" minuteValues="0,15,30,45"></ion-datetime>
+            </ng-template>
+          </ion-modal>
+
+        </ion-item>
+      </ng-container>
+
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card *ngIf="has_daycycle">
+    <ion-card-header>
+      <ion-card-title> <i class="icon-day"></i> {{'settings.day-climate' | translate}}</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-item lines="none">
+        <ion-label>{{'settings.temperature' | translate}}</ion-label>
+        <ion-item lines="none">{{settings.day.temperature}} °C</ion-item>
+      </ion-item>
+      <ion-item lines="none">
+        <ion-button size="small" fill="clear" (click)="settings.day.temperature = settings.day.temperature - 1" [disabled]="settings.day.temperature <= limits.temperature.min"><ion-icon name="remove-circle"></ion-icon></ion-button>
+        <ion-range [(ngModel)]="settings.day.temperature" min="{{limits.temperature.min}}" max="{{limits.temperature.max}}" step="1" (ngModelChange)="selectCustomPreset()"></ion-range>
+        <ion-button size="small" fill="clear" (click)="settings.day.temperature = settings.day.temperature + 1" [disabled]="settings.day.temperature >= limits.temperature.max"><ion-icon name="add-circle"></ion-icon></ion-button>
+      </ion-item>
+      <ng-container *ngIf="has_humidity">
+        <ion-item lines="none">
+          <ion-label>{{'settings.humidity' | translate}}</ion-label>
+          <ion-item lines="none">{{settings.day.humidity}} %</ion-item>
+        </ion-item>
+        <ion-item lines="none">
+          <ion-button size="small" fill="clear" (click)="settings.day.humidity = settings.day.humidity - 1" [disabled]="settings.day.humidity <= limits.humidity.min"><ion-icon name="remove-circle"></ion-icon></ion-button>
+          <ion-range [(ngModel)]="settings.day.humidity" min="{{limits.humidity.min}}" max="{{limits.humidity.max}}" step="1" (ngModelChange)="selectCustomPreset()"></ion-range>
+          <ion-button size="small" fill="clear" (click)="settings.day.humidity = settings.day.humidity + 1" [disabled]="settings.day.humidity >= limits.humidity.max"><ion-icon name="add-circle"></ion-icon></ion-button>
+        </ion-item>
+      </ng-container>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card *ngIf="settings.workmode != 'off'">
+    <ion-card-header *ngIf="has_daycycle">
+      <ion-card-title> <i class="icon-night"></i> {{'settings.night-climate' | translate}}</ion-card-title>
+    </ion-card-header>
+    <ion-card-header *ngIf="!has_daycycle">
+      <ion-card-title> <i class="icon-night"></i> {{'settings.climate' | translate}}</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-item lines="none">
+        <ion-label>{{'settings.temperature' | translate}}</ion-label>
+        <ion-item lines="none">{{settings.night.temperature}} °C</ion-item>
+      </ion-item>
+      <ion-item lines="none">
+        <ion-button size="small" fill="clear" (click)="settings.night.temperature = settings.night.temperature - 1" [disabled]="settings.night.temperature <= limits.temperature.min"><ion-icon name="remove-circle"></ion-icon></ion-button>
+        <ion-range [(ngModel)]="settings.night.temperature" min="{{limits.temperature.min}}" max="{{limits.temperature.max}}" step="1" (ngModelChange)="selectCustomPreset()"></ion-range>
+        <ion-button size="small" fill="clear" (click)="settings.night.temperature = settings.night.temperature + 1" [disabled]="settings.night.temperature >= limits.temperature.max"><ion-icon name="add-circle"></ion-icon></ion-button>
+      </ion-item>
+      <ng-container *ngIf="has_humidity">
+        <ion-item lines="none">
+          <ion-label>{{'settings.humidity' | translate}}</ion-label>
+          <ion-item lines="none">{{settings.night.humidity}} %</ion-item>
+        </ion-item>
+        <ion-item lines="none">
+          <ion-button size="small" fill="clear" (click)="settings.night.humidity = settings.night.humidity - 1" [disabled]="settings.night.humidity <= limits.humidity.min"><ion-icon name="remove-circle"></ion-icon></ion-button>
+          <ion-range [(ngModel)]="settings.night.humidity" min="{{limits.humidity.min}}" max="{{limits.humidity.max}}" step="1" (ngModelChange)="selectCustomPreset()"></ion-range>
+          <ion-button size="small" fill="clear" (click)="settings.night.humidity = settings.night.humidity + 1" [disabled]="settings.night.humidity >= limits.humidity.max"><ion-icon name="add-circle"></ion-icon></ion-button>
+        </ion-item>
+      </ng-container>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card *ngIf="has_co2">
+    <ion-card-header>
+      <ion-card-title> <i class="icon-co2"></i> {{'settings.co2' | translate}}</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+
+      <ion-item lines="none">
+        <ion-label>{{'settings.co2' | translate}}</ion-label>
+        <ion-item lines="none">{{settings.co2}} ppm</ion-item>
+      </ion-item>
+      <ion-item lines="none">
+        <ion-button size="small" fill="clear" (click)="settings.co2 = settings.co2 - 100" [disabled]="settings.co2 <= limits.co2.min"><ion-icon name="remove-circle"></ion-icon></ion-button>
+        <ion-range [(ngModel)]="settings.co2" min="{{limits.co2.min}}" max="{{limits.co2.max}}" step="100" (ngModelChange)="selectCustomPreset()"></ion-range>
+        <ion-button size="small" fill="clear" (click)="settings.co2 = settings.co2 + 100" [disabled]="settings.co2 >= limits.co2.max"><ion-icon name="add-circle"></ion-icon></ion-button>
+      </ion-item>
+
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card *ngIf="has_daycycle">
+    <ion-card-header>
+      <ion-card-title> <i class="icon-light"></i> {{'settings.lights' | translate}}</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-item lines="none">
+        <ion-label>{{'settings.sunrise' | translate}}:</ion-label>
+        <ion-item lines="none">{{settings.lights.sunrise}} min</ion-item>
+      </ion-item>
+      <ion-item lines="none">
+        <ion-range min="0" max="60" step="1" [(ngModel)]="settings.lights.sunrise" (ngModelChange)="selectCustomPreset()">
+          <ion-label slot="start">0min</ion-label>
+          <ion-label slot="end">60min</ion-label>
+        </ion-range>
+      </ion-item>
+      <ion-item lines="none">
+        <ion-label>{{'settings.sunset' | translate}}:</ion-label>
+        <ion-item lines="none">{{settings.lights.sunset}} min</ion-item>
+      </ion-item>
+      <ion-item lines="none">
+        <ion-range min="0" max="60" step="1" [(ngModel)]="settings.lights.sunset" (ngModelChange)="selectCustomPreset()">
+          <ion-label slot="start">0min</ion-label>
+          <ion-label slot="end">60min</ion-label>
+        </ion-range>
+      </ion-item>
+      <ion-item lines="none">
+        <ion-label>{{'settings.lightlimit' | translate}}:</ion-label>
+        <ion-item lines="none">{{settings.lights.limit}} %</ion-item>
+      </ion-item>
+      <ion-item lines="none">
+        <ion-range min="0" max="100" step="1" [(ngModel)]="settings.lights.limit" (ngModelChange)="selectCustomPreset()">
+          <ion-label slot="start">0%</ion-label>
+          <ion-label slot="end">100%</ion-label>
+        </ion-range>
+      </ion-item>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card *ngIf="settings.workmode != 'off'">
+    <ion-card-header>
+      <ion-card-title> {{'settings.fanspeeds' | translate}}</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-item lines="none">
+        <ion-label>{{'settings.externalfan' | translate}}</ion-label>
+        <ion-item lines="none">{{settings.externalfan}} %</ion-item>
+      </ion-item>
+      <ion-item lines="none">
+        <ion-button size="small" fill="clear" (click)="settings.externalfan = settings.externalfan - 1" [disabled]="settings.externalfan <= 100"><ion-icon name="remove-circle"></ion-icon></ion-button>
+        <ion-range [(ngModel)]="settings.externalfan" min="0" max="100" step="1"></ion-range>
+        <ion-button size="small" fill="clear" (click)="settings.externalfan = settings.externalfan + 1" [disabled]="settings.externalfan >= 0"><ion-icon name="add-circle"></ion-icon></ion-button>
+      </ion-item>
+      <ion-item lines="none">
+        <ion-label>{{'settings.internalfan' | translate}}</ion-label>
+        <ion-item lines="none">{{settings.internalfan}} %</ion-item>
+      </ion-item>
+      <ion-item lines="none">
+        <ion-button size="small" fill="clear" (click)="settings.internalfan = settings.internalfan - 1" [disabled]="settings.internalfan <= 100"><ion-icon name="remove-circle"></ion-icon></ion-button>
+        <ion-range [(ngModel)]="settings.internalfan" min="10" max="100" step="1"></ion-range>
+        <ion-button size="small" fill="clear" (click)="settings.internalfan = settings.internalfan + 1" [disabled]="settings.internalfan >= 10"><ion-icon name="add-circle"></ion-icon></ion-button>
+      </ion-item>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- <ion-card>
+    <ion-card-header>
+      <ion-card-title>{{'settings.control-mode' | translate}}</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-item>
+        <ion-select [(ngModel)]="settings.fridge_mode">
+          <ion-select-option value="1">{{'settings.control-mode-humidity' | translate}}</ion-select-option>
+          <ion-select-option value="2">{{'settings.control-mode-temperature' | translate}}</ion-select-option>
+        </ion-select>
+      </ion-item>
+    </ion-card-content>
+  </ion-card> -->
+
+  <ion-card>
+    <ion-card-content>
+      <ion-button color="secondary" expand="block" (click)="saveSettings();">{{'misc.save' | translate}}</ion-button>
+      <!-- <ion-button color="danger" expand="block" (click)="resetForm();">{{'buttons.revert' | translate}}</ion-button> -->
+    </ion-card-content>
+  </ion-card>
+
+</ng-container>

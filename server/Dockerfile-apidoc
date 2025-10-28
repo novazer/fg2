@@ -1,0 +1,13 @@
+# Common build stage
+FROM node:14.20.0-alpine3.16 as common-build-stage
+
+RUN mkdir -p /app
+WORKDIR /app
+COPY . /app
+
+RUN npm install -g apidoc
+
+RUN apidoc -i src/ -o apidoc/
+
+FROM nginx:latest
+COPY --from=common-build-stage /app/apidoc /usr/share/nginx/html

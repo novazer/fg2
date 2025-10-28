@@ -1,0 +1,103 @@
+
+
+<ng-container *ngIf="settings">
+
+  <div class="save-overlay" *ngIf="saving">
+    <div class="inner">
+      <p><ion-spinner color="light"></ion-spinner></p>
+      <p>{{'misc.saving' | translate}}</p>
+    </div>
+  </div>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>
+        <i class="icon-light"></i> {{'settings.daynight' | translate}}
+      </ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+
+      <ion-item>
+        <ion-label>{{'settings.daybreak' | translate}}</ion-label>
+        <!-- <ion-datetime displayFormat="HH:mm" pickerFormat="HH mm" presentation="time" [(ngModel)]="daybreak" (ngModelChange)="selectCustomPreset()"></ion-datetime> -->
+        <ion-datetime-button datetime="datetime"></ion-datetime-button>
+
+        <ion-modal [keepContentsMounted]="true">
+          <ng-template>
+            <ion-datetime id="datetime" presentation="time" hourCycle="h23" [(ngModel)]="daybreak" minuteValues="0,15,30,45"></ion-datetime>
+          </ng-template>
+        </ion-modal>
+
+      </ion-item>
+      <ion-item lines="none">
+        <ion-label>{{'settings.nightfall' | translate}}</ion-label>
+        <ion-datetime-button datetime="datetime2"></ion-datetime-button>
+
+        <ion-modal [keepContentsMounted]="true">
+          <ng-template>
+            <ion-datetime id="datetime2" presentation="time" hourCycle="h23" [(ngModel)]="nightfall" minuteValues="0,15,30,45"></ion-datetime>
+          </ng-template>
+        </ion-modal>
+
+      </ion-item>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title> <i class="icon-light"></i>  {{'settings.lights' | translate}}</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-item lines="none">
+        <ion-label>{{'settings.templimit' | translate}}</ion-label>
+        <ion-item lines="none">{{settings.max_temperature}} °C</ion-item>
+      </ion-item>
+      <ion-item lines="none">
+        <ion-button size="small" fill="clear" (click)="settings.max_temperature = settings.max_temperature - 1" [disabled]="settings.max_temperature <= limits.temperature.min"><ion-icon name="remove-circle"></ion-icon></ion-button>
+        <ion-range [(ngModel)]="settings.max_temperature" min="{{limits.temperature.min}}" max="{{limits.temperature.max}}" step="1" (ngModelChange)="selectCustomPreset()"></ion-range>
+        <ion-button size="small" fill="clear" (click)="settings.max_temperature = settings.max_temperature + 1" [disabled]="settings.max_temperature >= limits.temperature.max"><ion-icon name="add-circle"></ion-icon></ion-button>
+      </ion-item>
+      <ion-item lines="none">
+        <ion-label>{{'settings.sunrise' | translate}}:</ion-label>
+        <ion-item lines="none">{{settings.sunrise}} min</ion-item>
+      </ion-item>
+      <ion-item lines="none">
+        <ion-range min="0" max="60" step="1" [(ngModel)]="settings.sunrise" (ngModelChange)="selectCustomPreset()">
+          <ion-label slot="start">0min</ion-label>
+          <ion-label slot="end">60min</ion-label>
+        </ion-range>
+      </ion-item>
+      <ion-item lines="none">
+        <ion-label>{{'settings.sunset' | translate}}:</ion-label>
+        <ion-item lines="none">{{settings.sunset}} min</ion-item>
+      </ion-item>
+      <ion-item lines="none">
+        <ion-range min="0" max="60" step="1" [(ngModel)]="settings.sunset" (ngModelChange)="selectCustomPreset()">
+          <ion-label slot="start">0min</ion-label>
+          <ion-label slot="end">60min</ion-label>
+        </ion-range>
+      </ion-item>
+      <ion-item lines="none">
+        <ion-label>{{'settings.lightlimit' | translate}}:</ion-label>
+        <ion-item lines="none">{{settings.limit}} %</ion-item>
+      </ion-item>
+      <ion-item lines="none">
+        <ion-range min="0" max="100" step="1" [(ngModel)]="settings.limit" (ngModelChange)="selectCustomPreset()">
+          <ion-label slot="start">0%</ion-label>
+          <ion-label slot="end">100%</ion-label>
+        </ion-range>
+      </ion-item>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-content>
+      <ion-button color="secondary" expand="block" (click)="saveSettings();" [disabled]="saving">
+        <ion-icon slot="start" name="checkmark" *ngIf="saved"></ion-icon>
+        {{'misc.save' | translate}}
+      </ion-button>
+      <!-- <ion-button color="danger" expand="block" (click)="resetForm();">{{'buttons.revert' | translate}}</ion-button> -->
+    </ion-card-content>
+  </ion-card>
+
+</ng-container>

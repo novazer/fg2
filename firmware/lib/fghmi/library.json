@@ -1,0 +1,9 @@
+{
+  "name": "Flexogrow HMI",
+  "version": "1.0.0",
+  "dependencies":
+  {
+    "adafruit/Adafruit SSD1306": "^2.5.7",
+    "adafruit/Adafruit GFX Library": "^1.11.5"
+  }
+}

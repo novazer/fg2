@@ -1,0 +1,38 @@
+import { config } from 'dotenv';
+config({ path: `.env.${process.env.NODE_ENV || 'development'}.local` });
+
+export const CREDENTIALS = process.env.CREDENTIALS === 'true'
+export const ENABLE_SELF_REGISTRATION = process.env.ENABLE_SELF_REGISTRATION === 'true'
+export const ACTIVATION_SMTP_SECURE = process.env.ACTIVATION_SMTP_SECURE === 'true'
+export const REQUIRE_ACTIVATION = process.env.REQUIRE_ACTIVATION === 'true'
+
+export const {
+  NODE_ENV,
+  PORT,
+  API_URL_EXTERNAL,
+  DB_HOST,
+  DB_PORT,
+  DB_DATABASE,
+  DB_USER,
+  DB_PASSWORD,
+  INFLUXDB_HOST,
+  INFLUXDB_TOKEN,
+  INFLUXDB_ORG,
+  INFLUXDB_BUCKET,
+  MQTT_URL,
+  MQTT_USER,
+  MQTT_PASSWORD,
+  AUTOMATION_TOKEN,
+  SECRET_KEY,
+  LOG_FORMAT,
+  LOG_DIR,
+  ORIGIN,
+  SELF_REGISTRATION_PASSWORD,
+  ADMINUSER_USERNAME,
+  ADMINUSER_PASSWORD,
+  ACTIVATION_SENDER,
+  ACTIVATION_SMTP_USER,
+  ACTIVATION_SMTP_SERVER,
+  ACTIVATION_SMTP_PORT,
+  ACTIVATION_SMTP_PASSWORD
+} = process.env;

@@ -1,0 +1,243 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Test Mode</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Test outputs</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-grid>
+        <ion-row align-items-center>
+          <ion-col size="6">
+            <h2><i class="icon-heating"></i> dehumidifier </h2>
+          </ion-col>
+          <ion-col>
+            <ion-button expand="block" color="secondary" (click)="outputs.dehumidifier=1; setOutputs();">{{'buttons.on' | translate}}</ion-button>
+          </ion-col>
+          <ion-col>
+            <ion-button expand="block" color="danger" (click)="outputs.dehumidifier=0; setOutputs();">{{'buttons.off' | translate}}</ion-button>
+          </ion-col>
+        </ion-row>
+        <ion-row align-items-center>
+          <ion-col size="6">
+            <h2><i class="icon-heating"></i> co2 </h2>
+          </ion-col>
+          <ion-col>
+            <ion-button expand="block" color="secondary" (click)="outputs.co2=1; setOutputs();">{{'buttons.on' | translate}}</ion-button>
+          </ion-col>
+          <ion-col>
+            <ion-button expand="block" color="danger" (click)="outputs.co2=0; setOutputs();">{{'buttons.off' | translate}}</ion-button>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+
+      <ion-item lines="none">
+        <ion-note>Heater</ion-note>
+
+        <ion-range min="0" max="100" step="1" [(ngModel)]="outputs.heater" (ionKnobMoveEnd)="setOutputs()">
+          <ion-label slot="start"></ion-label>
+          <ion-label slot="end">{{outputs.heater}}%</ion-label>
+        </ion-range>
+      </ion-item>
+
+      <ion-item lines="none">
+        <ion-note>Lights</ion-note>
+
+        <ion-range min="0" max="100" step="1" [(ngModel)]="outputs.lights" (ionKnobMoveEnd)="setOutputs()">
+          <ion-label slot="start"></ion-label>
+          <ion-label slot="end">{{outputs.lights}}%</ion-label>
+        </ion-range>
+      </ion-item>
+
+      <ion-item lines="none">
+        <ion-note>Fans internal</ion-note>
+
+        <ion-range min="0" max="100" step="1" [(ngModel)]="outputs.fanint" (ionKnobMoveEnd)="setOutputs()">
+          <ion-label slot="start"></ion-label>
+          <ion-label slot="end">{{outputs.fanint}}%</ion-label>
+        </ion-range>
+      </ion-item>
+
+      <ion-item lines="none">
+        <ion-note>Fans external</ion-note>
+
+        <ion-range min="0" max="100" step="1" [(ngModel)]="outputs.fanext" (ionKnobMoveEnd)="setOutputs()">
+          <ion-label slot="start"></ion-label>
+          <ion-label slot="end">{{outputs.fanext}}%</ion-label>
+        </ion-range>
+      </ion-item>
+
+      <ion-item lines="none">
+        <ion-note>Fans backwall</ion-note>
+
+        <ion-range min="0" max="100" step="1" [(ngModel)]="outputs.fanbw" (ionKnobMoveEnd)="setOutputs()">
+          <ion-label slot="start"></ion-label>
+          <ion-label slot="end">{{outputs.fanbw}}%</ion-label>
+        </ion-range>
+      </ion-item>
+
+    </ion-card-content>
+  </ion-card>
+<!--
+<ion-card *ngIf="pairing.light || pairing.fan || pairing.pump1 || pairing.pump2 || pairing.pump3">
+  <ion-card-header>
+    <ion-card-title>Test remote devices</ion-card-title>
+  </ion-card-header>
+
+  <ion-card-content>
+    <ion-text *ngIf="pairing.light"><h2>Lights</h2></ion-text>
+    <ion-item lines="none" *ngIf="pairing.light">
+      <ion-range min="0" max="100" step="1" [(ngModel)]="lightPwm">
+        <ion-label slot="start"></ion-label>
+        <ion-label slot="end">{{lightPwm}}%</ion-label>
+      </ion-range>
+    </ion-item>
+
+    <ion-text *ngIf="pairing.fan"><h2>Fan</h2></ion-text>
+    <ion-item lines="none" *ngIf="pairing.fan">
+      <ion-range min="0" max="100" step="1" [(ngModel)]="fanPwm">
+        <ion-label slot="start"></ion-label>
+        <ion-label slot="end">{{fanPwm}}%</ion-label>
+      </ion-range>
+    </ion-item>
+
+    <ion-text *ngIf="pairing.pump1"><h2>Pumpmodule 1</h2></ion-text>
+    <ion-row align-items-center  *ngIf="pairing.pump1">
+      <ion-col size="6">
+        <h2>Pump 1</h2>
+      </ion-col>
+      <ion-col size="3">
+        <ion-input [(ngModel)]="pumptest.module1.pump1"></ion-input>
+      </ion-col>
+      <ion-col size="3">
+        <ion-button expand="block" color="secondary" (click)="testPump(1,1,pumptest.module1.pump1);" >Test</ion-button>
+      </ion-col>
+
+      <ion-col size="6">
+        <h2>Pump 2</h2>
+      </ion-col>
+      <ion-col size="3">
+        <ion-input [(ngModel)]="pumptest.module1.pump2"></ion-input>
+      </ion-col>
+      <ion-col size="3">
+        <ion-button expand="block" color="secondary" (click)="testPump(1,2,pumptest.module1.pump2);" >Test</ion-button>
+      </ion-col>
+
+      <ion-col size="6">
+        <h2>Pump 3</h2>
+      </ion-col>
+      <ion-col size="3">
+        <ion-input [(ngModel)]="pumptest.module1.pump3"></ion-input>
+      </ion-col>
+      <ion-col size="3">
+        <ion-button expand="block" color="secondary" (click)="testPump(1,3,pumptest.module1.pump3);" >Test</ion-button>
+      </ion-col>
+
+      <ion-col size="6">
+        <h2>Pump 4</h2>
+      </ion-col>
+      <ion-col size="3">
+        <ion-input [(ngModel)]="pumptest.module1.pump4"></ion-input>
+      </ion-col>
+      <ion-col size="3">
+        <ion-button expand="block" color="secondary" (click)="testPump(1,4,pumptest.module1.pump4);" >Test</ion-button>
+      </ion-col>
+    </ion-row>
+
+    <ion-text *ngIf="pairing.pump2"><h2>Pumpmodule 2</h2></ion-text>
+    <ion-row align-items-center  *ngIf="pairing.pump2">
+      <ion-col size="6">
+        <h2>Pump 1</h2>
+      </ion-col>
+      <ion-col size="3">
+        <ion-input [(ngModel)]="pumptest.module2.pump1"></ion-input>
+      </ion-col>
+      <ion-col size="3">
+        <ion-button expand="block" color="secondary" (click)="testPump(2,1,pumptest.module2.pump1);" >Test</ion-button>
+      </ion-col>
+
+      <ion-col size="6">
+        <h2>Pump 2</h2>
+      </ion-col>
+      <ion-col size="3">
+        <ion-input [(ngModel)]="pumptest.module2.pump2"></ion-input>
+      </ion-col>
+      <ion-col size="3">
+        <ion-button expand="block" color="secondary" (click)="testPump(2,2,pumptest.module2.pump2);" >Test</ion-button>
+      </ion-col>
+
+      <ion-col size="6">
+        <h2>Pump 3</h2>
+      </ion-col>
+      <ion-col size="3">
+        <ion-input [(ngModel)]="pumptest.module2.pump3"></ion-input>
+      </ion-col>
+      <ion-col size="3">
+        <ion-button expand="block" color="secondary" (click)="testPump(2,3,pumptest.module2.pump3);" >Test</ion-button>
+      </ion-col>
+
+      <ion-col size="6">
+        <h2>Pump 4</h2>
+      </ion-col>
+      <ion-col size="3">
+        <ion-input [(ngModel)]="pumptest.module2.pump4"></ion-input>
+      </ion-col>
+      <ion-col size="3">
+        <ion-button expand="block" color="secondary" (click)="testPump(2,4,pumptest.module2.pump4);" >Test</ion-button>
+      </ion-col>
+    </ion-row>
+
+    <ion-text *ngIf="pairing.pump3"><h2>Pumpmodule 3</h2></ion-text>
+    <ion-row align-items-center  *ngIf="pairing.pump3">
+      <ion-col size="6">
+        <h2>Pump 1</h2>
+      </ion-col>
+      <ion-col size="3">
+        <ion-input [(ngModel)]="pumptest.module3.pump1"></ion-input>
+      </ion-col>
+      <ion-col size="3">
+        <ion-button expand="block" color="secondary" (click)="testPump(3,1,pumptest.module3.pump1);" >Test</ion-button>
+      </ion-col>
+
+      <ion-col size="6">
+        <h2>Pump 2</h2>
+      </ion-col>
+      <ion-col size="3">
+        <ion-input [(ngModel)]="pumptest.module3.pump2"></ion-input>
+      </ion-col>
+      <ion-col size="3">
+        <ion-button expand="block" color="secondary" (click)="testPump(3,2,pumptest.module3.pump2);" >Test</ion-button>
+      </ion-col>
+
+      <ion-col size="6">
+        <h2>Pump 3</h2>
+      </ion-col>
+      <ion-col size="3">
+        <ion-input [(ngModel)]="pumptest.module3.pump3"></ion-input>
+      </ion-col>
+      <ion-col size="3">
+        <ion-button expand="block" color="secondary" (click)="testPump(3,3,pumptest.module3.pump3);" >Test</ion-button>
+      </ion-col>
+
+      <ion-col size="6">
+        <h2>Pump 4</h2>
+      </ion-col>
+      <ion-col size="3">
+        <ion-input [(ngModel)]="pumptest.module3.pump4"></ion-input>
+      </ion-col>
+      <ion-col size="3">
+        <ion-button expand="block" color="secondary" (click)="testPump(3,4,pumptest.module3.pump4);" >Test</ion-button>
+      </ion-col>
+    </ion-row>
+
+  </ion-card-content> -->
+
+</ion-content>

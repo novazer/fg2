@@ -1,0 +1,96 @@
+<ng-container *ngIf="settings">
+
+  <div class="save-overlay" *ngIf="saving">
+    <div class="inner">
+      <p><ion-spinner color="light"></ion-spinner></p>
+      <p>{{'misc.saving' | translate}}</p>
+    </div>
+  </div>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>{{'devices.dryer.presets' | translate}}</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-item>
+        <ion-select [(ngModel)]="current_preset" [interfaceOptions]="{'cssClass': 'wider-popover'}" (ngModelChange)="changePreset()">
+          <ion-select-option *ngFor="let preset of presets" [value]="preset.id">{{preset.name | translate}}</ion-select-option>
+        </ion-select>
+      </ion-item>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>{{'devices.fridge.workmode' | translate}}</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-item>
+        <ion-select *ngIf="workmodes" [(ngModel)]="settings.workmode" [interfaceOptions]="{'cssClass': 'wider-popover'}" (ngModelChange)="changeWorkmode()">
+          <ion-select-option *ngFor="let mode of workmodes" [value]="mode.value">{{mode.name}}</ion-select-option>
+        </ion-select>
+      </ion-item>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card *ngIf="settings.workmode != 'off'">
+    <ion-card-header>
+      <ion-card-title> {{'settings.climate' | translate}}</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-item lines="none">
+        <ion-label>{{'settings.temperature' | translate}}</ion-label>
+        <ion-item lines="none">{{settings.temperature}} °C</ion-item>
+      </ion-item>
+      <ion-item lines="none">
+        <ion-button size="small" fill="clear" (click)="settings.temperature = settings.temperature - 1" [disabled]="settings.temperature <= limits.temperature.min"><ion-icon name="remove-circle"></ion-icon></ion-button>
+        <ion-range [(ngModel)]="settings.temperature" min="{{limits.temperature.min}}" max="{{limits.temperature.max}}" step="1" (ngModelChange)="selectCustomPreset()"></ion-range>
+        <ion-button size="small" fill="clear" (click)="settings.temperature = settings.temperature + 1" [disabled]="settings.temperature >= limits.temperature.max"><ion-icon name="add-circle"></ion-icon></ion-button>
+      </ion-item>
+      <ion-item lines="none">
+        <ion-label>{{'settings.humidity' | translate}}</ion-label>
+        <ion-item lines="none">{{settings.humidity}} %</ion-item>
+      </ion-item>
+      <ion-item lines="none">
+        <ion-button size="small" fill="clear" (click)="settings.humidity = settings.humidity - 1" [disabled]="settings.humidity <= limits.humidity.min"><ion-icon name="remove-circle"></ion-icon></ion-button>
+        <ion-range [(ngModel)]="settings.humidity" min="{{limits.humidity.min}}" max="{{limits.humidity.max}}" step="1" (ngModelChange)="selectCustomPreset()"></ion-range>
+        <ion-button size="small" fill="clear" (click)="settings.humidity = settings.humidity + 1" [disabled]="settings.humidity >= limits.humidity.max"><ion-icon name="add-circle"></ion-icon></ion-button>
+      </ion-item>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card *ngIf="settings.workmode != 'off'">
+    <ion-card-header>
+      <ion-card-title> {{'settings.fanspeeds' | translate}}</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-item lines="none">
+        <ion-label>{{'settings.externalfan' | translate}}</ion-label>
+        <ion-item lines="none">{{settings.externalfan}} %</ion-item>
+      </ion-item>
+      <ion-item lines="none">
+        <ion-button size="small" fill="clear" (click)="settings.externalfan = settings.externalfan - 1" [disabled]="settings.externalfan <= 100"><ion-icon name="remove-circle"></ion-icon></ion-button>
+        <ion-range [(ngModel)]="settings.externalfan" min="0" max="100" step="1"></ion-range>
+        <ion-button size="small" fill="clear" (click)="settings.externalfan = settings.externalfan + 1" [disabled]="settings.externalfan >= 0"><ion-icon name="add-circle"></ion-icon></ion-button>
+      </ion-item>
+      <ion-item lines="none">
+        <ion-label>{{'settings.internalfan' | translate}}</ion-label>
+        <ion-item lines="none">{{settings.internalfan}} %</ion-item>
+      </ion-item>
+      <ion-item lines="none">
+        <ion-button size="small" fill="clear" (click)="settings.internalfan = settings.internalfan - 1" [disabled]="settings.internalfan <= 100"><ion-icon name="remove-circle"></ion-icon></ion-button>
+        <ion-range [(ngModel)]="settings.internalfan" min="10" max="100" step="1"></ion-range>
+        <ion-button size="small" fill="clear" (click)="settings.internalfan = settings.internalfan + 1" [disabled]="settings.internalfan >= 10"><ion-icon name="add-circle"></ion-icon></ion-button>
+      </ion-item>
+    </ion-card-content>
+  </ion-card>
+
+
+  <ion-card>
+    <ion-card-content>
+      <ion-button color="secondary" expand="block" (click)="saveSettings();">{{'misc.save' | translate}}</ion-button>
+      <!-- <ion-button color="danger" expand="block" (click)="resetForm();">{{'buttons.revert' | translate}}</ion-button> -->
+    </ion-card-content>
+  </ion-card>
+
+</ng-container>

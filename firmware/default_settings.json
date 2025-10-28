@@ -1,0 +1,45 @@
+{
+  "daynight": {
+    "day": 21600,
+    "night": 79200
+  },
+  "heater": {
+    "day": {
+      "on": 23.0,
+      "off": 25.0
+    },
+    "night": {
+      "on": 18.0,
+      "off": 20.0
+    },
+    "enabled": false
+  },
+  "dehumidifier": {
+    "day": {
+      "on": 60.0,
+      "off": 50.0,
+      "limit": 15.0
+    },
+    "night": {
+      "on": 60.0,
+      "off": 50.0,
+      "limit": 15.0
+    },
+    "enabled": false
+  },
+  "co2": {
+    "on": 1000.0,
+    "off": 1200.0,
+    "dayonly": true,
+    "enabled": false
+  },
+  "lights": {
+    "sunrise": 15.0,
+    "sunset": 15.0,
+    "softlimit": 25.0,
+    "hardlimit": 30.0,
+    "controlspeed": 0.01,
+    "max": 100.0,
+    "enabled": false
+  }
+}
