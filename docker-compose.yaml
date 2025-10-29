@@ -2,7 +2,7 @@ version: '3'
 
 services:
   mongodb:
-    image: mongo
+    image: mongo:4.4.25
     restart: always
     networks:
       - main
@@ -13,7 +13,7 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_ADMINPASSWORD}
 
   mongo-express:
-    image: mongo-express
+    image: mongo-express:1.0.0-18
     ports:
       - 127.0.0.1:4088:8081
     networks:
@@ -24,7 +24,7 @@ services:
       ME_CONFIG_MONGODB_SERVER: "mongodb"
 
   influxdb:
-    image: influxdb:2
+    image: influxdb:2.7.4
     restart: always
     networks:
       - main
