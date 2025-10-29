@@ -7,7 +7,7 @@ fi
 
 docker build -t plantalytix-buildcontainer fw-buildcontainer
 
-docker run -it \
+docker run -i \
   --privileged \
   -v /dev/bus/usb:/dev/bus/usb \
   -v $(pwd)/firmware:/firmware \
@@ -18,7 +18,7 @@ docker run -it \
   -e FG_MQTT_PORT=${MQTT_PORT_EXTERNAL} \
   plantalytix-buildcontainer sh -c "cd /firmware; ./dev-build.sh plug"
 
-docker run -it \
+docker run -i \
   --privileged \
   -v /dev/bus/usb:/dev/bus/usb \
   -v $(pwd)/firmware:/firmware \
@@ -29,7 +29,7 @@ docker run -it \
   -e FG_MQTT_PORT=${MQTT_PORT_EXTERNAL} \
   plantalytix-buildcontainer sh -c "cd /firmware; ./dev-build.sh fan"
 
-docker run -it \
+docker run -i \
   --privileged \
   -v /dev/bus/usb:/dev/bus/usb \
   -v $(pwd)/firmware:/firmware \
@@ -40,7 +40,7 @@ docker run -it \
   -e FG_MQTT_PORT=${MQTT_PORT_EXTERNAL} \
   plantalytix-buildcontainer sh -c "cd /firmware; ./dev-build.sh light"
 
-docker run -it \
+docker run -i \
   --privileged \
   -v /dev/bus/usb:/dev/bus/usb \
   -v $(pwd)/firmware:/firmware \
