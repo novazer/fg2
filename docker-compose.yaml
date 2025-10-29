@@ -45,7 +45,7 @@ services:
     build: ./rabbitmq
     restart: always
     ports:
-      - 127.0.0.1:1883:1883
+      - 4883:1883
     networks:
       - main
 

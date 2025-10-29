@@ -1,6 +1,9 @@
 #!/usr/bin/env /bin/bash
+set -e
 
-source .env
+if [ -f .env ]; then
+  export $(grep -v '^#' .env | xargs)
+fi
 
 docker build -t plantalytix-buildcontainer fw-buildcontainer
 

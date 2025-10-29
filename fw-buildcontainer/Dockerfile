@@ -1,5 +1,5 @@
 
-FROM debian:11-slim
+FROM debian:11.7-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV ESP_IDF_VERSION="v4.4"
