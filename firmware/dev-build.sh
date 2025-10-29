@@ -2,7 +2,7 @@
 
 export BUILD_TYPE=${1}
 
-export FW_VERSION_ID=$(fgcli.py create-fw ${BUILD_TYPE} 0.0.0)
+export FW_VERSION_ID=$(fgcli.py create-fw ${BUILD_TYPE} ${FW_UPLOAD_VERSION:-0.0.0})
 
 export PLATFORMIO_BUILD_FLAGS="-DDEVELOPMENT_BUILD"
 
