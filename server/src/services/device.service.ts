@@ -279,7 +279,7 @@ class DeviceService {
         ]
       )
 
-      serial = parseInt(serialquery[0].serial) || 0;
+      serial = parseInt(serialquery?.[0]?.serial) || 0;
     }
     catch(err) {
       console.log(err)
@@ -335,7 +335,7 @@ class DeviceService {
       ]
     )
 
-    let serial = parseInt(serialquery[0].serial) || 0;
+    let serial = parseInt(serialquery?.[0]?.serial) || 0;
     serial = serial + 1
 
     const device_class = await deviceClassModel.findOne({class_id: info.class_id});
