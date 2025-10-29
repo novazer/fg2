@@ -15,7 +15,7 @@ services:
   mongo-express:
     image: mongo-express:1.0.0-18
     ports:
-      - 127.0.0.1:4088:8081
+      - ${MONGOEXPRESS_PORT_EXTERNAL}:8081
     networks:
       - main
     environment:
@@ -28,8 +28,6 @@ services:
     restart: always
     networks:
       - main
-    ports:
-      - 127.0.0.1:4086:8086
     volumes:
       - influxdata:/var/lib/influxdb2
       # - ./config/influxdb-config.yml:/etc/influxdb2/config.yml
@@ -45,12 +43,15 @@ services:
     build: ./rabbitmq
     restart: always
     ports:
-      - 4883:1883
+      - ${MQTT_PORT_EXTERNAL}:1883
     networks:
       - main
 
   webapp:
-    build: ./webapp
+    build:
+      context: ./webapp
+      args:
+        API_URL_EXTERNAL: ${API_URL_EXTERNAL}
     restart: always
     ports:
       - 127.0.0.1:4080:80
@@ -65,7 +66,7 @@ services:
      - influxdb
      - rabbitmq
     ports:
-      - 127.0.0.1:4081:8081
+      - ${API_PORT_EXTERNAL}:${API_PORT}
     networks:
       - main
     environment:

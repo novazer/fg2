@@ -7,7 +7,6 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
-    "build-testing": "ng build --configuration testing",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "ng lint"
