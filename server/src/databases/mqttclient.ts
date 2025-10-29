@@ -48,7 +48,7 @@ class MqttClient {
         // resolve();
 
         reject(error)
-        this.client.end()
+        this.client?.end()
       })
 
       this.client.on('message', async (topic, message) => {
