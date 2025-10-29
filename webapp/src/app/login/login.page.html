@@ -19,6 +19,28 @@
       <img src="assets/plantalytix_logo.png" style="width:60%;height:auto"/>
     </div>
 
+    <ion-card color="info" *ngIf="message == 0">
+      <ion-card-header>
+        <ion-card-title>RIP Microgreenbox ♡</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p>Fork der offiziellen Fridge Grow 2.0 Cloud Oberfläche von Plantalytix</p>
+        <p><strong>Zum Verbinden:</strong></p>
+        <ol>
+          <li>Am Modul unter "Wifi Connection" den Punkt "Change Server" aufrufen</li>
+          <li>Dort die Adresse "https://fg2.novazer.com/api" eingeben. (Achtung, man muss dafür erst das "://" löschen, um das "s" hinzuzufügen.)</li>
+          <li>Bei Kennwort ein einfaches "a" eingeben</li>
+          <li>Jetzt warten, bis das Firmware Update durch ist und das Modul neu gestartet hat</li>
+        </ol>
+
+        <p>
+          <a href="https://github.com/novazer/fg2">
+            <img src="https://github.githubassets.com/assets/GitHub-Mark-ea2971cee799.png" width="32" height="32" alt="novazer/fg2 on GitHub" />
+          </a>
+        </p>
+      </ion-card-content>
+    </ion-card>
+
     <ion-card color="danger" *ngIf="message == 1">
       <ion-card-header>
         <ion-card-title>Login failed</ion-card-title>
