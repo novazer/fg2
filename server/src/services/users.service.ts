@@ -16,24 +16,30 @@ class UserService {
 
   private async initAdmin() {
     // await this.users.deleteMany({ username: "admin" });
-    console.log("admin init")
+    console.log('admin init');
     try {
       const findUser: User = await this.users.findOne({ username: ADMINUSER_USERNAME });
       const hashedPassword = await hash(ADMINUSER_PASSWORD, 10);
       if (!findUser) {
-        console.log("creating admin user")
-        await this.users.create({ username:ADMINUSER_USERNAME, password: hashedPassword, is_admin: true, is_active: true, user_id: "5b96fd82-4092-4542-a9a2-bceb7df852dd" });
+        console.log('creating admin user');
+        await this.users.create({
+          username: ADMINUSER_USERNAME,
+          password: hashedPassword,
+          is_admin: true,
+          is_active: true,
+          user_id: '5b96fd82-4092-4542-a9a2-bceb7df852dd',
+        });
+      } else {
+        console.log('found admin');
+        await this.users.findOneAndUpdate({ username: ADMINUSER_USERNAME }, { password: hashedPassword, is_admin: true, is_active: true });
       }
-      else {
-        console.log("found admin")
-        await this.users.findOneAndUpdate({username: ADMINUSER_USERNAME}, {password: hashedPassword, is_admin: true, is_active: true})
-      }
+    } catch (e) {
+      console.log(e);
     }
-    catch(e) { console.log(e)}
   }
 
   public async findAllUser(): Promise<User[]> {
-    const users: User[] = await this.users.find({}, {_id: 0, username:1, user_id: 1, is_admin: 1});
+    const users: User[] = await this.users.find({}, { _id: 0, username: 1, user_id: 1, is_admin: 1 });
     return users;
   }
 

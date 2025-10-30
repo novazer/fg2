@@ -31,10 +31,10 @@ export class AddDeviceClassDto {
   public firmware_id: string;
 
   @IsNumber()
-  public concurrent: number
+  public concurrent: number;
 
   @IsNumber()
-  public maxfails: number
+  public maxfails: number;
 }
 
 export class AddDeviceFirmwareDto {
@@ -65,17 +65,17 @@ export class SetNameDto {
 
 export class TestDeviceDto {
   @IsNumber()
-  public heater:number;
+  public heater: number;
   @IsNumber()
-  public dehumidifier:number;
+  public dehumidifier: number;
   @IsNumber()
-  public co2:number;
+  public co2: number;
   @IsNumber()
-  public lights:number;
+  public lights: number;
   @IsNumber()
-  public fanint:number;
+  public fanint: number;
   @IsNumber()
-  public fanext:number;
+  public fanext: number;
   @IsNumber()
-  public fanbw:number;
+  public fanbw: number;
 }

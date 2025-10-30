@@ -13,23 +13,22 @@ const userSchema: Schema = new Schema({
   },
   user_id: {
     type: String,
-    required: true
+    required: true,
   },
   is_admin: {
     type: Boolean,
     required: true,
-    default: false
+    default: false,
   },
   is_active: {
     type: Boolean,
     required: true,
-    default: false
+    default: false,
   },
   activation_code: {
     type: String,
-    required: false
+    required: false,
   },
-
 });
 
 const userModel = model<User & Document>('User', userSchema);

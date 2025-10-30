@@ -43,9 +43,8 @@ class App {
         logger.info(`🚀 App listening on the port ${this.port}`);
         logger.info(`=================================`);
       });
-    }
-    catch(err) {
-      console.log("error:", err)
+    } catch (err) {
+      console.log('error:', err);
     }
   }
 

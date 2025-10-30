@@ -17,4 +17,3 @@ const claimCodeSchema: Schema = new Schema({
 const claimCodeModel = model<ClaimCode & Document>('ClaimCode', claimCodeSchema);
 
 export default claimCodeModel;
-

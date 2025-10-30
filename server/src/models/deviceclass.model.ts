@@ -31,4 +31,3 @@ const deviceClassSchema: Schema = new Schema({
 const deviceClassModel = model<DeviceClass & Document>('DeviceClass', deviceClassSchema);
 
 export default deviceClassModel;
-

@@ -1,10 +1,11 @@
 import { config } from 'dotenv';
+import * as process from 'node:process';
 config({ path: `.env.${process.env.NODE_ENV || 'development'}.local` });
 
-export const CREDENTIALS = process.env.CREDENTIALS === 'true'
-export const ENABLE_SELF_REGISTRATION = process.env.ENABLE_SELF_REGISTRATION === 'true'
-export const ACTIVATION_SMTP_SECURE = process.env.ACTIVATION_SMTP_SECURE === 'true'
-export const REQUIRE_ACTIVATION = process.env.REQUIRE_ACTIVATION === 'true'
+export const CREDENTIALS = process.env.CREDENTIALS === 'true';
+export const ENABLE_SELF_REGISTRATION = process.env.ENABLE_SELF_REGISTRATION === 'true';
+export const SMTP_SECURE = process.env.ACTIVATION_SMTP_SECURE ? process.env.ACTIVATION_SMTP_SECURE === 'true' : process.env.SMTP_SECURE === 'true';
+export const REQUIRE_ACTIVATION = process.env.REQUIRE_ACTIVATION === 'true';
 
 export const {
   NODE_ENV,
@@ -34,5 +35,10 @@ export const {
   ACTIVATION_SMTP_USER,
   ACTIVATION_SMTP_SERVER,
   ACTIVATION_SMTP_PORT,
-  ACTIVATION_SMTP_PASSWORD
+  ACTIVATION_SMTP_PASSWORD,
+  SMTP_SENDER,
+  SMTP_USER,
+  SMTP_SERVER,
+  SMTP_PORT,
+  SMTP_PASSWORD,
 } = process.env;

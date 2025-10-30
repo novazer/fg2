@@ -14,10 +14,10 @@ class MqttAuthRoute implements Routes {
   }
 
   private initializeRoutes() {
-    this.router.post(`${this.path}user`,       this.authController.user);
-    this.router.post(`${this.path}vhost`,        this.authController.vhost);
-    this.router.post(`${this.path}topic`,       this.authController.topic);
-    this.router.post(`${this.path}resource`,  this.authController.resource);
+    this.router.post(`${this.path}user`, this.authController.user);
+    this.router.post(`${this.path}vhost`, this.authController.vhost);
+    this.router.post(`${this.path}topic`, this.authController.topic);
+    this.router.post(`${this.path}resource`, this.authController.resource);
   }
 }
 

@@ -31,10 +31,9 @@ class DeviceController {
   public register = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const device = await this.deviceService.register(req.body);
-      if(device === false) {
-        res.status(401)
-      }
-      else {
+      if (device === false) {
+        res.status(401);
+      } else {
         res.status(201).json(device);
       }
     } catch (error) {
@@ -54,13 +53,12 @@ class DeviceController {
 
   public getDeviceBySerial = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
-      if(req.is_admin) {
-        const device: Device = await this.deviceService.getDeviceBySerial(parseInt(req.query.serialnumber as string))
+      if (req.is_admin) {
+        const device: Device = await this.deviceService.getDeviceBySerial(parseInt(req.query.serialnumber as string));
 
         res.status(200).json(device);
-      }
-      else {
-        res.status(401)
+      } else {
+        res.status(401);
       }
     } catch (error) {
       next(error);
@@ -69,7 +67,7 @@ class DeviceController {
 
   public getClaimCode = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
-      let code = await this.deviceService.getClaimCode(req.body.device_id);
+      const code = await this.deviceService.getClaimCode(req.body.device_id);
       res.status(200).json(code);
     } catch (error) {
       next(error);
@@ -80,7 +78,7 @@ class DeviceController {
     try {
       await this.deviceService.claimDevice(req.body.claim_code, req.user_id);
 
-      res.status(200).json({status: 'ok'});
+      res.status(200).json({ status: 'ok' });
     } catch (error) {
       next(error);
     }
@@ -88,11 +86,10 @@ class DeviceController {
 
   public unClaimDevice = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
-      if(isUserDeviceMiddelware(req, res, req.params.device_id)) {
+      if (isUserDeviceMiddelware(req, res, req.params.device_id)) {
         await this.deviceService.unClaimDevice(req.params.device_id);
-        res.status(200).json({status: 'ok'});
+        res.status(200).json({ status: 'ok' });
       }
-
     } catch (error) {
       next(error);
     }
@@ -100,11 +97,10 @@ class DeviceController {
 
   public configureDevice = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
-      if(isUserDeviceMiddelware(req, res, req.params.device_id)) {
-        await this.deviceService.configureDevice(req.body.device_id, req.user_id, req.body.configuration)
-        res.status(200).json({status: 'ok'});
+      if (isUserDeviceMiddelware(req, res, req.params.device_id)) {
+        await this.deviceService.configureDevice(req.body.device_id, req.user_id, req.body.configuration);
+        res.status(200).json({ status: 'ok' });
       }
-
     } catch (error) {
       next(error);
     }
@@ -112,11 +108,10 @@ class DeviceController {
 
   public setDeviceName = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
-      if(isUserDeviceMiddelware(req, res, req.params.device_id)) {
-        await this.deviceService.setDeviceName(req.body.device_id, req.user_id, req.body.name)
-        res.status(200).json({status: 'ok'});
+      if (isUserDeviceMiddelware(req, res, req.params.device_id)) {
+        await this.deviceService.setDeviceName(req.body.device_id, req.user_id, req.body.name);
+        res.status(200).json({ status: 'ok' });
       }
-
     } catch (error) {
       next(error);
     }
@@ -124,11 +119,10 @@ class DeviceController {
 
   public getDeviceConfig = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
-      if(isUserDeviceMiddelware(req, res, req.params.device_id)) {
-        let config = await this.deviceService.getDeviceConfig(req.params.device_id, req.user_id, req.is_admin)
+      if (isUserDeviceMiddelware(req, res, req.params.device_id)) {
+        const config = await this.deviceService.getDeviceConfig(req.params.device_id, req.user_id, req.is_admin);
         res.status(200).json(config);
       }
-
     } catch (error) {
       next(error);
     }
@@ -137,19 +131,25 @@ class DeviceController {
   public testMode = async (req: any, res: Response, next: NextFunction) => {
     const outputs: TestDeviceDto = req.body;
     await this.deviceService.testOutputs(req.params.device_id, outputs);
-  }
+  };
 
   public stopTest = async (req: any, res: Response, next: NextFunction) => {
     await this.deviceService.stopTest(req.params.device_id);
-  }
+  };
 
   public createClass = async (req: any, res: Response, next: NextFunction) => {
     try {
       const class_info: AddDeviceClassDto = req.body;
-      await this.deviceService.createClass(class_info.name, class_info.description, class_info.concurrent, class_info.maxfails, class_info.firmware_id);
-      res.status(200).json({status: 'ok'});
+      await this.deviceService.createClass(
+        class_info.name,
+        class_info.description,
+        class_info.concurrent,
+        class_info.maxfails,
+        class_info.firmware_id,
+      );
+      res.status(200).json({ status: 'ok' });
     } catch (error) {
-      console.log(error)
+      console.log(error);
       next(error);
     }
   };
@@ -157,10 +157,17 @@ class DeviceController {
   public updateClass = async (req: any, res: Response, next: NextFunction) => {
     try {
       const class_info: AddDeviceClassDto = req.body;
-      await this.deviceService.updateClass(req.params.class_id, class_info.name, class_info.description, class_info.concurrent, class_info.maxfails, class_info.firmware_id);
-      res.status(200).json({status: 'ok'});
+      await this.deviceService.updateClass(
+        req.params.class_id,
+        class_info.name,
+        class_info.description,
+        class_info.concurrent,
+        class_info.maxfails,
+        class_info.firmware_id,
+      );
+      res.status(200).json({ status: 'ok' });
     } catch (error) {
-      console.log(error)
+      console.log(error);
       next(error);
     }
   };
@@ -170,7 +177,7 @@ class DeviceController {
       const classes = await this.deviceService.listClasses();
       res.status(200).json(classes);
     } catch (error) {
-      console.log(error)
+      console.log(error);
       next(error);
     }
   };
@@ -180,7 +187,7 @@ class DeviceController {
       const classes = await this.deviceService.getClass(req.params.class_id);
       res.status(200).json(classes);
     } catch (error) {
-      console.log(error)
+      console.log(error);
       next(error);
     }
   };
@@ -188,44 +195,35 @@ class DeviceController {
   public findClass = async (req: any, res: Response, next: NextFunction) => {
     try {
       const classes = await this.deviceService.findClass(req.params.class_name);
-      if(classes) {
+      if (classes) {
         res.status(200).json(classes);
-      }
-      else {
-        res.status(404).json({"status": "not found"});
+      } else {
+        res.status(404).json({ status: 'not found' });
       }
     } catch (error) {
-      console.log(error)
+      console.log(error);
       next(error);
     }
   };
 
-
   public createFirmware = async (req: any, res: Response, next: NextFunction) => {
     try {
-      const fw = await this.deviceService.createFirmware(
-        req.body.name,
-        req.body.version
-      );
+      const fw = await this.deviceService.createFirmware(req.body.name, req.body.version);
 
-      res.status(200).json({firmware_id: fw.firmware_id, name: fw.name, version: fw.version});
+      res.status(200).json({ firmware_id: fw.firmware_id, name: fw.name, version: fw.version });
     } catch (error) {
-      console.log(error)
+      console.log(error);
       next(error);
     }
   };
 
   public createFirmwareBinary = async (req: any, res: Response, next: NextFunction) => {
     try {
-      const fw = await this.deviceService.createFirmwareBinary(
-        req.params.firmware_id,
-        req.params.binary,
-        req.files.binary.data
-      );
+      const fw = await this.deviceService.createFirmwareBinary(req.params.firmware_id, req.params.binary, req.files.binary.data);
 
-      res.status(200).json({firmware_id: fw.firmware_id, name: fw.name});
+      res.status(200).json({ firmware_id: fw.firmware_id, name: fw.name });
     } catch (error) {
-      console.log(error)
+      console.log(error);
       next(error);
     }
   };
@@ -241,15 +239,11 @@ class DeviceController {
 
   public findFirmware = async (req: any, res: Response, next: NextFunction) => {
     try {
-      const fw = await this.deviceService.findFirmwareByNameVersion(
-        req.query.name,
-        req.query.version
-      );
-      if(fw) {
+      const fw = await this.deviceService.findFirmwareByNameVersion(req.query.name, req.query.version);
+      if (fw) {
         res.status(200).json(fw);
-      }
-      else {
-        res.status(404).json({"status": "not found"});
+      } else {
+        res.status(404).json({ status: 'not found' });
       }
     } catch (error) {
       next(error);
@@ -258,23 +252,21 @@ class DeviceController {
 
   public getFirmware = async (req: any, res: Response, next: NextFunction) => {
     try {
-      const fw:Buffer = await this.deviceService.getFirmwareBinary(req.params.firmware_id, req.params.binary);
+      const fw: Buffer = await this.deviceService.getFirmwareBinary(req.params.firmware_id, req.params.binary);
       res.setHeader('Content-disposition', 'attachment; filename=firmware.bin');
       res.setHeader('Content-type', 'application/octet-stream');
       res.send(fw);
-
     } catch (error) {
       next(error);
     }
-  }
+  };
 
   public getDeviceLogs = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
-      if(isUserDeviceMiddelware(req, res, req.params.device_id)) {
-        let logs = await this.deviceService.getDeviceLogs(req.params.device_id, req.user_id, req.is_admin)
+      if (isUserDeviceMiddelware(req, res, req.params.device_id)) {
+        const logs = await this.deviceService.getDeviceLogs(req.params.device_id, req.user_id, req.is_admin);
         res.status(200).json(logs);
       }
-
     } catch (error) {
       next(error);
     }
@@ -282,9 +274,9 @@ class DeviceController {
 
   public deleteDeviceLogs = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
-      await this.deviceService.deleteDeviceLogs(req.params.device_id, req.user_id)
+      await this.deviceService.deleteDeviceLogs(req.params.device_id, req.user_id);
 
-      res.status(200).json({status: 'ok'});
+      res.status(200).json({ status: 'ok' });
     } catch (error) {
       next(error);
     }

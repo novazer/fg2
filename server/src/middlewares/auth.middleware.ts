@@ -13,7 +13,7 @@ export const authMiddleware = async (req: RequestWithUser, res: Response, next: 
     if (Authorization) {
       const secretKey: string = SECRET_KEY;
       const verificationResponse = (await verify(Authorization, secretKey)) as DataStoredInToken;
-      if(verificationResponse.user_id) {
+      if (verificationResponse.user_id) {
         req.user_id = verificationResponse.user_id;
         req.is_admin = verificationResponse.is_admin;
         next();
@@ -36,7 +36,7 @@ export const authAdminMiddleware = async (req: RequestWithUser, res: Response, n
       const secretKey: string = SECRET_KEY;
       const verificationResponse = (await verify(Authorization, secretKey)) as DataStoredInToken;
 
-      if(verificationResponse.is_admin) {
+      if (verificationResponse.is_admin) {
         req.user_id = verificationResponse.user_id;
         req.is_admin = verificationResponse.is_admin;
         next();
@@ -47,7 +47,7 @@ export const authAdminMiddleware = async (req: RequestWithUser, res: Response, n
       next(new HttpException(404, 'Authentication token missing'));
     }
   } catch (error) {
-    console.log(error)
+    console.log(error);
     next(new HttpException(401, 'Wrong authentication token'));
   }
 };
@@ -59,30 +59,29 @@ export const isUserDeviceMiddelware = async (req: RequestWithUser, res: Response
     if (Authorization) {
       const secretKey: string = SECRET_KEY;
       const verificationResponse = (await verify(Authorization, secretKey)) as DataStoredInToken;
-      if(verificationResponse.user_id) {
+      if (verificationResponse.user_id) {
         req.user_id = verificationResponse.user_id;
         req.is_admin = verificationResponse.is_admin;
-        if(req.is_admin) {
+        if (req.is_admin) {
           return true;
         }
-        const devices: Device[] = await deviceModel.find({owner_id: req.user_id, device_id: device_id}, {device_id: 1});
-        if(devices.length > 0) {
+        const devices: Device[] = await deviceModel.find({ owner_id: req.user_id, device_id: device_id }, { device_id: 1 });
+        if (devices.length > 0) {
           return true;
         }
 
         res.status(401).send('Device not bound to user');
-        return false
-
+        return false;
       } else {
         res.status(401).send('Wrong authentication token');
-        return false
+        return false;
       }
     } else {
       res.status(401).send('Authentication token missing');
-      return false
+      return false;
     }
   } catch (error) {
     res.status(401).send('Wrong authentication token');
-    return false
+    return false;
   }
 };

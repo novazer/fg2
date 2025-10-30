@@ -13,16 +13,17 @@ const deviceLogSchema: Schema = new Schema({
   severity: {
     type: Number,
     required: true,
-    default: 0
+    default: 0,
   },
   time: {
     type: Date,
     required: true,
-    default: () => { return Date.now() }
-  }
+    default: () => {
+      return Date.now();
+    },
+  },
 });
 
 const deviceLogModel = model<Device & Document>('DeviceLog', deviceLogSchema);
 
 export default deviceLogModel;
-

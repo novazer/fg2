@@ -21,7 +21,7 @@ const deviceSchema: Schema = new Schema({
     required: false,
   },
   device_type: {
-    type: String
+    type: String,
   },
   client_id: {
     type: String,
@@ -37,7 +37,7 @@ const deviceSchema: Schema = new Schema({
   },
   serialnumber: {
     type: Number,
-    required: false
+    required: false,
   },
   name: {
     type: String,
@@ -45,23 +45,36 @@ const deviceSchema: Schema = new Schema({
   },
   lastseen: {
     type: Number,
-    required: false
+    required: false,
   },
   current_firmware: {
     type: String,
-    required: false
+    required: false,
   },
   pending_firmware: {
     type: String,
-    required: false
+    required: false,
   },
   fwupdate_start: {
     type: Number,
-    required: false
+    required: false,
   },
   fwupdate_end: {
     type: Number,
-    required: false
+    required: false,
+  },
+  alarms: {
+    type: [
+      {
+        sensorType: { type: String, required: true },
+        upperThreshold: { type: Number, required: false },
+        lowerThreshold: { type: Number, required: false },
+        actionType: { type: String, enum: ['email', 'webhook', 'info'], required: true },
+        actionTarget: { type: String, required: true },
+        cooldownSeconds: { type: Number, required: true },
+      },
+    ],
+    required: false,
   },
 });
 

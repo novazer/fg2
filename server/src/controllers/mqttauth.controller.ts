@@ -8,11 +8,10 @@ class MqttAuthController {
   public user = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const authData: AuthUserDto = req.body;
-      if(await this.authService.user(authData)) {
-        res.status(200).send('allow')
-      }
-      else {
-        res.status(200).send('deny')
+      if (await this.authService.user(authData)) {
+        res.status(200).send('allow');
+      } else {
+        res.status(200).send('deny');
       }
     } catch (error) {
       next(error);
@@ -22,11 +21,10 @@ class MqttAuthController {
   public vhost = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const authData: AuthVhostDto = req.body;
-      if(await this.authService.vhost(authData)) {
-        res.status(200).send('allow')
-      }
-      else {
-        res.status(200).send('deny')
+      if (await this.authService.vhost(authData)) {
+        res.status(200).send('allow');
+      } else {
+        res.status(200).send('deny');
       }
     } catch (error) {
       next(error);
@@ -36,11 +34,10 @@ class MqttAuthController {
   public topic = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const authData: AuthTopicDto = req.body;
-      if(await this.authService.topic(authData)) {
-        res.status(200).send('allow')
-      }
-      else {
-        res.status(200).send('deny')
+      if (await this.authService.topic(authData)) {
+        res.status(200).send('allow');
+      } else {
+        res.status(200).send('deny');
       }
       // const userData: User = req.user;
       // const logOutUserData: User = await this.authService.logout(userData);
@@ -55,11 +52,10 @@ class MqttAuthController {
   public resource = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const authData: AuthResourceDto = req.body;
-      if(await this.authService.resource(authData)) {
-        res.status(200).send('allow')
-      }
-      else {
-        res.status(200).send('deny')
+      if (await this.authService.resource(authData)) {
+        res.status(200).send('allow');
+      } else {
+        res.status(200).send('deny');
       }
     } catch (error) {
       next(error);

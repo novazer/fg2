@@ -26,7 +26,7 @@ class AuthController {
       const userData: ActivationDto = req.body;
       await this.authService.activate(userData);
 
-      res.status(201).json({message: 'activated' });
+      res.status(201).json({ message: 'activated' });
     } catch (error) {
       next(error);
     }
@@ -40,7 +40,7 @@ class AuthController {
       res.status(200).json({
         user: { username: findUser.username, user_id: findUser.user_id, is_admin: findUser.is_admin },
         userToken: userToken,
-        refreshToken: refreshToken
+        refreshToken: refreshToken,
       });
     } catch (error) {
       next(error);
@@ -49,7 +49,7 @@ class AuthController {
 
   public loginWithToken = async (req: RequestWithToken, res: Response, next: NextFunction) => {
     try {
-      const token:string = req.body.token;
+      const token: string = req.body.token;
       const { userToken } = await this.authService.loginWithToken(token);
 
       res.status(200).json({
@@ -58,7 +58,7 @@ class AuthController {
     } catch (error) {
       next(error);
     }
-  }
+  };
 
   public refresh = async (req: RequestWithToken, res: Response, next: NextFunction) => {
     const token = req.body.token;
@@ -66,12 +66,12 @@ class AuthController {
       const secretKey: string = SECRET_KEY;
       const verificationResponse = (await verify(token, secretKey)) as DataStoredInToken;
 
-      if(verificationResponse.user_id) {
+      if (verificationResponse.user_id) {
         const { userToken, refreshToken } = await this.authService.refresh(verificationResponse);
 
         res.status(200).json({
           userToken: userToken,
-          refreshToken: refreshToken
+          refreshToken: refreshToken,
         });
       } else {
         next(new HttpException(401, 'Wrong authentication token'));
@@ -79,7 +79,7 @@ class AuthController {
     } else {
       next(new HttpException(404, 'Authentication token missing'));
     }
-  }
+  };
 
   public logOut = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {

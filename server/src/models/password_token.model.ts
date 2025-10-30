@@ -4,17 +4,19 @@ import { PasswordToken } from '@interfaces/users.interface';
 const passwordTokenSchema: Schema = new Schema({
   user_id: {
     type: String,
-    required: true
+    required: true,
   },
   token: {
     type: String,
-    required: true
+    required: true,
   },
   createdAt: {
     type: Date,
     required: true,
-    default: () => { return Date.now() }
-  }
+    default: () => {
+      return Date.now();
+    },
+  },
 });
 
 const passwordTokenModel = model<PasswordToken & Document>('PasswordToken', passwordTokenSchema);

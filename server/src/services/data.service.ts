@@ -1,36 +1,17 @@
-
-import {InfluxDB, Point, HttpError} from '@influxdata/influxdb-client'
+import { InfluxDB, Point, HttpError } from '@influxdata/influxdb-client';
 import { INFLUXDB_HOST, INFLUXDB_TOKEN, INFLUXDB_ORG, INFLUXDB_BUCKET } from '@/config';
 import { NextFunction, Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs';
-import {StatusMessage} from "@services/device.service";
+import { StatusMessage } from '@services/device.service';
 
-const INFLUXDB_DB = "devices"
+const INFLUXDB_DB = 'devices';
 // You can generate a Token from the "Tokens Tab" in the UI
 
-const influxdb_client = new InfluxDB({url: 'http://influxdb:8086', token: INFLUXDB_TOKEN})
-export const VALID_SENSORS = [
-  'temperature',
-  'humidity',
-  'avg',
-  'p',
-  'i',
-  'd',
-  'co2',
-  'rpm',
-  'day',
-  'sensor_type'
-]
+const influxdb_client = new InfluxDB({ url: 'http://influxdb:8086', token: INFLUXDB_TOKEN });
+export const VALID_SENSORS = ['temperature', 'humidity', 'avg', 'p', 'i', 'd', 'co2', 'rpm', 'day', 'sensor_type'];
 
-export const VALID_OUTPUTS = [
-  'heater',
-  'dehumidifier',
-  'co2',
-  'light',
-  'fan',
-  'relais'
-]
+export const VALID_OUTPUTS = ['heater', 'dehumidifier', 'co2', 'light', 'fan', 'relais'];
 
 class DataService {
   constructor() {
@@ -38,7 +19,6 @@ class DataService {
   }
 
   private async influxConnect() {
-
     // let names = await influxdb_client.getDatabaseNames()
     // console.log(names)
     // if (!names.includes(INFLUXDB_DB)) {
@@ -55,14 +35,14 @@ class DataService {
     try {
       // write point with the appropriate timestamp
       const point1 = new Point('status');
-      for (let sensor of VALID_SENSORS) {
+      for (const sensor of VALID_SENSORS) {
         if (fields.sensors[sensor] != null) {
-          point1.floatField(sensor, parseFloat(fields.sensors[sensor]));
+          point1.floatField(sensor, parseFloat(String(fields.sensors[sensor])));
         }
       }
-      for (let output of VALID_OUTPUTS) {
+      for (const output of VALID_OUTPUTS) {
         if (fields.outputs[output] != null) {
-          point1.floatField('out_' + output, parseFloat(fields.outputs[output]));
+          point1.floatField('out_' + output, parseFloat(String(fields.outputs[output])));
         }
       }
 
@@ -78,8 +58,8 @@ class DataService {
   }
 
   public async getSeries(device_id, measure, from, to, interval) {
-    const queryApi = influxdb_client.getQueryApi(INFLUXDB_ORG)
-    let query = `
+    const queryApi = influxdb_client.getQueryApi(INFLUXDB_ORG);
+    const query = `
       from(bucket: "${INFLUXDB_BUCKET}")
         |> range(start: ${from}, stop: ${to})
         |> filter(fn: (r) => r["_measurement"] == "status")
@@ -88,15 +68,17 @@ class DataService {
         |> aggregateWindow(every: ${interval}, fn: mean, createEmpty: true)
         |> yield(name: "mean")
         |> limit(n: 50000)
-    `
-    let rows = await queryApi.collectRows(query)
-    rows = rows.map((row: any) => {return {_time: row._time, _value: row._value}})
+    `;
+    let rows = await queryApi.collectRows(query);
+    rows = rows.map((row: any) => {
+      return { _time: row._time, _value: row._value };
+    });
     return rows;
   }
 
-  public async getLatest(device_id, measure):Promise<number> {
-    const queryApi = influxdb_client.getQueryApi(INFLUXDB_ORG)
-    let query = `
+  public async getLatest(device_id, measure): Promise<number> {
+    const queryApi = influxdb_client.getQueryApi(INFLUXDB_ORG);
+    const query = `
       from(bucket: "${INFLUXDB_BUCKET}")
         |> range(start: -5m)
         |> filter(fn: (r) => r["_measurement"] == "status")
@@ -104,18 +86,15 @@ class DataService {
         |> filter(fn: (r) => r["device_id"] == "${device_id}")
         |> aggregateWindow(every: 5m, fn: last, createEmpty: false)
         |> yield(name: "mean")
-    `
+    `;
 
-    let rows = await queryApi.collectRows(query)
+    const rows = await queryApi.collectRows(query);
 
-    if(rows.length > 0) {
+    if (rows.length > 0) {
       return rows[rows.length - 1]['_value'];
-    }
-    else {
+    } else {
       return NaN;
     }
-
   }
-
 }
 export const dataService = new DataService();
