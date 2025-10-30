@@ -102,4 +102,8 @@ networks:
 
 volumes:
   mongodata:
+    external:
+      name: fg2_mongodata
   influxdata:
+    external:
+      name: fg2_influxdata
