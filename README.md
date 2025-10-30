@@ -13,6 +13,8 @@
 1. `cd fg2/`
 1. `cp .env.sample .env`
 1. `vi .env` (or edit this file in any other way) 
+1. `docker volume create fg2_influxdata`
+1. `docker volume create mongodata`
 1. `docker-compose up --build -d --remove-orphans`
 1. Go to `http://<youripOrDomain>:8080` to access the web interface
 
@@ -45,6 +47,11 @@ Additionally, you may want to back up the `.env` file as well.
 1. `cd myfolder/fg2/`
 2. Place the backup files here
 2. `./restore.sh backup-2025-10-29_22-12-27`
+
+## Cleanup
+1. `cd myfolder/fg2/`
+2. `docker-compose down --volumes`
+3. `docker volume rm fg2_influxdata fg2_mongodata`
 
 ## Development
 
