@@ -34,7 +34,7 @@ class App {
       await this.connectToDatabase();
       await this.initializeMiddlewares();
       await this.initializeRoutes(this.routes);
-      // await this.initializeSwagger();
+      await this.initializeSwagger();
       await this.initializeErrorHandling();
 
       this.app.listen(this.port, () => {
@@ -81,21 +81,23 @@ class App {
     });
   }
 
-  // private initializeSwagger() {
-  //   const options = {
-  //     swaggerDefinition: {
-  //       info: {
-  //         title: 'REST API',
-  //         version: '1.0.0',
-  //         description: 'Example docs',
-  //       },
-  //     },
-  //     apis: ['swagger.yaml'],
-  //   };
+  private initializeSwagger() {
+    const path = require('path');
+    const yamlPath = path.resolve(__dirname, '../swagger.yaml');
 
-  //   const specs = swaggerJSDoc(options);
-  //   this.app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
-  // }
+    this.app.get('/swagger.yaml', (req, res) => {
+      res.sendFile(yamlPath);
+    });
+
+    this.app.use(
+      '/api-docs',
+      swaggerUi.serve,
+      swaggerUi.setup(undefined, {
+        explorer: true,
+        swaggerOptions: { url: '/swagger.yaml' },
+      }),
+    );
+  }
 
   private initializeErrorHandling() {
     this.app.use(errorMiddleware);
