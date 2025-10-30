@@ -45,68 +45,35 @@ class DataService {
     // }
   }
 
-  public async addData(device_id:string, user_id:string, fields:any) {
-
+  public async addData(device_id: string, user_id: string, fields: any) {
     // create a write API, expecting point timestamps in nanoseconds (can be also 's', 'ms', 'us')
-    const writeApi = influxdb_client.getWriteApi(INFLUXDB_ORG, INFLUXDB_BUCKET, 'ns')
+    const writeApi = influxdb_client.getWriteApi(INFLUXDB_ORG, INFLUXDB_BUCKET, 'ns');
     // setup default tags for all writes through this API
-
-    writeApi.useDefaultTags({device_id: device_id, user_id: user_id })
+    writeApi.useDefaultTags({ device_id: device_id, user_id: user_id });
 
     try {
-      // write point with the current (client-side) timestamp
-      const point1 = new Point('status')
-      for(let sensor of valid_sensors) {
-        if(fields.sensors[sensor] != null) {
-          point1.floatField(sensor, parseFloat(fields.sensors[sensor]))
+      // write point with the appropriate timestamp
+      const point1 = new Point('status');
+      for (let sensor of valid_sensors) {
+        if (fields.sensors[sensor] != null) {
+          point1.floatField(sensor, parseFloat(fields.sensors[sensor]));
         }
       }
-      for(let output of valid_outputs) {
-        if(fields.outputs[output] != null) {
-          point1.floatField('out_' + output, parseFloat(fields.outputs[output]))
+      for (let output of valid_outputs) {
+        if (fields.outputs[output] != null) {
+          point1.floatField('out_' + output, parseFloat(fields.outputs[output]));
         }
       }
-      point1.timestamp(new Date())
-      writeApi.writePoint(point1)
-      await writeApi.close()
-    }
-    catch(err) {
-      console.log(err)
-    }
-    //
-    // write point with a custom timestamp
-  }
 
-  public async addDataWithTimestamp(device_id:string, user_id:string, fields:any) {
+      // Use the provided timestamp if available, otherwise use the current timestamp
+      const timestamp = fields.timestamp && fields.timestamp > 0 ? fields.timestamp * 1000000000 : new Date();
+      point1.timestamp(timestamp);
 
-    // create a write API, expecting point timestamps in nanoseconds (can be also 's', 'ms', 'us')
-    const writeApi = influxdb_client.getWriteApi(INFLUXDB_ORG, INFLUXDB_BUCKET, 'ns')
-    // setup default tags for all writes through this API
-
-    writeApi.useDefaultTags({device_id: device_id, user_id: user_id })
-
-    try {
-      // write point with the current (client-side) timestamp
-      const point1 = new Point('status')
-      for(let sensor of valid_sensors) {
-        if(fields.sensors[sensor] != null) {
-          point1.floatField(sensor, parseFloat(fields.sensors[sensor]))
-        }
-      }
-      for(let output of valid_outputs) {
-        if(fields.outputs[output] != null) {
-          point1.floatField('out_' + output, parseFloat(fields.outputs[output]))
-        }
-      }
-      point1.timestamp(fields.timestamp * 1000000000)
-      writeApi.writePoint(point1)
-      await writeApi.close()
+      writeApi.writePoint(point1);
+      await writeApi.close();
+    } catch (err) {
+      console.log(err);
     }
-    catch(err) {
-      console.log(err)
-    }
-    //
-    // write point with a custom timestamp
   }
 
   public async getSeries(device_id, measure, from, to, interval) {

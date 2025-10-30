@@ -80,24 +80,26 @@ class DeviceService {
         let device = await deviceModel.findOne({device_id: device_id});
         if(device) {
 
+          const parsedMessage = JSON.parse(message.message);
+
           switch(topic) {
             case 'status' :
               await this.checkAndUpgrade(device)
-              this.statusMessage(device, message.message);
+              this.statusMessage(device, parsedMessage);
               break;
             case 'bulk' :
               await this.checkAndUpgrade(device)
-              this.bulkStatusMessage(device, message.message);
+              this.statusMessage(device, { ...parsedMessage, timestamp: undefined });
               break;
             case 'fetch' :
               await this.checkAndUpgrade(device)
-              this.fetchMessage(device, message.message);
+              this.fetchMessage(device, parsedMessage);
               break;
             case 'log' :
-              this.logMessage(device, message.message);
+              this.logMessage(device, parsedMessage);
               break;
             case 'configuration' :
-              this.settingsMessage(device, message.message);
+              this.settingsMessage(device, parsedMessage);
               break;
             case 'firmware' :
               break;
@@ -161,20 +163,13 @@ class DeviceService {
 
   private async statusMessage(device:Device, message) {
     if(device.owner_id) {
-      dataService.addData(device.device_id, device.owner_id, JSON.parse(message))
+      await dataService.addData(device.device_id, device.owner_id, message)
     }
   }
 
-  private async bulkStatusMessage(device:Device, message) {
-    if(device.owner_id) {
-      dataService.addDataWithTimestamp(device.device_id, device.owner_id, JSON.parse(message))
-    }
-  }
-
-  private async fetchMessage(device:Device, message) {
+  private async fetchMessage(device:Device, payload) {
     //const device_class = await deviceClassModel.findOne({class_id: device.class_id});
     try {
-      const payload = JSON.parse(message)
       if(payload.firmware_id) {
         if(payload.firmware_id != device.current_firmware) {
           if(payload.firmware_id == device.pending_firmware) {
@@ -194,14 +189,13 @@ class DeviceService {
     }
   }
 
-  private async logMessage(device:Device, message) {
+  private async logMessage(device:Device, msg) {
     //console.log("\nLOG\n", message)
     const log_count = await deviceLogModel.where({device_id: device.device_id}).countDocuments()
     if(log_count > 100) {
       const last_logs:any = await deviceLogModel.find({device_id: device.device_id}).sort({time: -1}).skip(99).limit(1)
       await deviceLogModel.deleteMany({device_id: device.device_id, time: {$lt: last_logs[0].time}})
     }
-    let msg = JSON.parse(message)
     await deviceLogModel.create({
       device_id: device.device_id,
       message: msg.message,
@@ -232,8 +226,7 @@ class DeviceService {
   }
 
   private async settingsMessage(device:Device, message) {
-    let settings = JSON.parse(message);
-    await deviceModel.findOneAndUpdate({device_id: device.device_id}, { configuration: JSON.stringify(settings) });
+    await deviceModel.findOneAndUpdate({device_id: device.device_id}, { configuration: JSON.stringify(message) });
   }
 
   public async findAllDevices(): Promise<Device[]> {
