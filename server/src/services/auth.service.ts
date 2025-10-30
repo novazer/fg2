@@ -1,7 +1,22 @@
 import { hash, compare } from 'bcrypt';
 import { sign } from 'jsonwebtoken';
-import { SECRET_KEY, AUTOMATION_TOKEN, ACTIVATION_SMTP_SERVER, ACTIVATION_SMTP_PORT, ACTIVATION_SMTP_SECURE,
-         ACTIVATION_SMTP_USER, ACTIVATION_SMTP_PASSWORD, REQUIRE_ACTIVATION, ACTIVATION_SENDER, API_URL_EXTERNAL } from '@config';
+import {
+  SECRET_KEY,
+  AUTOMATION_TOKEN,
+  ACTIVATION_SMTP_SERVER,
+  ACTIVATION_SMTP_PORT,
+  SMTP_SECURE,
+  ACTIVATION_SMTP_USER,
+  ACTIVATION_SMTP_PASSWORD,
+  REQUIRE_ACTIVATION,
+  ACTIVATION_SENDER,
+  API_URL_EXTERNAL,
+  SMTP_SERVER,
+  SMTP_PORT,
+  SMTP_USER,
+  SMTP_PASSWORD,
+  SMTP_SENDER,
+} from '@config';
 import { LoginDto, ActivationDto } from '@dtos/users.dto';
 import { HttpException } from '@exceptions/HttpException';
 import { DataStoredInToken, TokenData } from '@interfaces/auth.interface';
@@ -12,118 +27,132 @@ import { isEmpty } from '@utils/util';
 import { v4 as uuidv4 } from 'uuid';
 import { DateTime } from 'luxon';
 
-const nodemailer = require("nodemailer");
+const nodemailer = require('nodemailer');
 
-const transporter = nodemailer.createTransport({
-  host: ACTIVATION_SMTP_SERVER,
-  port: ACTIVATION_SMTP_PORT,
-  secure: ACTIVATION_SMTP_SECURE,
+export const mailTransport = nodemailer.createTransport({
+  host: ACTIVATION_SMTP_SERVER || SMTP_SERVER,
+  port: ACTIVATION_SMTP_PORT || SMTP_PORT,
+  secure: SMTP_SECURE,
   debug: false,
   logger: false,
   auth: {
-    user: ACTIVATION_SMTP_USER,
-    pass: ACTIVATION_SMTP_PASSWORD
-  }
+    user: ACTIVATION_SMTP_USER || SMTP_USER,
+    pass: ACTIVATION_SMTP_PASSWORD || SMTP_PASSWORD,
+  },
 });
 
-
 class AuthService {
-
   public async signup(userData: LoginDto): Promise<User> {
-    if (isEmpty(userData)) throw new HttpException(400, "Invalid request data.");
+    if (isEmpty(userData)) throw new HttpException(400, 'Invalid request data.');
 
     const findUser: User = await userModel.findOne({ username: userData.username });
-    if (findUser) throw new HttpException(409, "User allready exists");
+    if (findUser) throw new HttpException(409, 'User allready exists');
 
     const hashedPassword = await hash(userData.password, 10);
-    if(REQUIRE_ACTIVATION) {
+    if (REQUIRE_ACTIVATION) {
       const activation_code = uuidv4();
-      const createUserData: User = await userModel.create({ ...userData, password: hashedPassword, is_active: false, activation_code: activation_code, user_id: uuidv4() });
+      const createUserData: User = await userModel.create({
+        ...userData,
+        password: hashedPassword,
+        is_active: false,
+        activation_code: activation_code,
+        user_id: uuidv4(),
+      });
 
-      const info = await transporter.sendMail({
-        from: ACTIVATION_SENDER, // sender address
+      const info = await mailTransport.sendMail({
+        from: ACTIVATION_SENDER || SMTP_SENDER, // sender address
         to: userData.username, // list of receivers
-        subject: "Please activate your Plantalytix account", // Subject line
-        text: "Activation url: " + API_URL_EXTERNAL + "/login?code=" + activation_code
+        subject: 'Please activate your Plantalytix account', // Subject line
+        text: 'Activation url: ' + API_URL_EXTERNAL + '/login?code=' + activation_code,
       });
 
       return createUserData;
-    }
-    else {
+    } else {
       const activation_code = uuidv4();
-      const createUserData: User = await userModel.create({ ...userData, password: hashedPassword, is_active: true, activation_code: activation_code, user_id: uuidv4() });
+      const createUserData: User = await userModel.create({
+        ...userData,
+        password: hashedPassword,
+        is_active: true,
+        activation_code: activation_code,
+        user_id: uuidv4(),
+      });
       return createUserData;
     }
   }
 
   public async generatePasswordToken(username: string): Promise<void> {
     const findUser: User = await userModel.findOne({ username: username });
-    if (!findUser) throw new HttpException(409, "Invalid user");
+    if (!findUser) throw new HttpException(409, 'Invalid user');
 
     const token = uuidv4();
-    passwordTokenModel.create({token: token, user_id: findUser.user_id })
-    const info = await transporter.sendMail({
+    passwordTokenModel.create({ token: token, user_id: findUser.user_id });
+    const info = await mailTransport.sendMail({
       from: ACTIVATION_SENDER, // sender address
       to: username, // list of receivers
-      subject: "Reset your Plantalytix password", // Subject line
-      text: "Change password: " + API_URL_EXTERNAL + "/login?recovery=" + token
+      subject: 'Reset your Plantalytix password', // Subject line
+      text: 'Change password: ' + API_URL_EXTERNAL + '/login?recovery=' + token,
     });
   }
 
   public async activate(userData: ActivationDto): Promise<boolean> {
-    if (isEmpty(userData)) throw new HttpException(400, "Invalid request data.");
+    if (isEmpty(userData)) throw new HttpException(400, 'Invalid request data.');
 
     const findUser: User = await userModel.findOne({ activation_code: userData.activation_code });
-    if (!findUser) throw new HttpException(409, "Wrong activation code");
+    if (!findUser) throw new HttpException(409, 'Wrong activation code');
 
-    await userModel.findOneAndUpdate({activation_code: userData.activation_code}, {is_active: true});
-    return true
+    await userModel.findOneAndUpdate({ activation_code: userData.activation_code }, { is_active: true });
+    return true;
   }
 
   public async login(userData: LoginDto): Promise<{ userToken: TokenData; refreshToken: TokenData; findUser: User }> {
-    if (isEmpty(userData)) throw new HttpException(400, "Invalid request data.");
+    if (isEmpty(userData)) throw new HttpException(400, 'Invalid request data.');
 
-    const findUser: User = await userModel.findOne({ username: userData.username}, { _id: 0, username: 1, user_id: 1, is_admin: 1, password: 1, is_active: 1 } );
-    if (!findUser) throw new HttpException(409, "Wrong email/password");
+    const findUser: User = await userModel.findOne(
+      { username: userData.username },
+      { _id: 0, username: 1, user_id: 1, is_admin: 1, password: 1, is_active: 1 },
+    );
+    if (!findUser) throw new HttpException(409, 'Wrong email/password');
 
     const isPasswordMatching: boolean = await compare(userData.password, findUser.password);
-    if (!isPasswordMatching) throw new HttpException(409, "Wrong email/password");
+    if (!isPasswordMatching) throw new HttpException(409, 'Wrong email/password');
 
-    if (!findUser.is_active) throw new HttpException(409, "User not activated");
+    if (!findUser.is_active) throw new HttpException(409, 'User not activated');
 
-    const {userToken, refreshToken} = this.createTokensFromUser(findUser);
+    const { userToken, refreshToken } = this.createTokensFromUser(findUser);
     // const cookie = this.createCookie(tokenData);
 
     return { userToken, refreshToken, findUser };
   }
 
-  public async changePassword(user_id:string, password:string): Promise<void> {
-    const findUser: User = await userModel.findOne({ user_id: user_id}, { _id: 0, username: 1, user_id: 1, is_admin: 1, password: 1, is_active: 1 } );
-    if (!findUser) throw new HttpException(409, "Wrong email/password");
+  public async changePassword(user_id: string, password: string): Promise<void> {
+    const findUser: User = await userModel.findOne({ user_id: user_id }, { _id: 0, username: 1, user_id: 1, is_admin: 1, password: 1, is_active: 1 });
+    if (!findUser) throw new HttpException(409, 'Wrong email/password');
     const hashedPassword = await hash(password, 10);
 
-    await userModel.findOneAndUpdate({user_id: user_id}, {password: hashedPassword});
+    await userModel.findOneAndUpdate({ user_id: user_id }, { password: hashedPassword });
   }
 
-  public async changePasswordWithToken(token:string, password:string): Promise<void> {
-    const pwtoken: PasswordToken = await passwordTokenModel.findOne({token: token, createdAt: { $gt: DateTime.now().minus({days:1}).toISODate() }})
-    if (!pwtoken) throw new HttpException(409, "Wrong token");
+  public async changePasswordWithToken(token: string, password: string): Promise<void> {
+    const pwtoken: PasswordToken = await passwordTokenModel.findOne({
+      token: token,
+      createdAt: { $gt: DateTime.now().minus({ days: 1 }).toISODate() },
+    });
+    if (!pwtoken) throw new HttpException(409, 'Wrong token');
     const hashedPassword = await hash(password, 10);
-    await userModel.findOneAndUpdate({user_id: pwtoken.user_id}, {password: hashedPassword});
+    await userModel.findOneAndUpdate({ user_id: pwtoken.user_id }, { password: hashedPassword });
   }
 
   public async loginWithToken(token: string): Promise<{ userToken: TokenData }> {
-
-    if(token != AUTOMATION_TOKEN) {
+    if (token != AUTOMATION_TOKEN) {
       throw new HttpException(401, 'Wrong authentication token');
     }
 
     const dataStoredInToken: DataStoredInToken = {
-      user_id: "",
-      is_admin: true
+      user_id: '',
+      is_admin: true,
     };
 
-    const token_expiration:number = 5 * 60;
+    const token_expiration: number = 5 * 60;
 
     return {
       userToken: { expiresIn: token_expiration, token: sign(dataStoredInToken, SECRET_KEY, { expiresIn: token_expiration }) },
@@ -131,10 +160,9 @@ class AuthService {
   }
 
   public async refresh(tokenData: DataStoredInToken): Promise<{ userToken: TokenData; refreshToken: TokenData }> {
-    const {userToken, refreshToken} = this.createTokens({user_id: tokenData.user_id, is_admin: tokenData.is_admin});
-    return {userToken, refreshToken};
+    const { userToken, refreshToken } = this.createTokens({ user_id: tokenData.user_id, is_admin: tokenData.is_admin });
+    return { userToken, refreshToken };
   }
-
 
   public async logout(userData: User): Promise<User> {
     if (isEmpty(userData)) throw new HttpException(400, "You're not userData");
@@ -145,22 +173,22 @@ class AuthService {
     return findUser;
   }
 
-  public createTokensFromUser(user: User): {userToken: TokenData, refreshToken: TokenData} {
+  public createTokensFromUser(user: User): { userToken: TokenData; refreshToken: TokenData } {
     const dataStoredInToken: DataStoredInToken = {
       user_id: user.user_id,
-      is_admin: user.is_admin
+      is_admin: user.is_admin,
     };
 
     return this.createTokens(dataStoredInToken);
   }
 
-  public createTokens(dataStoredInToken: DataStoredInToken): {userToken: TokenData, refreshToken: TokenData} {
-    const token_expiration:number = 1 * 60;
-    const refresh_expiration:number = 5 * 60;
+  public createTokens(dataStoredInToken: DataStoredInToken): { userToken: TokenData; refreshToken: TokenData } {
+    const token_expiration: number = 1 * 60;
+    const refresh_expiration: number = 5 * 60;
 
     return {
       userToken: { expiresIn: token_expiration, token: sign(dataStoredInToken, SECRET_KEY, { expiresIn: token_expiration }) },
-      refreshToken: { expiresIn: refresh_expiration, token: sign(dataStoredInToken, SECRET_KEY, { expiresIn: refresh_expiration }) }
+      refreshToken: { expiresIn: refresh_expiration, token: sign(dataStoredInToken, SECRET_KEY, { expiresIn: refresh_expiration }) },
     };
   }
 }

@@ -5,7 +5,7 @@ const deviceFirmwareSchema: Schema = new Schema({
   firmware_id: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
   },
   class_id: {
     type: String,
@@ -18,7 +18,7 @@ const deviceFirmwareSchema: Schema = new Schema({
   version: {
     type: String,
     required: true,
-  }
+  },
 });
 
 export const deviceFirmwareModel = model<DeviceFirmware & Document>('DeviceFirmware', deviceFirmwareSchema);
@@ -27,7 +27,7 @@ const deviceFirmwareBinarySchema: Schema = new Schema({
   firmware_id: {
     type: String,
     required: true,
-    unique: false
+    unique: false,
   },
   name: {
     type: String,
@@ -36,8 +36,7 @@ const deviceFirmwareBinarySchema: Schema = new Schema({
   data: {
     type: Buffer,
     required: true,
-  }
+  },
 });
 
 export const deviceFirmwareBinaryModel = model<DeviceFirmwareBinary & Document>('DeviceFirmwareBinary', deviceFirmwareBinarySchema);
-

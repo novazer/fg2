@@ -6,17 +6,16 @@ import { isEmpty } from '@utils/util';
 import { v4 as uuidv4 } from 'uuid';
 import { mqttclient } from '../databases/mqttclient';
 
-const KAFKA_GROUPID = "mqtt-manager-" + uuidv4();
+const KAFKA_GROUPID = 'mqtt-manager-' + uuidv4();
 class MqttAuthService {
   private devices = deviceModel;
 
-  constructor() {
-  }
+  constructor() {}
 
   public async user(authData: AuthUserDto): Promise<boolean> {
     if (isEmpty(authData)) throw new HttpException(400, "You're not userData");
 
-    if(authData.username == mqttclient.getUser() && authData.password == mqttclient.getPassword()) {
+    if (authData.username == mqttclient.getUser() && authData.password == mqttclient.getPassword()) {
       return true;
     }
 
@@ -31,7 +30,7 @@ class MqttAuthService {
   public async vhost(authData: AuthVhostDto): Promise<boolean> {
     if (isEmpty(authData)) throw new HttpException(400, "You're not userData");
 
-    if(authData.username == mqttclient.getUser()) {
+    if (authData.username == mqttclient.getUser()) {
       return true;
     }
 
@@ -48,7 +47,7 @@ class MqttAuthService {
   public async topic(authData: AuthTopicDto): Promise<boolean> {
     if (isEmpty(authData)) throw new HttpException(400, "You're not userData");
 
-    if(authData.username == mqttclient.getUser()) {
+    if (authData.username == mqttclient.getUser()) {
       return true;
     }
 
@@ -65,7 +64,7 @@ class MqttAuthService {
   public async resource(authData: AuthResourceDto): Promise<boolean> {
     if (isEmpty(authData)) throw new HttpException(400, "You're not userData");
 
-    if(authData.username == mqttclient.getUser()) {
+    if (authData.username == mqttclient.getUser()) {
       return true;
     }
 

@@ -49,11 +49,11 @@
         icon="temperature_neutral"
         unit="°C"
         [value]="data.measure(device_id, 'temperature') | async | round"
+        [average-value]="(data.measureAvg(device_id, 'temperature') | async | round)"
         scale-min="0"
         scale-max="50"
         [limit-min]="t_l"
         [limit-max]="t_h"
-
       ></value-display>
     </ion-col>
     <ion-col size="6" size-sm="3" size-xl="2">
@@ -62,11 +62,11 @@
         icon="humidity_neutral"
         unit="%"
         [value]="data.measure(device_id, 'humidity') | async | round"
+        [average-value]="(data.measureAvg(device_id, 'humidity') | async | round)"
         scale-min="0"
         scale-max="100"
         [limit-min]="r_l"
         [limit-max]="r_h"
-
       ></value-display>
     </ion-col>
   <!-- </ion-row>
@@ -77,11 +77,11 @@
         icon="co2_neutral"
         unit="PPM"
         [value]="data.measure(device_id, 'co2') | async | nofract"
+        [average-value]="(data.measureAvg(device_id, 'co2') | async | round)"
         scale-min="0"
         scale-max="5000"
         [limit-min]="co2_l"
         [limit-max]="co2_h"
-
       ></value-display>
     </ion-col>
   </ion-row>

@@ -2,8 +2,17 @@ import { Router } from 'express';
 import DeviceController from '@controllers/device.controller';
 import { Routes } from '@interfaces/routes.interface';
 import validationMiddleware from '@/middlewares/validation.middleware';
-import { AddDeviceDto, ClaimDeviceDto, ConfigureDeviceDto, AddDeviceFirmwareDto, AddDeviceClassDto, TestDeviceDto, SetNameDto, RegisterDeviceDto } from '@dtos/device.dto';
-import { authMiddleware, authAdminMiddleware, authSelfRegister } from '@/middlewares/auth.middleware';
+import {
+  AddDeviceDto,
+  ClaimDeviceDto,
+  ConfigureDeviceDto,
+  AddDeviceFirmwareDto,
+  AddDeviceClassDto,
+  TestDeviceDto,
+  SetNameDto,
+  RegisterDeviceDto,
+} from '@dtos/device.dto';
+import { authMiddleware, authAdminMiddleware } from '@/middlewares/auth.middleware';
 
 class DeviceRoute implements Routes {
   public path = '/device';
@@ -96,7 +105,12 @@ class DeviceRoute implements Routes {
      *     }
      *
      */
-    this.router.post(`${this.path}/configure`, authMiddleware, validationMiddleware(ConfigureDeviceDto, 'body'), this.deviceController.configureDevice);
+    this.router.post(
+      `${this.path}/configure`,
+      authMiddleware,
+      validationMiddleware(ConfigureDeviceDto, 'body'),
+      this.deviceController.configureDevice,
+    );
 
     /**
      * @api {post} /device/setname set device name
@@ -138,12 +152,22 @@ class DeviceRoute implements Routes {
     this.router.get(`${this.path}/firmware/:firmware_id/:binary`, this.deviceController.getFirmware);
     this.router.get(`/auth/v0.0.1/device/firmware/:firmware_id/:binary`, this.deviceController.getFirmware);
     this.router.post(`${this.path}/firmware/:firmware_id/:binary`, authAdminMiddleware, this.deviceController.createFirmwareBinary);
-    this.router.post(`${this.path}/firmware`, authAdminMiddleware, validationMiddleware(AddDeviceFirmwareDto, 'body'), this.deviceController.createFirmware);
+    this.router.post(
+      `${this.path}/firmware`,
+      authAdminMiddleware,
+      validationMiddleware(AddDeviceFirmwareDto, 'body'),
+      this.deviceController.createFirmware,
+    );
     this.router.get(`${this.path}/class`, authAdminMiddleware, this.deviceController.listClasses);
     this.router.get(`${this.path}/class/find/:class_name`, authAdminMiddleware, this.deviceController.findClass);
     this.router.get(`${this.path}/class/:class_id`, authAdminMiddleware, this.deviceController.getClass);
     this.router.post(`${this.path}/class`, authAdminMiddleware, validationMiddleware(AddDeviceClassDto, 'body'), this.deviceController.createClass);
-    this.router.post(`${this.path}/class/:class_id`, authAdminMiddleware, validationMiddleware(AddDeviceClassDto, 'body'), this.deviceController.updateClass);
+    this.router.post(
+      `${this.path}/class/:class_id`,
+      authAdminMiddleware,
+      validationMiddleware(AddDeviceClassDto, 'body'),
+      this.deviceController.updateClass,
+    );
     this.router.post(`${this.path}/test/:device_id`, authMiddleware, validationMiddleware(TestDeviceDto, 'body'), this.deviceController.testMode);
     this.router.delete(`${this.path}/test/:device_id`, authMiddleware, this.deviceController.stopTest);
 

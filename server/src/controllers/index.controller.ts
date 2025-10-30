@@ -15,11 +15,10 @@ class IndexController {
 
   public readycheck = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const findUser: User = await this.users.findOne({ username: "admin" });
+      const findUser: User = await this.users.findOne({ username: 'admin' });
       if (findUser) {
         res.sendStatus(200);
-      }
-      else {
+      } else {
         res.sendStatus(501);
       }
     } catch (error) {

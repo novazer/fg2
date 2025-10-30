@@ -6,7 +6,7 @@ const Influx = require('influx');
 export const dbConnection = {
   url: `mongodb://${DB_HOST}:${DB_PORT}/${DB_DATABASE}`,
   options: {
-    authSource: "admin",
+    authSource: 'admin',
     user: DB_USER,
     pass: DB_PASSWORD,
     useNewUrlParser: true,
@@ -15,7 +15,7 @@ export const dbConnection = {
   },
 };
 
-const INFLUXDB_DB = 'devices'
+const INFLUXDB_DB = 'devices';
 
 export const influxConnection = {
   host: INFLUXDB_HOST,
@@ -30,12 +30,9 @@ export const influxConnection = {
         out_heater: Influx.FieldType.FLOAT,
         out_dehumidifier: Influx.FieldType.FLOAT,
         out_co2: Influx.FieldType.FLOAT,
-        out_lights: Influx.FieldType.FLOAT
+        out_lights: Influx.FieldType.FLOAT,
       },
-      tags: [
-        'device_id',
-        'user_id',
-      ]
-    }
-  ]
+      tags: ['device_id', 'user_id'],
+    },
+  ],
 };

@@ -47,9 +47,12 @@ Additionally, you may want to back up the `.env` file as well.
 ### Restore
 1. `cd myfolder/fg2/`
 2. Place the backup files here
+2. `docker-compose stop server`
 2. `./restore.sh backup-2025-10-29_22-12-27`
+2. `docker-compose up -d`
 
 ## Cleanup
+To remove all data and start fresh:
 1. `cd myfolder/fg2/`
 2. `docker-compose down --volumes`
 3. `docker volume rm fg2_influxdata fg2_mongodata`
