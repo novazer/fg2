@@ -1,10 +1,13 @@
 export interface Alarm {
+  alarmId: string;
   sensorType: string;
   upperThreshold?: number;
   lowerThreshold?: number;
   actionType: 'email' | 'webhook' | 'info';
   actionTarget: string;
-  cooldownSeconds: number;
+  cooldownSeconds?: number;
+  isTriggered?: boolean;
+  lastTriggeredAt?: number;
 }
 
 export interface Device {

@@ -66,12 +66,15 @@ const deviceSchema: Schema = new Schema({
   alarms: {
     type: [
       {
+        alarmId: { type: String, required: true },
         sensorType: { type: String, required: true },
         upperThreshold: { type: Number, required: false },
         lowerThreshold: { type: Number, required: false },
         actionType: { type: String, enum: ['email', 'webhook', 'info'], required: true },
         actionTarget: { type: String, required: true },
-        cooldownSeconds: { type: Number, required: true },
+        cooldownSeconds: { type: Number, required: false },
+        isTriggered: { type: Boolean, required: false },
+        lastTriggeredAt: { type: Number, required: false },
       },
     ],
     required: false,

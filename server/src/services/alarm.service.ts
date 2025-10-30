@@ -10,7 +10,6 @@ const CACHE_EXPIRATION_SECONDS = 300;
 
 class AlarmService {
   private alarmCache: Map<string, { alarms: Alarm[]; expiresAt: number }> = new Map();
-  private cooldownMap: Map<string, number> = new Map(); // Map to track cooldowns
 
   async onDataReceived(deviceId: string, ownerId: string, data: StatusMessage) {
     console.log(`AlarmService: Data received for device ${deviceId}, owner ${ownerId}`); // fixme
@@ -18,7 +17,6 @@ class AlarmService {
     // Retrieve alarms from cache or database
     const alarms = await this.getAlarms(deviceId);
     if (!alarms || alarms.length === 0) {
-      console.log(`No alarms configured for device ${deviceId}.`);
       return;
     }
 
@@ -27,12 +25,10 @@ class AlarmService {
     for (const alarm of alarms) {
       const sensorValue = values[alarm.sensorType];
       if (sensorValue !== undefined) {
-        if (
+        const thresholdExceeded =
           (alarm.upperThreshold !== undefined && sensorValue > alarm.upperThreshold) ||
-          (alarm.lowerThreshold !== undefined && sensorValue < alarm.lowerThreshold)
-        ) {
-          console.log(`Alarm triggered for sensor ${alarm.sensorType} on device ${deviceId}.`);
-          // Handle the alarm action (e.g., send email, webhook, etc.)
+          (alarm.lowerThreshold !== undefined && sensorValue < alarm.lowerThreshold);
+        if ((thresholdExceeded && !alarm.isTriggered) || (!thresholdExceeded && alarm.isTriggered)) {
           await this.handleAlarmAction(alarm, deviceId, ownerId, data);
         }
       }
@@ -58,20 +54,27 @@ class AlarmService {
   }
 
   private async handleAlarmAction(alarm: Alarm, deviceId: string, ownerId: string, data: StatusMessage) {
-    const cooldownKey = `${alarm.actionTarget}::${alarm.sensorType}`;
     const now = Date.now();
 
     // Check if the action is within the cooldown period
-    if (this.cooldownMap.has(cooldownKey)) {
-      const lastTriggered = this.cooldownMap.get(cooldownKey)!;
-      if (now - lastTriggered < (alarm.cooldownSeconds || 0) * 1000) {
-        console.log(`Cooldown active for ${cooldownKey}. Skipping action.`);
-        return;
-      }
-    }
+    const inCooldownPeriod = now - (alarm.lastTriggeredAt || 0) < (alarm.cooldownSeconds || 0) * 1000;
+    const willSendAlarm = !inCooldownPeriod && !alarm.isTriggered;
 
-    // Update the cooldown timestamp
-    this.cooldownMap.set(cooldownKey, now);
+    await deviceModel.updateOne(
+      { device_id: deviceId, 'alarms.alarmId': alarm.alarmId },
+      {
+        $set: {
+          'alarms.$.lastTriggeredAt': willSendAlarm ? now : alarm.lastTriggeredAt,
+          'alarms.$.isTriggered': alarm.isTriggered ? false : !inCooldownPeriod,
+        },
+      },
+    );
+    this.alarmCache.delete(deviceId); // Invalidate cache
+
+    if (!alarm.isTriggered && inCooldownPeriod) {
+      console.log(`Cooldown active for alarm ${alarm.alarmId} on device ${deviceId}. Skipping action.`);
+      return;
+    }
 
     if (alarm.actionType === 'email') {
       try {
@@ -86,18 +89,20 @@ class AlarmService {
         console.error(`Failed to send alarm webhook for device ${deviceId}:`, error);
       }
     } else {
-      console.log(`Alarm action type ${alarm.actionType} is not supported.`);
+      console.log(`Alarm action type ${alarm.actionType} is not supported yet.`);
     }
   }
 
   private async handleEmailAlarm(alarm: Alarm, deviceId: string, data: StatusMessage) {
-    const emailSubject = `[FG2] Alarm Triggered for Device ${deviceId}`;
+    const event = alarm.isTriggered ? 'resolved' : 'triggered';
+    const emailSubject = `[FG2] Alarm ${event} for Device ${deviceId}`;
     const emailBody =
-      `An alarm has been triggered for device ${deviceId}.\n\n` +
+      `An alarm has been ${event} for device ${deviceId}.\n\n` +
       `Sensor: ${alarm.sensorType}\n` +
       `Threshold: ${alarm.upperThreshold !== undefined ? `Upper: ${alarm.upperThreshold}` : ''} ` +
       `${alarm.lowerThreshold !== undefined ? `Lower: ${alarm.lowerThreshold}` : ''}\n` +
-      `Value: ${data.sensors[alarm.sensorType]}\n`;
+      `Value: ${data.sensors[alarm.sensorType]}\n` +
+      `Alarm ID: ${alarm.alarmId}\n`;
 
     await mailTransport.sendMail({
       from: ACTIVATION_SENDER || SMTP_SENDER, // Sender address
@@ -121,6 +126,7 @@ class AlarmService {
       upperThreshold: alarm.upperThreshold,
       lowerThreshold: alarm.lowerThreshold,
       timestamp: new Date().toISOString(),
+      event: alarm.isTriggered ? 'resolved' : 'triggered',
     });
 
     const url = new URL(alarm.actionTarget);
