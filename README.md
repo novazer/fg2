@@ -1,10 +1,48 @@
-## Plantalytix Software Stack - Docker compose Edition
+# Fridge Grow Software Stack - Forked from Plantalytix
 
-### Installation
+## Getting started
 
-1. Rename global configuration file from .env.sample to .env
-2. Edit .env file and change all necessary values, especially those related to connection urls
-3. Start the stack by running ```docker-compose up```
-4. Build device firmware by running ```./build-fw.sh```
-5. Connect your devices via "Wifi" -> "Change server" on the display of the device. Use the url and password specified in the .env file.
-6. Pair devices as ususal
+### Prerequisites
+- Docker
+- Docker Compose
+
+### Quickstart
+1. `cd myfolder`
+1. `git clone https://github.com/novazer/fg2.git`
+1. `cd fg2/`
+1. `cp .env.sample .env`
+1. `vi .env` (or edit this file in any other way) 
+1. `docker-compose up --build -d --remove-orphans`
+1. Go to `http://<youripOrDomain>:8080` to access the web interface
+
+### Upgrading / Restarting
+1. `cd myfolder/fg2/`
+1. `git pull` (optional: this gets you the latest changes from the repo)
+1. `docker-compose up --build -d --remove-orphans` 
+
+### Firmware building
+Before being able to connect the module to your server, you need to build a custom firmware. This firmware contains the 
+server url specified in your .env file.
+1. `cd myfolder/fg2/`
+1. `./build-fw.sh`
+
+## Management
+
+### Backup
+1. `cd myfolder/fg2/`
+2. `./backup.sh`
+
+This produces two files that are both needed, e.g.
+```
+backup-2025-10-29_22-12-27.influxdump
+backup-2025-10-29_22-12-27.mongodump
+```
+
+### Restore
+1. `cd myfolder/fg2/`
+2. Place the backup files here
+2. `./restore.sh backup-2025-10-29_22-12-27`
+
+## Development
+
+Easiest method is probably the same as above for now.
