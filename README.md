@@ -5,6 +5,7 @@
 ### Prerequisites
 - Docker
 - Docker Compose
+- Git
 
 ### Quickstart
 1. `cd myfolder`
