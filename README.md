@@ -18,16 +18,17 @@
 1. `docker-compose up --build -d --remove-orphans`
 1. Go to `http://<youripOrDomain>:8080` to access the web interface
 
-### Upgrading / Restarting
-1. `cd myfolder/fg2/`
-1. `git pull` (optional: this gets you the latest changes from the repo)
-1. `docker-compose up --build -d --remove-orphans` 
-
 ### Firmware building
 Before being able to connect the module to your server, you need to build a custom firmware. This firmware contains the 
 server url specified in your .env file.
 1. `cd myfolder/fg2/`
 1. `./build-fw.sh`
+
+### Upgrading / Restarting
+1. `cd myfolder/fg2/`
+1. `git pull` (optional: this gets you the latest changes from the repo)
+1. `docker-compose up --build -d --remove-orphans`
+1. `./build-fw.sh` (if you want to update the firmware as well)
 
 ## Management
 
