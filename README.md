@@ -38,6 +38,8 @@ backup-2025-10-29_22-12-27.influxdump
 backup-2025-10-29_22-12-27.mongodump
 ```
 
+Additionally, you may want to back up the `.env` file as well.
+
 ### Restore
 1. `cd myfolder/fg2/`
 2. Place the backup files here
