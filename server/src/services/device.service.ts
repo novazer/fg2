@@ -11,6 +11,15 @@ import { dataService } from './data.service';
 import { HttpException } from '@/exceptions/HttpException';
 import { ENABLE_SELF_REGISTRATION, SELF_REGISTRATION_PASSWORD } from '@/config';
 
+export type StatusMessage = {
+  sensors: {
+    [key: string]: number;
+  };
+  outputs: {
+    [key: string]: number;
+  };
+  timestamp: number;
+};
 
 const UPGRADE_TIMEOUT:number = 10 * 60 * 1000
 const ONLINE_TIMEOUT:number = 10 * 60 * 1000
@@ -161,7 +170,7 @@ class DeviceService {
     }
   }
 
-  private async statusMessage(device:Device, message) {
+  private async statusMessage(device:Device, message: StatusMessage) {
     if(device.owner_id) {
       await dataService.addData(device.device_id, device.owner_id, message)
     }

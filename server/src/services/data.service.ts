@@ -4,12 +4,13 @@ import { INFLUXDB_HOST, INFLUXDB_TOKEN, INFLUXDB_ORG, INFLUXDB_BUCKET } from '@/
 import { NextFunction, Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs';
+import {StatusMessage} from "@services/device.service";
 
 const INFLUXDB_DB = "devices"
 // You can generate a Token from the "Tokens Tab" in the UI
 
 const influxdb_client = new InfluxDB({url: 'http://influxdb:8086', token: INFLUXDB_TOKEN})
-const valid_sensors = [
+export const VALID_SENSORS = [
   'temperature',
   'humidity',
   'avg',
@@ -22,7 +23,7 @@ const valid_sensors = [
   'sensor_type'
 ]
 
-const valid_outputs = [
+export const VALID_OUTPUTS = [
   'heater',
   'dehumidifier',
   'co2',
@@ -45,7 +46,7 @@ class DataService {
     // }
   }
 
-  public async addData(device_id: string, user_id: string, fields: any) {
+  public async addData(device_id: string, user_id: string, fields: StatusMessage) {
     // create a write API, expecting point timestamps in nanoseconds (can be also 's', 'ms', 'us')
     const writeApi = influxdb_client.getWriteApi(INFLUXDB_ORG, INFLUXDB_BUCKET, 'ns');
     // setup default tags for all writes through this API
@@ -54,12 +55,12 @@ class DataService {
     try {
       // write point with the appropriate timestamp
       const point1 = new Point('status');
-      for (let sensor of valid_sensors) {
+      for (let sensor of VALID_SENSORS) {
         if (fields.sensors[sensor] != null) {
           point1.floatField(sensor, parseFloat(fields.sensors[sensor]));
         }
       }
-      for (let output of valid_outputs) {
+      for (let output of VALID_OUTPUTS) {
         if (fields.outputs[output] != null) {
           point1.floatField('out_' + output, parseFloat(fields.outputs[output]));
         }
