@@ -3,7 +3,8 @@ import deviceModel from '@models/device.model';
 import { Alarm } from '@interfaces/device.interface';
 import { ACTIVATION_SENDER, SMTP_SENDER } from '@config';
 import { mailTransport } from '@services/auth.service';
-import { request } from 'https';
+import { request as httpRequest } from 'http';
+import { request as httpsRequest } from 'https';
 
 const CACHE_EXPIRATION_SECONDS = 300;
 
@@ -123,10 +124,12 @@ class AlarmService {
     });
 
     const url = new URL(alarm.actionTarget);
+    const isHttps = url.protocol?.startsWith('https');
+    const requestFn = isHttps ? httpsRequest : httpRequest;
 
     const options = {
       hostname: url.hostname,
-      port: url.port || 443,
+      port: url.port || (isHttps ? 443 : 80),
       path: url.pathname + url.search,
       method: 'POST',
       headers: {
@@ -135,7 +138,7 @@ class AlarmService {
       },
     };
 
-    const req = request(options, res => {
+    const req = requestFn(options, res => {
       if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
         console.log(`Webhook triggered successfully for device ${deviceId}`);
       } else {
