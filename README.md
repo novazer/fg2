@@ -23,6 +23,8 @@ Before being able to connect the module to your server, you need to build a cust
 server url specified in your .env file.
 1. `cd myfolder/fg2/`
 1. `./build-fw.sh`
+1. Now you can use the "Change server" option in the module to flash the firmware to your module. You'll need to input 
+   the `API_URL_EXTERNAL` and the `SELF_REGISTRATION_PASSWORD` values from your `.env` file with the knob.
 
 ### Upgrading / Restarting
 1. `cd myfolder/fg2/`
