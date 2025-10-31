@@ -33,6 +33,10 @@ class AlarmService {
     }
   }
 
+  invalidateAlarmCache(deviceId: string) {
+    this.alarmCache.delete(deviceId);
+  }
+
   private async getAlarms(deviceId: string): Promise<Alarm[]> {
     const cached = this.alarmCache.get(deviceId);
 

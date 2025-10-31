@@ -434,6 +434,7 @@ class DeviceService {
     }
 
     await deviceModel.updateOne({ device_id: device_id }, { alarms: alarms });
+    alarmService.invalidateAlarmCache(device_id);
   }
 
   public async setDeviceName(device_id: string, user_id: string, name: string) {
