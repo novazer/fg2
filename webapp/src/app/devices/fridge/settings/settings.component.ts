@@ -166,6 +166,7 @@ export class FridgeSettingComponent implements OnInit {
         "internalfan": 100,
         "externalfan": 100,
       }
+      this.alarms = [];
     }
 
     this.workmodes = [
@@ -276,7 +277,7 @@ export class FridgeSettingComponent implements OnInit {
   }
 
   dateTimeStringToSeconds(time:string) {
-    time = time.substring(0, 19)
+    time = time?.toString()?.substring(0, 19)
     // let date = parseISO(time);
     let date = new Date(time)
     return date.getTime() / 1000

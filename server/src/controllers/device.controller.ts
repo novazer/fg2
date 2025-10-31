@@ -95,7 +95,7 @@ class DeviceController {
 
   public configureDevice = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
-      if (isUserDeviceMiddelware(req, res, req.params.device_id)) {
+      if (isUserDeviceMiddelware(req, res, req.params.device_id ?? req.body.device_id)) {
         await deviceService.configureDevice(req.body.device_id, req.user_id, req.body.configuration);
         res.status(200).json({ status: 'ok' });
       }

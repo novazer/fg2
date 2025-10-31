@@ -70,7 +70,7 @@ export const isUserDeviceMiddelware = async (req: RequestWithUser, res: Response
           return true;
         }
 
-        res.status(401).send('Device not bound to user');
+        res.status(401).send(`Device ${device_id} not bound to user ${req.user_id}`);
         return false;
       } else {
         res.status(401).send('Wrong authentication token');
