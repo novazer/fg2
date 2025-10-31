@@ -54,6 +54,7 @@ Additionally, you may want to back up the `.env` file as well.
 2. `docker-compose stop server`
 2. `./restore.sh backup-2025-10-29_22-12-27`
 2. `docker-compose up -d`
+3. It may be necessary to create a new firmware version. Run `./build-fw.sh` if needed.
 
 ## Cleanup
 To remove all data and start fresh:
