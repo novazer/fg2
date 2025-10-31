@@ -43,6 +43,7 @@ export class FridgeOverviewComponent implements OnInit {
   public humidityTarget:number = NaN;
   public co2Target:number = NaN;
   public is_day:boolean = false;
+  public workmode:string = 'off';
 
   constructor(private devices: DeviceService, public data: DataService, private route: ActivatedRoute, private renderer: Renderer2) { }
 
@@ -142,9 +143,29 @@ export class FridgeOverviewComponent implements OnInit {
     const night:any = cfg?.night || {};
     const co2:any = cfg?.co2 || {};
 
-    const t = this.is_day ? toNum(day.temperature) : toNum(night.temperature);
-    const r = this.is_day ? toNum(day.humidity) : toNum(night.humidity);
-    const c = toNum(co2.target);
+    // keep current workmode around for the UI label and masking rules
+    const mode:string = (cfg?.workmode || 'off') + '';
+    this.workmode = mode;
+
+    let t = this.is_day ? toNum(day.temperature) : toNum(night.temperature);
+    let r = this.is_day ? toNum(day.humidity) : toNum(night.humidity);
+    let c = toNum(co2.target);
+
+    // Apply visibility rules per requested modes
+    switch(mode) {
+      case 'off':
+        t = NaN; r = NaN; c = NaN; // no targets
+        break;
+      case 'breed': // Keimung
+        r = NaN; c = NaN; // only temperature target
+        break;
+      case 'temp': // Gewächshaus
+        r = NaN; // only temperature and CO2 targets
+        break;
+      default:
+        // other modes unchanged
+        break;
+    }
 
     this.tempTarget = t;
     this.humidityTarget = r;

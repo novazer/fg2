@@ -42,6 +42,9 @@
   <h1 style="z-index: 1000" (click)="editName()" *ngIf="!editingName">{{device_name}}</h1>
   <input style="display: none; font-size: 24px;" #nameedit type="text" [(ngModel)]="device_name" (blur)="doneEdit()"/>
   <h3>{{'devices.fridge.title' | translate}}</h3>
+  <h3 style="text-align:center; margin-top: 4px; margin-bottom: 12px;">
+    {{ 'devices.fridge.workmode-' + workmode | translate }}
+  </h3>
   <ion-row class="ion-justify-content-center">
     <ion-col size="6" size-sm="3" size-xl="2">
       <value-display
