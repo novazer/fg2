@@ -14,7 +14,7 @@
 1. `cp .env.sample .env`
 1. `vi .env` (or edit this file in any other way) 
 1. `docker volume create fg2_influxdata`
-1. `docker volume create mongodata`
+1. `docker volume create fg2_mongodata`
 1. `docker-compose up --build -d --remove-orphans`
 1. Go to `http://<youripOrDomain>:8080` to access the web interface
 
@@ -60,3 +60,7 @@ To remove all data and start fresh:
 ## Development
 
 Easiest method is probably the same as above for now.
+
+## Documentation
+- Webapp: [Webapp](webapp/README.md)
+- Server: [Server](server/README.md)

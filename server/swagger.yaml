@@ -1,120 +1,576 @@
-tags:
-- name: users
-  description: users API
+openapi: 3.0.3
+info:
+  title: Fridge Grow Server API
+  version: "1.0.0"
+  description: |
+    OpenAPI documentation for the Fridge Grow server API.
+    The API is served by the `server` service in Docker Compose.
+servers:
+  - url: /
+    description: Current origin (recommended)
+  - url: ${API_URL_EXTERNAL}
+    description: External URL (from .env)
+security:
+  - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    User:
+      type: object
+      properties:
+        user_id:
+          type: string
+        username:
+          type: string
+          format: email
+        is_admin:
+          type: boolean
+    TokenPair:
+      type: object
+      properties:
+        userToken:
+          type: object
+          properties:
+            token:
+              type: string
+            expiresIn:
+              type: integer
+        refreshToken:
+          type: object
+          properties:
+            token:
+              type: string
+            expiresIn:
+              type: integer
+    Device:
+      type: object
+      properties:
+        device_id:
+          type: string
+        device_type:
+          type: string
+        configuration:
+          type: string
+        name:
+          type: string
+    SeriesPoint:
+      type: object
+      properties:
+        _time:
+          type: string
+          format: date-time
+        _value:
+          type: number
+    LatestValue:
+      type: object
+      properties:
+        value:
+          type: number
 
 paths:
-# [GET] users
+  /:
+    get:
+      summary: Health/index
+      tags: [Index]
+      security: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /signup:
+    post:
+      summary: Sign up new user
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+  /activate:
+    post:
+      summary: Activate user
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [activation_code]
+              properties:
+                activation_code:
+                  type: string
+      responses:
+        '201':
+          description: Activated
+  /login:
+    post:
+      summary: Login
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Token pair and user
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/TokenPair'
+                  - type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+  /refresh:
+    post:
+      summary: Refresh tokens
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token:
+                  type: string
+      responses:
+        '200':
+          description: New token pair
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenPair'
+  /getreset:
+    post:
+      summary: Request password reset token
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username]
+              properties:
+                username:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '201':
+          description: Sent
+  /reset:
+    post:
+      summary: Reset password
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, password]
+              properties:
+                token:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: OK
+  /changepass:
+    post:
+      summary: Change password
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: OK
+  /logout:
+    post:
+      summary: Logout
+      tags: [Auth]
+      responses:
+        '200': { description: OK }
+
   /users:
     get:
-      tags:
-      - users
-      summary: Find All Users
+      summary: List users (admin)
+      tags: [Users]
       responses:
-        200:
-          description: 'OK'
-        500:
-          description: 'Server Error'
-
-# [POST] users
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
     post:
-      tags:
-      - users
-      summary: Add User
-      parameters:
-      - name: body
-        in: body
-        description: user Data
+      summary: Create user (admin)
+      tags: [Users]
+      requestBody:
         required: true
-        schema:
-          $ref: '#/definitions/users'
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password, is_admin]
+              properties:
+                username: { type: string, format: email }
+                password: { type: string }
+                is_admin: { type: boolean }
       responses:
-        201:
-          description: 'Created'
-        400:
-          description: 'Bad Request'
-        409:
-          description: 'Conflict'
-        500:
-          description: 'Server Error'
+        '201': { description: Created }
 
-# [GET] users/id
   /users/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string }
     get:
-      tags:
-      - users
-      summary: Find User By Id
-      parameters:
-      - name: id
-        in: path
-        description: User Id
-        required: true
+      summary: Get user by id (admin)
+      tags: [Users]
       responses:
-        200:
-          description: 'OK'
-        409:
-          description: 'Conflict'
-        500:
-          description: 'Server Error'
-
-# [PUT] users/id
+        '200':
+          description: User
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
     put:
-      tags:
-      - users
-      summary: Update User By Id
-      parameters:
-      - name: id
-        in: path
-        description: user Id
+      summary: Update user (admin)
+      tags: [Users]
+      requestBody:
         required: true
-      - name: body
-        in: body
-        description: user Data
-        required: true
-        schema:
-          $ref: '#/definitions/users'
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username: { type: string, format: email }
+                password: { type: string }
+                is_admin: { type: boolean }
       responses:
-        200:
-          description: 'OK'
-        400:
-          description: 'Bad Request'
-        409:
-          description: 'Conflict'
-        500:
-          description: 'Server Error'
-
-# [DELETE] users/id
+        '200': { description: Updated }
     delete:
-      tags:
-      - users
-      summary: Delete User By Id
-      parameters:
-      - name: id
-        in: path
-        description: user Id
-        required: true
+      summary: Delete user (admin)
+      tags: [Users]
       responses:
-        200:
-          description: 'OK'
-        409:
-          description: 'Conflict'
-        500:
-          description: 'Server Error'
+        '200': { description: Deleted }
 
-# definitions
-definitions:
-  users:
-    type: object
-    required:
-        - email
-        - password
-    properties:
-      email:
-        type: string
-        description: user Email
-      password:
-        type: string
-        description: user Password
+  /device:
+    get:
+      summary: List devices of current user
+      tags: [Devices]
+      responses:
+        '200':
+          description: Devices
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Device'
+    post:
+      summary: Claim device to current user
+      tags: [Devices]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [claim_code]
+              properties:
+                claim_code:
+                  type: string
+      responses:
+        '200': { description: OK }
 
-schemes:
- - https
- - http
+  /device/{device_id}:
+    parameters:
+      - name: device_id
+        in: path
+        required: true
+        schema: { type: string }
+    delete:
+      summary: Unlink device from current user
+      tags: [Devices]
+      responses:
+        '200': { description: OK }
+
+  /device/configure:
+    post:
+      summary: Set device configuration
+      tags: [Devices]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [device_id, configuration]
+              properties:
+                device_id: { type: string }
+                configuration: { type: string }
+      responses:
+        '200': { description: OK }
+
+  /device/setname:
+    post:
+      summary: Set device name
+      tags: [Devices]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [device_id, name]
+              properties:
+                device_id: { type: string }
+                name: { type: string }
+      responses:
+        '200': { description: OK }
+
+  /device/config/{device_id}:
+    parameters:
+      - name: device_id
+        in: path
+        required: true
+        schema: { type: string }
+    get:
+      summary: Get device configuration
+      tags: [Devices]
+      responses:
+        '200':
+          description: Configuration JSON
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: string
+                  - type: object
+
+  /device/logs/{device_id}:
+    parameters:
+      - name: device_id
+        in: path
+        required: true
+        schema: { type: string }
+    get:
+      summary: Get device logs
+      tags: [Devices]
+      responses:
+        '200':
+          description: Array of logs
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { type: object }
+    delete:
+      summary: Clear device logs
+      tags: [Devices]
+      responses:
+        '200': { description: OK }
+
+  /device/test/{device_id}:
+    parameters:
+      - name: device_id
+        in: path
+        required: true
+        schema: { type: string }
+    post:
+      summary: Test mode - set outputs
+      tags: [Devices]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                heater: { type: integer }
+                dehumidifier: { type: integer }
+                co2: { type: integer }
+                lights: { type: integer }
+      responses:
+        '200': { description: OK }
+    delete:
+      summary: Stop test mode
+      tags: [Devices]
+      responses:
+        '200': { description: OK }
+
+  /data/series/{device_id}/{measure}:
+    parameters:
+      - name: device_id
+        in: path
+        required: true
+        schema: { type: string }
+      - name: measure
+        in: path
+        required: true
+        schema: { type: string }
+      - name: from
+        in: query
+        required: true
+        schema: { type: string }
+        description: Flux duration or timestamp expression (e.g. -24h)
+      - name: to
+        in: query
+        required: true
+        schema: { type: string }
+        description: Flux time expression, commonly now()
+      - name: interval
+        in: query
+        required: true
+        schema: { type: string }
+        description: Aggregation bucket size (e.g. 10s, 10m)
+    get:
+      summary: Time-series data
+      tags: [Data]
+      responses:
+        '200':
+          description: Series points
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SeriesPoint'
+
+  /data/latest/{device_id}/{measure}:
+    parameters:
+      - name: device_id
+        in: path
+        required: true
+        schema: { type: string }
+      - name: measure
+        in: path
+        required: true
+        schema: { type: string }
+    get:
+      summary: Latest measurement value
+      tags: [Data]
+      responses:
+        '200':
+          description: Latest value
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LatestValue'
+
+  /mqttauth/user:
+    post:
+      summary: MQTT HTTP auth - authenticate user (internal)
+      tags: [MQTT Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200': { description: OK }
+  /mqttauth/vhost:
+    post:
+      summary: MQTT HTTP auth - vhost permissions (internal)
+      tags: [MQTT Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200': { description: OK }
+  /mqttauth/topic:
+    post:
+      summary: MQTT HTTP auth - topic ACL (internal)
+      tags: [MQTT Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200': { description: OK }
+  /mqttauth/resource:
+    post:
+      summary: MQTT HTTP auth - resource ACL (internal)
+      tags: [MQTT Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200': { description: OK }
