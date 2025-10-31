@@ -3,13 +3,8 @@ import { sign } from 'jsonwebtoken';
 import {
   SECRET_KEY,
   AUTOMATION_TOKEN,
-  ACTIVATION_SMTP_SERVER,
-  ACTIVATION_SMTP_PORT,
   SMTP_SECURE,
-  ACTIVATION_SMTP_USER,
-  ACTIVATION_SMTP_PASSWORD,
   REQUIRE_ACTIVATION,
-  ACTIVATION_SENDER,
   API_URL_EXTERNAL,
   SMTP_SERVER,
   SMTP_PORT,
@@ -30,14 +25,14 @@ import { DateTime } from 'luxon';
 const nodemailer = require('nodemailer');
 
 export const mailTransport = nodemailer.createTransport({
-  host: ACTIVATION_SMTP_SERVER || SMTP_SERVER,
-  port: ACTIVATION_SMTP_PORT || SMTP_PORT,
+  host: SMTP_SERVER,
+  port: SMTP_PORT,
   secure: SMTP_SECURE,
   debug: false,
   logger: false,
   auth: {
-    user: ACTIVATION_SMTP_USER || SMTP_USER,
-    pass: ACTIVATION_SMTP_PASSWORD || SMTP_PASSWORD,
+    user: SMTP_USER,
+    pass: SMTP_PASSWORD,
   },
 });
 
@@ -60,7 +55,7 @@ class AuthService {
       });
 
       const info = await mailTransport.sendMail({
-        from: ACTIVATION_SENDER || SMTP_SENDER, // sender address
+        from: SMTP_SENDER, // sender address
         to: userData.username, // list of receivers
         subject: 'Please activate your Plantalytix account', // Subject line
         text: 'Activation url: ' + API_URL_EXTERNAL + '/login?code=' + activation_code,
@@ -87,7 +82,7 @@ class AuthService {
     const token = uuidv4();
     passwordTokenModel.create({ token: token, user_id: findUser.user_id });
     const info = await mailTransport.sendMail({
-      from: ACTIVATION_SENDER, // sender address
+      from: SMTP_SENDER, // sender address
       to: username, // list of receivers
       subject: 'Reset your Plantalytix password', // Subject line
       text: 'Change password: ' + API_URL_EXTERNAL + '/login?recovery=' + token,

@@ -1,7 +1,7 @@
 import { deviceService, StatusMessage } from '@services/device.service';
 import deviceModel from '@models/device.model';
 import { Alarm } from '@interfaces/device.interface';
-import { ACTIVATION_SENDER, SMTP_SENDER } from '@config';
+import { SMTP_SENDER } from '@config';
 import { mailTransport } from '@services/auth.service';
 import { request as httpRequest } from 'http';
 import { request as httpsRequest } from 'https';
@@ -115,7 +115,7 @@ class AlarmService {
       `Alarm ID: ${alarm.alarmId}\n`;
 
     await mailTransport.sendMail({
-      from: ACTIVATION_SENDER || SMTP_SENDER, // Sender address
+      from: SMTP_SENDER, // Sender address
       to: alarm.actionTarget, // Recipient email address
       subject: emailSubject, // Email subject
       text: emailBody, // Email body
