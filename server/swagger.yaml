@@ -8,8 +8,6 @@ info:
 servers:
   - url: /
     description: Current origin (recommended)
-  - url: ${API_URL_EXTERNAL}
-    description: External URL (from .env)
 security:
   - bearerAuth: []
 
