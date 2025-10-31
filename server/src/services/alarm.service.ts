@@ -1,4 +1,4 @@
-import { StatusMessage } from '@services/device.service';
+import { deviceService, StatusMessage } from '@services/device.service';
 import deviceModel from '@models/device.model';
 import { Alarm } from '@interfaces/device.interface';
 import { ACTIVATION_SENDER, SMTP_SENDER } from '@config';
@@ -12,8 +12,6 @@ class AlarmService {
   private alarmCache: Map<string, { alarms: Alarm[]; expiresAt: number }> = new Map();
 
   async onDataReceived(deviceId: string, ownerId: string, data: StatusMessage) {
-    console.log(`AlarmService: Data received for device ${deviceId}, owner ${ownerId}`); // fixme
-
     // Retrieve alarms from cache or database
     const alarms = await this.getAlarms(deviceId);
     if (!alarms || alarms.length === 0) {
@@ -88,6 +86,12 @@ class AlarmService {
       } catch (error) {
         console.error(`Failed to send alarm webhook for device ${deviceId}:`, error);
       }
+    } else if (alarm.actionType === 'info') {
+      try {
+        await this.handleInfoAlarm(alarm, deviceId, data);
+      } catch (error) {
+        console.error(`Failed to log alarm info for device ${deviceId}:`, error);
+      }
     } else {
       console.log(`Alarm action type ${alarm.actionType} is not supported yet.`);
     }
@@ -115,6 +119,7 @@ class AlarmService {
 
     console.log(`Alarm email sent to ${alarm.actionTarget} for device ${deviceId} and sensor ${alarm.sensorType}.`);
   }
+
   private async handleWebhookAlarm(alarm: Alarm, deviceId: string, data: StatusMessage) {
     if (!alarm.actionTarget) {
       console.error(`No webhook URL provided for alarm on device ${deviceId}`);
@@ -151,9 +156,9 @@ class AlarmService {
 
     const req = requestFn(options, res => {
       if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
-        console.log(`Webhook triggered successfully for device ${deviceId}`);
+        console.log(`Webhook triggered successfully for device ${deviceId} and alarm ${alarm.alarmId}.`);
       } else {
-        console.error(`Failed to trigger webhook for device ${deviceId}. Status: ${res.statusCode}`);
+        console.error(`Failed to trigger webhook for device ${deviceId} and alarm ${alarm.alarmId}. Status: ${res.statusCode}`);
       }
     });
 
@@ -163,6 +168,15 @@ class AlarmService {
 
     req.write(webhookPayload);
     req.end();
+  }
+
+  private async handleInfoAlarm(alarm: Alarm, deviceId: string, data: StatusMessage) {
+    const name = `Alarm ${alarm.name ?? alarm.alarmId}`;
+    const event = alarm.isTriggered ? 'resolved' : 'triggered';
+    await deviceService.logMessage(deviceId, {
+      message: `${name} ${event}: Sensor ${alarm.sensorType}, Value: ${data.sensors[alarm.sensorType]}`,
+      severity: alarm.isTriggered ? 1 : 0,
+    });
   }
 }
 

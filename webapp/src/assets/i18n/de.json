@@ -57,6 +57,7 @@
       "actionType": "Aktion",
       "actionTypeEmail": "Email",
       "actionTypeWebhook": "Webhook",
+      "actionTypeInfo": "Log-Meldung",
       "actionTarget": "Ziel",
       "actionTargetHint": "Email-Adresse oder URL",
       "cooldownSeconds": "Cooldown",

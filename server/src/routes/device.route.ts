@@ -128,11 +128,7 @@ class DeviceRoute implements Routes {
      *      "status": "ok"
      *    }
      */
-    this.router.post(
-      `${this.path}/alarms`,
-      authMiddleware,
-      this.deviceController.setDeviceAlarms,
-    );
+    this.router.post(`${this.path}/alarms`, authMiddleware, this.deviceController.setDeviceAlarms);
 
     /**
      * @api {post} /device/setname set device name

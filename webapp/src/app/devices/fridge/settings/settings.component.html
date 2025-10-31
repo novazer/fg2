@@ -297,6 +297,7 @@
           <ion-item lines="none">
             <ion-label>{{'settings.alarms.actionType' | translate}}</ion-label>
             <ion-select [(ngModel)]="alarm.actionType" [disabled]="alarm.disabled">
+              <ion-select-option value="info">{{'settings.alarms.actionTypeInfo' | translate}}</ion-select-option>
               <ion-select-option value="email">{{'settings.alarms.actionTypeEmail' | translate}}</ion-select-option>
               <ion-select-option value="webhook">{{'settings.alarms.actionTypeWebhook' | translate}}</ion-select-option>
             </ion-select>

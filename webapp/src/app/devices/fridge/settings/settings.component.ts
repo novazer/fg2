@@ -287,7 +287,7 @@ export class FridgeSettingComponent implements OnInit {
       sensorType: this.availableSensorTypes[0], // Default to the first sensor type
       upperThreshold: null,
       lowerThreshold: null,
-      actionType: 'email', // Default action type
+      actionType: 'info', // Default action type
       actionTarget: '',
       cooldownSeconds: 600,
       name: 'My Alarm',
