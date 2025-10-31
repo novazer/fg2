@@ -58,6 +58,8 @@ To remove all data and start fresh:
 1. `cd myfolder/fg2/`
 2. `docker-compose down --volumes`
 3. `docker volume rm fg2_influxdata fg2_mongodata`
+4. `cd ../`
+5. `rm -rf fg2/`
 
 ## Development
 
