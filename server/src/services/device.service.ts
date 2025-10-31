@@ -534,12 +534,12 @@ class DeviceService {
     );
 
     if (update) {
-      // if(update.firmware_id != firmware_id) {
-      //   let devices = await deviceModel.find({class_id: class_id});
-      //   for(let device of devices) {
-      //     mqttclient.publish('/devices/' + device.device_id + '/firmware', firmware_id)
-      //   }
-      // }
+      if(update.firmware_id != firmware_id) {
+        let devices = await deviceModel.find({ class_id: class_id });
+        for(let device of devices) {
+          mqttclient.publish('/devices/' + device.device_id + '/firmware', firmware_id)
+        }
+      }
       return update;
     } else {
       throw new HttpException(404, 'Class not found');
