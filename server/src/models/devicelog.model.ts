@@ -1,5 +1,5 @@
 import { model, Schema, Document } from 'mongoose';
-import { Device } from '@interfaces/device.interface';
+import { Device, DeviceLog } from '@interfaces/device.interface';
 
 const deviceLogSchema: Schema = new Schema({
   device_id: {
@@ -8,6 +8,10 @@ const deviceLogSchema: Schema = new Schema({
   },
   message: {
     type: String,
+    required: false,
+  },
+  raw: {
+    type: Boolean,
     required: false,
   },
   severity: {
@@ -24,6 +28,6 @@ const deviceLogSchema: Schema = new Schema({
   },
 });
 
-const deviceLogModel = model<Device & Document>('DeviceLog', deviceLogSchema);
+const deviceLogModel = model<DeviceLog & Document>('DeviceLog', deviceLogSchema);
 
 export default deviceLogModel;

@@ -180,6 +180,7 @@ class AlarmService {
     await deviceService.logMessage(deviceId, {
       message: `${name} ${event}: Sensor ${alarm.sensorType}, Value: ${data.sensors[alarm.sensorType]}`,
       severity: alarm.isTriggered ? 1 : 0,
+      raw: true,
     });
   }
 }
