@@ -199,7 +199,7 @@ class DeviceService {
     }
   }
 
-  public async logMessage(deviceId: string, msg: { message: string; severity: 0 | 1 | 2; raw?: boolean }) {
+  public async logMessage(deviceId: string, msg: { message: string; title?: string; severity: 0 | 1 | 2; raw?: boolean }) {
     //console.log("\nLOG\n", message)
     const log_count = await deviceLogModel.where({ device_id: deviceId }).countDocuments();
     if (log_count > 100) {
@@ -209,6 +209,7 @@ class DeviceService {
     await deviceLogModel.create({
       device_id: deviceId,
       message: msg.message,
+      title: msg.title || msg.message,
       severity: msg.severity,
       raw: msg.raw,
     });

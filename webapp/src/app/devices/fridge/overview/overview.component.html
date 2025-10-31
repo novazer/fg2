@@ -23,7 +23,7 @@
             <ng-container  *ngFor="let message of logs" >
               <ion-accordion toggleIcon="caret-down" toggleIconSlot="start">
                 <ion-item slot="header" [color]="message.severity == 1 ? 'warning' : message.severity == 2 ? 'danger' : 'light'">
-                  <ion-label><span class="timestamp">{{message.time}}</span> {{message.raw ? message.message : (message.message + '-title' | translate)}}</ion-label>
+                  <ion-label><span class="timestamp">{{message.time}}</span> {{message.raw ? message.title : (message.title + '-title' | translate)}}</ion-label>
                 </ion-item>
                 <div class="ion-padding" slot="content">{{message.raw ? message.message : (message.message + '-text' | translate)}}</div>
               </ion-accordion>

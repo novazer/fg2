@@ -10,6 +10,10 @@ const deviceLogSchema: Schema = new Schema({
     type: String,
     required: false,
   },
+  title: {
+    type: String,
+    required: false,
+  },
   raw: {
     type: Boolean,
     required: false,

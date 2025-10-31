@@ -65,6 +65,7 @@ export interface DeviceFirmwareBinary {
 export interface DeviceLog {
   device_id: string;
   message?: string;
+  title?: string;
   raw?: boolean;
   severity: number;
   time: Date;
