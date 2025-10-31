@@ -289,9 +289,10 @@ export class FridgeSettingComponent implements OnInit {
       lowerThreshold: null,
       actionType: 'email', // Default action type
       actionTarget: '',
-      cooldownSeconds: 600
+      cooldownSeconds: 600,
+      name: 'My Alarm',
     };
-    this.alarms = [...(this.alarms || []), newAlarm];
+    this.alarms = [newAlarm, ...(this.alarms || [])];
   }
 
   removeAlarm(alarm: any) {
