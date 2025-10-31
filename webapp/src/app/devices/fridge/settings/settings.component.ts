@@ -130,7 +130,6 @@ export class FridgeSettingComponent implements OnInit {
         this.alarms = await this.devices.getAlarms(this.device_id);
       } catch (err) {
         console.warn('Alarms endpoint unavailable, continuing without alarms.', err);
-        this.alarms = [];
       }
 
       console.log(device_settings.daynight.float_start)
@@ -244,7 +243,7 @@ export class FridgeSettingComponent implements OnInit {
 
     this.saving = true;
     await this.devices.setSettings(this.device_id, JSON.stringify(device_settings))
-    if (Array.isArray(this.alarms) && this.alarms.length > 0) {
+    if (Array.isArray(this.alarms)) {
       try {
         await this.devices.setAlarms(this.device_id, this.alarms)
       } catch (err) {

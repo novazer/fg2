@@ -240,7 +240,7 @@
     </ion-card-content>
   </ion-card>
 
-  <ion-card *ngIf="settings.workmode != 'off'">
+  <ion-card *ngIf="settings.workmode != 'off' && alarms !== null">
     <ion-card-header>
       <ion-card-title> {{'settings.alarms.title' | translate}}</ion-card-title>
     </ion-card-header>
