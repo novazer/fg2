@@ -24,7 +24,7 @@ class AlarmService {
     const values = data.sensors;
     for (const alarm of alarms) {
       const sensorValue = values[alarm.sensorType];
-      if (sensorValue !== undefined) {
+      if (sensorValue !== undefined && !alarm.disabled) {
         const thresholdExceeded =
           (alarm.upperThreshold !== undefined && sensorValue > alarm.upperThreshold) ||
           (alarm.lowerThreshold !== undefined && sensorValue < alarm.lowerThreshold);
@@ -95,13 +95,15 @@ class AlarmService {
 
   private async handleEmailAlarm(alarm: Alarm, deviceId: string, data: StatusMessage) {
     const event = alarm.isTriggered ? 'resolved' : 'triggered';
-    const emailSubject = `[FG2] Alarm ${event} for Device ${deviceId}`;
+    const name = 'Alarm' + (alarm.name ? ' ' + alarm.name : '');
+    const emailSubject = `[FG2] ${name} ${event} for Device ${deviceId}`;
     const emailBody =
       `An alarm has been ${event} for device ${deviceId}.\n\n` +
       `Sensor: ${alarm.sensorType}\n` +
       `Threshold: ${alarm.upperThreshold !== undefined ? `Upper: ${alarm.upperThreshold}` : ''} ` +
       `${alarm.lowerThreshold !== undefined ? `Lower: ${alarm.lowerThreshold}` : ''}\n` +
       `Value: ${data.sensors[alarm.sensorType]}\n` +
+      `Alarm Name: ${alarm.name || 'N/A'}\n` +
       `Alarm ID: ${alarm.alarmId}\n`;
 
     await mailTransport.sendMail({
@@ -127,6 +129,9 @@ class AlarmService {
       lowerThreshold: alarm.lowerThreshold,
       timestamp: new Date().toISOString(),
       event: alarm.isTriggered ? 'resolved' : 'triggered',
+      alarmName: alarm.name,
+      alarmId: alarm.alarmId,
+      lastTriggeredAt: alarm.lastTriggeredAt,
     });
 
     const url = new URL(alarm.actionTarget);

@@ -1,4 +1,6 @@
 export interface Alarm {
+  name?: string;
+  disabled?: boolean;
   alarmId: string;
   sensorType: string;
   upperThreshold?: number;

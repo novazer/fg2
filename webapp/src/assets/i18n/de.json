@@ -56,7 +56,10 @@
       "actionTypeEmail": "Email",
       "actionTypeWebhook": "Webhook",
       "actionTarget": "Ziel (Email Adresse oder URL)",
-      "cooldownSeconds": "Cooldown (Sekunden bis der gleiche Alarm wieder ausgelöst werden kann)"
+      "cooldownSeconds": "Cooldown (Sekunden bis der gleiche Alarm wieder ausgelöst werden kann)",
+      "name": "Alarm Name",
+      "enable": "Alarm aktivieren",
+      "disable": "Alarm deaktivieren"
     }
   },
 

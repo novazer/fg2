@@ -300,4 +300,8 @@ export class FridgeSettingComponent implements OnInit {
       this.alarms.splice(index, 1);
     }
   }
+
+  toggleAlarm(alarm: any) {
+    alarm.disabled = !alarm.disabled;
+  }
 }

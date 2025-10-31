@@ -66,6 +66,8 @@ const deviceSchema: Schema = new Schema({
   alarms: {
     type: [
       {
+        name: { type: String, required: false },
+        disabled: { type: Boolean, required: false },
         alarmId: { type: String, required: true },
         sensorType: { type: String, required: true },
         upperThreshold: { type: Number, required: false },

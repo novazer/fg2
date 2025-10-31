@@ -56,7 +56,10 @@
       "actionTypeEmail": "Email",
       "actionTypeWebhook": "Webhook",
       "actionTarget": "Action Target (email address or URL)",
-      "cooldownSeconds": "Cooldown (how many seconds, until the same alarm can be triggered again)"
+      "cooldownSeconds": "Cooldown (how many seconds, until the same alarm can be triggered again)",
+      "name": "Alarm Name",
+      "enable": "Enable Alarm",
+      "disable": "Disable Alarm"
     }
   },
 
