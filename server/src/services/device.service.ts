@@ -1,4 +1,11 @@
-import { Device, DeviceClass, DeviceClassCount, DeviceFirmware, DeviceFirmwareBinary } from '@interfaces/device.interface';
+import {
+  Alarm,
+  Device,
+  DeviceClass,
+  DeviceClassCount,
+  DeviceFirmware,
+  DeviceFirmwareBinary
+} from '@interfaces/device.interface';
 import deviceModel from '@models/device.model';
 import deviceLogModel from '@models/devicelog.model';
 import deviceClassModel from '@/models/deviceclass.model';
@@ -426,6 +433,16 @@ class DeviceService {
     mqttclient.publish('/devices/' + device_id + '/configuration', config);
   }
 
+  public async setDeviceAlarms(device_id: string, user_id: string, alarms: Alarm[]): Promise<void> {
+    const device = await deviceModel.findOne({ device_id: device_id, owner_id: user_id });
+
+    if (!device) {
+      throw new HttpException(404, 'Device not found or access denied');
+    }
+
+    await deviceModel.updateOne({ device_id: device_id }, { alarms: alarms });
+  }
+
   public async setDeviceName(device_id: string, user_id: string, name: string) {
     await deviceModel.findOneAndUpdate({ device_id: device_id, owner_id: user_id }, { name: name });
   }
@@ -438,6 +455,11 @@ class DeviceService {
       const device = await deviceModel.findOne({ device_id: device_id, owner_id: user_id }, { configuration: 1 });
       return device.configuration;
     }
+  }
+
+  public async getDeviceAlarms(device_id: string, user_id: string) {
+    const device = await deviceModel.findOne({ device_id: device_id, owner_id: user_id }, { alarms: 1 });
+    return device.alarms || [];
   }
 
   public async listClasses(): Promise<DeviceClass[]> {

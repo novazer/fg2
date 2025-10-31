@@ -23,6 +23,8 @@ interface Preset {
 export class FridgeSettingComponent implements OnInit {
   @Input() device_id:string = "";
   public settings:any = null
+  public alarms:any = null;
+  public availableSensorTypes = ['temperature','humidity','co2'];
   public activePreset:any = null;
   public daybreak:any = null;
   public nightfall:any = null;
@@ -123,6 +125,8 @@ export class FridgeSettingComponent implements OnInit {
         "internalfan": device_settings.fans?.internal == null ? 100 : device_settings.fans?.internal,
         "externalfan": device_settings.fans?.external == null ? 100 : device_settings.fans?.external,
       }
+
+      this.alarms = await this.devices.getAlarms(this.device_id);
 
       console.log(device_settings.daynight.float_start)
       console.log(this.settings.daynight.float_start)
@@ -235,6 +239,7 @@ export class FridgeSettingComponent implements OnInit {
 
     this.saving = true;
     await this.devices.setSettings(this.device_id, JSON.stringify(device_settings))
+    await this.devices.setAlarms(this.device_id, this.alarms)
     this.saved = true;
     setTimeout(() => {
       this.saving = false;
@@ -275,5 +280,24 @@ export class FridgeSettingComponent implements OnInit {
     time -= this.offset
     let date = new Date(time * 1000)
     return date.toISOString();
+  }
+
+  addAlarm() {
+    const newAlarm = {
+      sensorType: this.availableSensorTypes[0], // Default to the first sensor type
+      upperThreshold: null,
+      lowerThreshold: null,
+      actionType: 'email', // Default action type
+      actionTarget: '',
+      cooldownSeconds: 600
+    };
+    this.alarms = [...(this.alarms || []), newAlarm];
+  }
+
+  removeAlarm(alarm: any) {
+    const index = this.alarms.indexOf(alarm);
+    if (index > -1) {
+      this.alarms.splice(index, 1);
+    }
   }
 }

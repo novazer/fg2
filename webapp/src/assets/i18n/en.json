@@ -44,7 +44,20 @@
     "timer-ontime": "Turn-ON Time",
     "timer-duration": "Duration",
     "timer-add": "Add Timeslot",
-    "timer-remove": "Remove Timeslot"
+    "timer-remove": "Remove Timeslot",
+    "alarms": {
+      "title": "Alarms",
+      "add": "Add Alarm",
+      "delete": "Delete Alarm",
+      "sensorType": "Sensor Type",
+      "upperThreshold": "Upper Threshold (Alarm triggers when value goes above this)",
+      "lowerThreshold": "Lower Threshold (Alarm triggers when value goes below this)",
+      "actionType": "Action Type",
+      "actionTypeEmail": "Email",
+      "actionTypeWebhook": "Webhook",
+      "actionTarget": "Action Target (email address or URL)",
+      "cooldownSeconds": "Cooldown (how many seconds, until the same alarm can be triggered again)"
+    }
   },
 
   "menu": {

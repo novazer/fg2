@@ -138,6 +138,10 @@ export class DeviceService {
     return await firstValueFrom( this.http.get<string>(environment.API_URL + '/device/config/' + device_id) )
   }
 
+  public async getAlarms(device_id:string) {
+    return await firstValueFrom( this.http.get<string>(environment.API_URL + '/device/alarms/' + device_id) )
+  }
+
   public async getLogs(device_id:string) {
     return await firstValueFrom( this.http.get<string>(environment.API_URL + '/device/logs/' + device_id) )
   }
@@ -148,6 +152,10 @@ export class DeviceService {
 
   public async setSettings(device_id:string, settings: string) {
     await firstValueFrom( this.http.post<Device>(environment.API_URL + '/device/configure', {device_id: device_id, configuration: settings}) )
+  }
+
+  public async setAlarms(device_id: string, alarms: any) {
+    await firstValueFrom( this.http.post(environment.API_URL + '/device/alarms', { device_id: device_id, alarms: alarms }) );
   }
 
   public async setName(device_id:string, name: string) {

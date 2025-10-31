@@ -240,6 +240,51 @@
     </ion-card-content>
   </ion-card>
 
+  <ion-card *ngIf="settings.workmode != 'off'">
+    <ion-card-header>
+      <ion-card-title> {{'settings.alarms.title' | translate}}</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-button color="primary" expand="block" (click)="addAlarm()">{{'settings.alarms.add' | translate}}</ion-button>
+      <ion-card *ngFor="let alarm of alarms">
+        <ion-card-content>
+          <ion-item lines="none">
+            <ion-label>{{'settings.alarms.sensorType' | translate}}</ion-label>
+            <ion-select [(ngModel)]="alarm.sensorType">
+              <ion-select-option *ngFor="let sensorType of availableSensorTypes" [value]="sensorType">
+                {{sensorType}}
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
+          <ion-item lines="none">
+            <ion-label>{{'settings.alarms.upperThreshold' | translate}}</ion-label>
+            <ion-input type="number" [(ngModel)]="alarm.upperThreshold" class="ion-text-right"></ion-input>
+          </ion-item>
+          <ion-item lines="none">
+            <ion-label>{{'settings.alarms.lowerThreshold' | translate}}</ion-label>
+            <ion-input type="number" [(ngModel)]="alarm.lowerThreshold" class="ion-text-right"></ion-input>
+          </ion-item>
+          <ion-item lines="none">
+            <ion-label>{{'settings.alarms.actionType' | translate}}</ion-label>
+            <ion-select [(ngModel)]="alarm.actionType">
+              <ion-select-option value="email">{{'settings.alarms.actionTypeEmail' | translate}}</ion-select-option>
+              <ion-select-option value="webhook">{{'settings.alarms.actionTypeWebhook' | translate}}</ion-select-option>
+            </ion-select>
+          </ion-item>
+          <ion-item lines="none">
+            <ion-label>{{'settings.alarms.actionTarget' | translate}}</ion-label>
+            <ion-input type="text" [(ngModel)]="alarm.actionTarget" class="ion-text-right"></ion-input>
+          </ion-item>
+          <ion-item lines="none">
+            <ion-label>{{'settings.alarms.cooldownSeconds' | translate}}</ion-label>
+            <ion-input type="number" [(ngModel)]="alarm.cooldownSeconds" class="ion-text-right"></ion-input>
+          </ion-item>
+          <ion-button color="danger" expand="block" (click)="removeAlarm(alarm)">{{'settings.alarms.delete' | translate}}</ion-button>
+        </ion-card-content>
+      </ion-card>
+    </ion-card-content>
+  </ion-card>
+
   <!-- <ion-card>
     <ion-card-header>
       <ion-card-title>{{'settings.control-mode' | translate}}</ion-card-title>

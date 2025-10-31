@@ -106,6 +106,17 @@ class DeviceController {
     }
   };
 
+  public setDeviceAlarms = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+    try {
+      if (isUserDeviceMiddelware(req, res, req.body.device_id)) {
+        await this.deviceService.setDeviceAlarms(req.body.device_id, req.user_id, req.body.alarms);
+        res.status(200).json({ status: 'ok' });
+      }
+    } catch (error) {
+      next(error);
+    }
+  };
+
   public setDeviceName = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
       if (isUserDeviceMiddelware(req, res, req.params.device_id)) {
@@ -127,6 +138,17 @@ class DeviceController {
       next(error);
     }
   };
+
+  public getDeviceAlarms = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+    try {
+      if (isUserDeviceMiddelware(req, res, req.params.device_id)) {
+        const alarms = await this.deviceService.getDeviceAlarms(req.params.device_id, req.user_id);
+        res.status(200).json(alarms);
+      }
+    } catch (error) {
+      next(error);
+    }
+  }
 
   public testMode = async (req: any, res: Response, next: NextFunction) => {
     const outputs: TestDeviceDto = req.body;
