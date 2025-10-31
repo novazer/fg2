@@ -22,6 +22,7 @@ export class LoginPage implements OnInit {
   public recovery_code = ''
   public working:boolean = false;
   public dsvgo_agreed:boolean = false;
+  public showInstructions:boolean = false;
 
   private _destroySub$ = new Subject<void>();
   private readonly returnUrl: string;

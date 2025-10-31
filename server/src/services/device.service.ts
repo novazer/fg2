@@ -1,4 +1,4 @@
-import { Device, DeviceClass, DeviceClassCount, DeviceFirmware, DeviceFirmwareBinary } from '@interfaces/device.interface';
+import { Alarm, Device, DeviceClass, DeviceClassCount, DeviceFirmware, DeviceFirmwareBinary } from '@interfaces/device.interface';
 import deviceModel from '@models/device.model';
 import deviceLogModel from '@models/devicelog.model';
 import deviceClassModel from '@/models/deviceclass.model';
@@ -103,7 +103,7 @@ class DeviceService {
               this.fetchMessage(device, parsedMessage);
               break;
             case 'log':
-              this.logMessage(device, parsedMessage);
+              this.logMessage(device.device_id, parsedMessage);
               break;
             case 'configuration':
               this.settingsMessage(device, parsedMessage);
@@ -199,17 +199,19 @@ class DeviceService {
     }
   }
 
-  private async logMessage(device: Device, msg) {
+  public async logMessage(deviceId: string, msg: { message: string; title?: string; severity: 0 | 1 | 2; raw?: boolean }) {
     //console.log("\nLOG\n", message)
-    const log_count = await deviceLogModel.where({ device_id: device.device_id }).countDocuments();
+    const log_count = await deviceLogModel.where({ device_id: deviceId }).countDocuments();
     if (log_count > 100) {
-      const last_logs: any = await deviceLogModel.find({ device_id: device.device_id }).sort({ time: -1 }).skip(99).limit(1);
-      await deviceLogModel.deleteMany({ device_id: device.device_id, time: { $lt: last_logs[0].time } });
+      const last_logs: any = await deviceLogModel.find({ device_id: deviceId }).sort({ time: -1 }).skip(99).limit(1);
+      await deviceLogModel.deleteMany({ device_id: deviceId, time: { $lt: last_logs[0].time } });
     }
     await deviceLogModel.create({
-      device_id: device.device_id,
+      device_id: deviceId,
       message: msg.message,
+      title: msg.title || msg.message,
       severity: msg.severity,
+      raw: msg.raw,
     });
   }
 
@@ -426,6 +428,17 @@ class DeviceService {
     mqttclient.publish('/devices/' + device_id + '/configuration', config);
   }
 
+  public async setDeviceAlarms(device_id: string, user_id: string, alarms: Alarm[]): Promise<void> {
+    const device = await deviceModel.findOne({ device_id: device_id, owner_id: user_id });
+
+    if (!device) {
+      throw new HttpException(404, 'Device not found or access denied');
+    }
+
+    await deviceModel.updateOne({ device_id: device_id }, { alarms: alarms });
+    alarmService.invalidateAlarmCache(device_id);
+  }
+
   public async setDeviceName(device_id: string, user_id: string, name: string) {
     await deviceModel.findOneAndUpdate({ device_id: device_id, owner_id: user_id }, { name: name });
   }
@@ -438,6 +451,11 @@ class DeviceService {
       const device = await deviceModel.findOne({ device_id: device_id, owner_id: user_id }, { configuration: 1 });
       return device.configuration;
     }
+  }
+
+  public async getDeviceAlarms(device_id: string, user_id: string) {
+    const device = await deviceModel.findOne({ device_id: device_id, owner_id: user_id }, { alarms: 1 });
+    return device.alarms || [];
   }
 
   public async listClasses(): Promise<DeviceClass[]> {
@@ -673,4 +691,4 @@ class DeviceService {
   }
 }
 
-export default DeviceService;
+export const deviceService = new DeviceService();

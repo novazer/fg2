@@ -12,6 +12,7 @@ services:
 
   mongo-express:
     image: mongo-express:1.0.0-18
+    restart: unless-stopped
     ports:
       - ${MONGOEXPRESS_PORT_EXTERNAL}:8081
     networks:
@@ -102,8 +103,8 @@ networks:
 
 volumes:
   mongodata:
-    external:
-      name: fg2_mongodata
+    external: true
+    name: fg2_mongodata
   influxdata:
-    external:
-      name: fg2_influxdata
+    external: true
+    name: fg2_influxdata

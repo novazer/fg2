@@ -8,11 +8,12 @@ import morgan from 'morgan';
 import { connect, set, connection } from 'mongoose';
 import swaggerJSDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
-import { NODE_ENV, PORT, LOG_FORMAT, ORIGIN, CREDENTIALS } from '@config';
+import { NODE_ENV, PORT, LOG_FORMAT, ORIGIN, CREDENTIALS, API_URL_EXTERNAL } from '@config';
 import { dbConnection } from '@databases';
 import { Routes } from '@interfaces/routes.interface';
 import errorMiddleware from '@middlewares/error.middleware';
 import { logger, stream } from '@utils/logger';
+import { readFileSync } from 'fs';
 const fileUpload = require('express-fileupload');
 
 class App {
@@ -83,9 +84,10 @@ class App {
   private initializeSwagger() {
     const path = require('path');
     const yamlPath = path.resolve(__dirname, '../swagger.yaml');
+    const yamlContent = readFileSync(yamlPath, 'utf8').replace(/#API_URL_EXTERNAL#/g, API_URL_EXTERNAL);
 
     this.app.get('/swagger.yaml', (req, res) => {
-      res.sendFile(yamlPath);
+      res.type('application/x-yaml').send(yamlContent);
     });
 
     this.app.use(
@@ -93,7 +95,7 @@ class App {
       swaggerUi.serve,
       swaggerUi.setup(undefined, {
         explorer: true,
-        swaggerOptions: { url: '/swagger.yaml' },
+        swaggerOptions: { url: API_URL_EXTERNAL + '/swagger.yaml' },
       }),
     );
   }

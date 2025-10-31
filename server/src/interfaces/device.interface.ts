@@ -1,10 +1,15 @@
 export interface Alarm {
+  name?: string;
+  disabled?: boolean;
+  alarmId: string;
   sensorType: string;
   upperThreshold?: number;
   lowerThreshold?: number;
   actionType: 'email' | 'webhook' | 'info';
   actionTarget: string;
-  cooldownSeconds: number;
+  cooldownSeconds?: number;
+  isTriggered?: boolean;
+  lastTriggeredAt?: number;
 }
 
 export interface Device {
@@ -55,4 +60,13 @@ export interface DeviceFirmwareBinary {
   firmware_id: string;
   name: string;
   data: Buffer;
+}
+
+export interface DeviceLog {
+  device_id: string;
+  message?: string;
+  title?: string;
+  raw?: boolean;
+  severity: number;
+  time: Date;
 }

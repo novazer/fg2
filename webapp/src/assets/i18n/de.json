@@ -44,7 +44,28 @@
     "timer-ontime": "Einschaltzeitpunkt",
     "timer-duration": "Einschaltdauer",
     "timer-add": "Zeitslot hinzufügen",
-    "timer-remove": "Zeitslot entfernen"
+    "timer-remove": "Zeitslot entfernen",
+    "alarms": {
+      "title": "Alarme",
+      "add": "Alarm hinzufügen",
+      "delete": "Alarm löschen",
+      "sensorType": "Sensor Wert",
+      "upperThreshold": "Obere Schwelle",
+      "upperThresholdHint": "Alarm wird ausgelöst, wenn der Wert darüber liegt",
+      "lowerThreshold": "Untere Schwelle",
+      "lowerThresholdHint": "Alarm wird ausgelöst, wenn der Wert darunter liegt",
+      "actionType": "Aktion",
+      "actionTypeEmail": "Email",
+      "actionTypeWebhook": "Webhook",
+      "actionTypeInfo": "Log-Meldung",
+      "actionTarget": "Ziel",
+      "actionTargetHint": "Email-Adresse oder URL",
+      "cooldownSeconds": "Cooldown",
+      "cooldownSecondsHint": "Sekunden bis der gleiche Alarm wieder ausgelöst werden kann",
+      "name": "Alarm Name",
+      "enable": "Alarm aktivieren",
+      "disable": "Alarm deaktivieren"
+    }
   },
 
   "menu": {
