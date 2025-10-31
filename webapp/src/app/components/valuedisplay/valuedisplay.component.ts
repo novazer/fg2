@@ -169,6 +169,8 @@ export class ValuedisplayComponent implements OnInit {
     this.updateLimits();
   }
 
+  @Input('average-value') public average_value: any;
+
   private updateLimits() {
     const scale_min = parseFloat(this.scale_min)
     const scale_max = parseFloat(this.scale_max)

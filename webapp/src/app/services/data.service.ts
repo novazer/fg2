@@ -10,17 +10,21 @@ import { DeviceService } from './devices.service';
 export class DataService {
 
   private measure_subjects: Map<string, Map<string, BehaviorSubject<number>>> = new Map<string, Map<string, BehaviorSubject<number>>>()
+  private measure_avg_subjects: Map<string, Map<string, BehaviorSubject<number>>> = new Map<string, Map<string, BehaviorSubject<number>>>()
 
   constructor(private http: HttpClient, private devices: DeviceService) {
     this.devices.devices.subscribe((devices) => {
       this.measure_subjects = new Map<string, Map<string, BehaviorSubject<number>>>()
+      this.measure_avg_subjects = new Map<string, Map<string, BehaviorSubject<number>>>()
       devices.map((device) => {
         this.measure_subjects.set(device.device_id, new Map<string, BehaviorSubject<number>>())
+        this.measure_avg_subjects.set(device.device_id, new Map<string, BehaviorSubject<number>>())
       })
     })
 
     setInterval(() => {
       this.updateMeasures();
+      this.updateAverages();
     }, 10000);
   }
 
@@ -30,6 +34,16 @@ export class DataService {
       sub = new BehaviorSubject<number>(NaN);
       this.measure_subjects.get(device)?.set(measure, sub)
       this.updateMeasures();
+    }
+    return sub;
+  }
+
+  public measureAvg(device: string, measure: string, timespan: string = '-1h', interval: string = '1m') : BehaviorSubject<number> {
+    let sub = this.measure_avg_subjects.get(device)?.get(measure);
+    if(!sub) {
+      sub = new BehaviorSubject<number>(NaN);
+      this.measure_avg_subjects.get(device)?.set(measure, sub)
+      this.updateAverages();
     }
     return sub;
   }
@@ -45,6 +59,32 @@ export class DataService {
             measure[1].next(NaN);
           }
         })
+      }
+    }
+  }
+
+  private updateAverages() {
+    for(let device of this.measure_avg_subjects.entries()) {
+      for(let measure of device[1].entries()) {
+        const device_id = device[0];
+        const measure_name = measure[0];
+        const from = '-1h';
+        const to = 'now()';
+        const interval = '1m';
+        const query = `?from=${from}&to=${to}&interval=${interval}`;
+        this.http.get<any>(environment.API_URL + '/data/series/' + device_id + '/' + measure_name + query).subscribe((rows:any[]) => {
+          if(Array.isArray(rows) && rows.length > 0) {
+            const values = rows.map(r => r._value).filter((v:any) => typeof v === 'number' && !isNaN(v));
+            if(values.length > 0) {
+              const avg = values.reduce((a:number,b:number)=>a+b,0) / values.length;
+              measure[1].next(avg);
+              return;
+            }
+          }
+          measure[1].next(NaN);
+        }, _err => {
+          measure[1].next(NaN);
+        });
       }
     }
   }
