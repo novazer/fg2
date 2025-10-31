@@ -308,7 +308,7 @@
             <ion-button fill="clear" id="actionTarget-popover-{{alarm.alarmId}}">
               <ion-icon name="help-circle-outline"></ion-icon>
             </ion-button>
-            <ion-input type="text" [(ngModel)]="alarm.actionTarget" class="ion-text-right" [disabled]="alarm.disabled"></ion-input>
+            <ion-input type="text" [(ngModel)]="alarm.actionTarget" class="ion-text-right" [disabled]="alarm.disabled || alarm.actionType === 'info'"></ion-input>
             <ion-popover trigger="actionTarget-popover-{{alarm.alarmId}}" dismissOnSelect="true">
               <ng-template>
                 <ion-content>
