@@ -38,6 +38,12 @@ export class FridgeOverviewComponent implements OnInit {
   public showDeviceLog:boolean = false;
   public editingName:boolean = false;
 
+  // Targets from Settings page
+  public tempTarget:number = NaN;
+  public humidityTarget:number = NaN;
+  public co2Target:number = NaN;
+  public is_day:boolean = false;
+
   constructor(private devices: DeviceService, public data: DataService, private route: ActivatedRoute, private renderer: Renderer2) { }
 
   editName() {
@@ -58,6 +64,7 @@ export class FridgeOverviewComponent implements OnInit {
     if(this.device_name == "" || this.device_name == undefined) {
       this.device_name = "Plantalytix Fridgegrow 2.0"
     }
+    // Compute VPD and online state from live measurements
     combineLatest([
       this.data.measure(this.device_id, 'temperature'),
       this.data.measure(this.device_id, 'humidity')
@@ -74,13 +81,25 @@ export class FridgeOverviewComponent implements OnInit {
       }
     })
 
+    // Track lights to infer day/night for picking setpoints
+    this.data.measure(this.device_id, 'out_light').subscribe((light:any) => {
+      const prev = this.is_day;
+      this.is_day = (light ?? 0) >= 0.5;
+      if(this.is_day !== prev) {
+        this.updateTargets();
+      }
+    })
+
+    // Load logs
     this.logs = await this.devices.getLogs(this.device_id);
     for(let log of this.logs) {
       log.time = timeAgo.format(new Date(log.time))
     }
 
-    this.config = await this.devices.getConfig(this.device_id);
-
+    // Load device configuration (settings page values)
+    const rawConfig = await this.devices.getConfig(this.device_id);
+    this.config = this.normalizeConfig(rawConfig);
+    this.updateTargets();
 
     if(this.logs.length) {
       this.has_logs = true;
@@ -109,5 +128,55 @@ export class FridgeOverviewComponent implements OnInit {
     this.devices.clearLogs(this.device_id);
     this.logs = [];
     this.has_logs = false;
+  }
+
+  private updateTargets() {
+    const toNum = (v:any): number => {
+      if(v === null || v === undefined) return NaN;
+      const n = typeof v === 'number' ? v : parseFloat(v);
+      return isNaN(n as any) ? NaN : n;
+    };
+
+    const cfg:any = this.config || {};
+    const day:any = cfg?.day || {};
+    const night:any = cfg?.night || {};
+    const co2:any = cfg?.co2 || {};
+
+    const t = this.is_day ? toNum(day.temperature) : toNum(night.temperature);
+    const r = this.is_day ? toNum(day.humidity) : toNum(night.humidity);
+    const c = toNum(co2.target);
+
+    this.tempTarget = t;
+    this.humidityTarget = r;
+    this.co2Target = c;
+  }
+
+  // Normalize configuration returned by DeviceService.getConfig so we can always access
+  // properties like day.temperature, night.humidity, co2.target safely.
+  private normalizeConfig(raw: any): any {
+    if (!raw) return {};
+
+    if (typeof raw === 'string') {
+      try {
+        const parsed = JSON.parse(raw);
+        return parsed?.settings || this.parseConfiguration(parsed) || parsed;
+      } catch {
+        return {};
+      }
+    }
+
+    if (typeof raw === 'object') {
+      return raw.settings || this.parseConfiguration(raw) || raw;
+    }
+
+    return {};
+  }
+
+  private parseConfiguration(obj: any): any {
+    try {
+      return obj.configuration ? JSON.parse(obj.configuration) : null;
+    } catch {
+      return null;
+    }
   }
 }

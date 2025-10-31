@@ -50,7 +50,8 @@
       text-anchor="middle"
       fill="#737373"
     >
-      Ø 1h: {{average_value}}
+      <tspan *ngIf="!isNaN(average_value)">Ø 1h: {{average_value}}</tspan>
+      <tspan *ngIf="!isNaN(target_value)"> | Ziel: {{target_value}}</tspan>
     </text>
 
     <text
