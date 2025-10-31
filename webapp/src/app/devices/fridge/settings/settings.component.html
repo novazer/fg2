@@ -245,7 +245,7 @@
       <ion-card-title> {{'settings.alarms.title' | translate}}</ion-card-title>
     </ion-card-header>
     <ion-card-content>
-      <ion-button color="primary" expand="block" (click)="addAlarm()">{{'settings.alarms.add' | translate}}</ion-button>
+      <ion-button color="primary" (click)="addAlarm()">{{'settings.alarms.add' | translate}}</ion-button>
       <ion-card *ngFor="let alarm of alarms">
         <ion-card-content>
           <ion-item lines="none">
@@ -279,7 +279,7 @@
             <ion-label>{{'settings.alarms.cooldownSeconds' | translate}}</ion-label>
             <ion-input type="number" [(ngModel)]="alarm.cooldownSeconds" class="ion-text-right"></ion-input>
           </ion-item>
-          <ion-button color="danger" expand="block" (click)="removeAlarm(alarm)">{{'settings.alarms.delete' | translate}}</ion-button>
+          <ion-button color="danger" (click)="removeAlarm(alarm)">{{'settings.alarms.delete' | translate}}</ion-button>
         </ion-card-content>
       </ion-card>
     </ion-card-content>
