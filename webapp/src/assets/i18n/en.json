@@ -114,6 +114,7 @@
       "workmode": "Control mode",
       "workmode-small": "Small Plants",
       "workmode-default": "Big Plants",
+      "workmode-full": "Big Plants",
       "workmode-temp": "Greenhouse",
       "workmode-dry": "Drying",
       "workmode-breed": "Germination",
