@@ -179,9 +179,9 @@ class AlarmService {
     const event = alarm.isTriggered ? 'resolved' : 'triggered';
     await deviceService.logMessage(deviceId, {
       title: `${name} ${event}`,
-      message: `${name} ${event}: Sensor ${alarm.sensorType}, Value: ${data.sensors[alarm.sensorType]}, Upper Threshold=${
-        alarm.upperThreshold
-      }, Lower Threshold=${alarm.lowerThreshold}`,
+      message:
+        `${name} ${event}: Sensor ${alarm.sensorType}, value: ${data.sensors[alarm.sensorType]}, ` +
+        `upper threshold=${alarm.upperThreshold || 'n/a'}, lower threshold=${alarm.lowerThreshold || 'n/a'}`,
       severity: alarm.isTriggered ? 1 : 0,
       raw: true,
     });
