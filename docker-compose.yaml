@@ -53,7 +53,7 @@ services:
         API_URL_EXTERNAL: ${API_URL_EXTERNAL}
     restart: always
     ports:
-      - 127.0.0.1:4080:80
+      - ${WEBAPP_PORT_EXTERNAL}:80
     networks:
       - main
 
