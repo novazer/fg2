@@ -6,6 +6,7 @@ export interface Alarm {
   upperThreshold?: number;
   lowerThreshold?: number;
   actionType: 'email' | 'webhook' | 'info';
+  additionalInfo?: boolean;
   actionTarget: string;
   cooldownSeconds?: number;
   isTriggered?: boolean;

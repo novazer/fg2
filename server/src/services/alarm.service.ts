@@ -90,7 +90,9 @@ class AlarmService {
       } catch (error) {
         console.error(`Failed to send alarm webhook for device ${deviceId}:`, error);
       }
-    } else if (alarm.actionType === 'info') {
+    }
+
+    if (alarm.actionType === 'info' || alarm.additionalInfo) {
       try {
         await this.handleInfoAlarm(alarm, deviceId, data);
       } catch (error) {

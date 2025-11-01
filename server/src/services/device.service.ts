@@ -535,10 +535,10 @@ class DeviceService {
     );
 
     if (update) {
-      if(update.firmware_id != firmware_id) {
-        let devices = await deviceModel.find({ class_id: class_id });
-        for(let device of devices) {
-          mqttclient.publish('/devices/' + device.device_id + '/firmware', firmware_id)
+      if (update.firmware_id != firmware_id) {
+        const devices = await deviceModel.find({ class_id: class_id });
+        for (const device of devices) {
+          mqttclient.publish('/devices/' + device.device_id + '/firmware', firmware_id);
         }
       }
       return update;

@@ -64,7 +64,8 @@
       "cooldownSecondsHint": "Sekunden bis der gleiche Alarm wieder ausgelöst werden kann",
       "name": "Alarm Name",
       "enable": "Alarm aktivieren",
-      "disable": "Alarm deaktivieren"
+      "disable": "Alarm deaktivieren",
+      "additionalInfo": "Zusätzliche Log-Meldung"
     }
   },
 

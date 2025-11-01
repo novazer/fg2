@@ -318,6 +318,11 @@
             </ion-popover>
           </ion-item>
 
+          <ion-item lines="none" [hidden]="alarm.actionType === 'info'">
+            <ion-label>{{'settings.alarms.additionalInfo' | translate}}</ion-label>
+            <ion-checkbox [(ngModel)]="alarm.additionalInfo" [disabled]="alarm.disabled"></ion-checkbox>
+          </ion-item>
+
           <ion-item lines="none">
             <ion-label>{{'settings.alarms.cooldownSeconds' | translate}}</ion-label>
             <ion-button fill="clear" id="cooldownSeconds-popover-{{alarm.alarmId}}">

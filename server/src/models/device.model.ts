@@ -77,6 +77,7 @@ const deviceSchema: Schema = new Schema({
         cooldownSeconds: { type: Number, required: false },
         isTriggered: { type: Boolean, required: false },
         lastTriggeredAt: { type: Number, required: false },
+        additionalInfo: { type: Boolean, required: false },
       },
     ],
     required: false,

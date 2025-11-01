@@ -302,6 +302,7 @@ export class FridgeSettingComponent implements OnInit {
       actionTarget: '',
       cooldownSeconds: 600,
       name: 'My Alarm',
+      additionalInfo: true,
     };
     this.alarms = [newAlarm, ...(this.alarms || [])];
   }
