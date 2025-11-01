@@ -104,7 +104,7 @@ networks:
 volumes:
   mongodata:
     external: true
-    name: fg2_mongodata
+    name: ${DOCKER_MONGODATA_VOUME:-fg2_mongodata}
   influxdata:
     external: true
-    name: fg2_influxdata
+    name: ${DOCKER_INFLUXDATA_VOLUME:-fg2_influxdata}
