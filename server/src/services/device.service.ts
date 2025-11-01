@@ -310,6 +310,7 @@ class DeviceService {
     };
 
     try {
+      await deviceModel.deleteOne({ device_id: info.device_id, owner_id: '' }); // remove unclaimed device with same id
       await deviceModel.create(device);
     } catch (err) {
       console.log(err);
