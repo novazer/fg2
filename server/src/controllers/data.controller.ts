@@ -6,7 +6,7 @@ import { RequestWithUser } from '@/interfaces/auth.interface';
 class DataController {
   public getSeries = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
-      if (isUserDeviceMiddelware(req, res, req.params.device_id)) {
+      if (await isUserDeviceMiddelware(req, res, req.params.device_id)) {
         const data = await dataService.getSeries(req.params.device_id, req.params.measure, req.query?.from, req.query?.to, req.query?.interval);
         res.status(201).json(data);
       }
@@ -18,7 +18,7 @@ class DataController {
 
   public getLatest = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
-      if (isUserDeviceMiddelware(req, res, req.params.device_id)) {
+      if (await isUserDeviceMiddelware(req, res, req.params.device_id)) {
         const data = await dataService.getLatest(req.params.device_id, req.params.measure);
         res.status(201).json({ value: data });
       }
