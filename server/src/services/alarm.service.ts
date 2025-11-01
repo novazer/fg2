@@ -28,6 +28,8 @@ class AlarmService {
           (alarm.lowerThreshold !== undefined && sensorValue < alarm.lowerThreshold);
         if ((thresholdExceeded && !alarm.isTriggered) || (!thresholdExceeded && alarm.isTriggered)) {
           await this.handleAlarmAction(alarm, deviceId, ownerId, data);
+        } else if (alarm.isTriggered) {
+          await this.handleAlarmData(alarm, deviceId, ownerId, data);
         }
       }
     }
@@ -114,7 +116,8 @@ class AlarmService {
       `${alarm.lowerThreshold !== undefined ? `Lower: ${alarm.lowerThreshold}` : ''}\n` +
       `Value: ${data.sensors[alarm.sensorType]}\n` +
       `Alarm Name: ${alarm.name || 'N/A'}\n` +
-      `Alarm ID: ${alarm.alarmId}\n`;
+      `Alarm ID: ${alarm.alarmId}\n` +
+      (alarm.isTriggered ? `Extreme Value: ${alarm.extremeValue}\n` : '');
 
     await mailTransport.sendMail({
       from: SMTP_SENDER, // Sender address
@@ -143,6 +146,7 @@ class AlarmService {
       alarmName: alarm.name,
       alarmId: alarm.alarmId,
       lastTriggeredAt: alarm.lastTriggeredAt,
+      extremeValue: alarm.extremeValue,
     });
 
     const url = new URL(alarm.actionTarget);
@@ -183,10 +187,34 @@ class AlarmService {
       title: `${name} ${event}`,
       message:
         `${name} ${event}: Sensor ${alarm.sensorType}, value: ${data.sensors[alarm.sensorType]}, ` +
-        `upper threshold=${alarm.upperThreshold || 'n/a'}, lower threshold=${alarm.lowerThreshold || 'n/a'}`,
+        `upper threshold=${alarm.upperThreshold || 'n/a'}, lower threshold=${alarm.lowerThreshold || 'n/a'}` +
+        (alarm.isTriggered ? `, extreme value: ${alarm.extremeValue ?? 'n/a'}` : ''),
       severity: alarm.isTriggered ? 1 : 0,
       raw: true,
     });
+  }
+
+  private async handleAlarmData(alarm: Alarm, deviceId: string, ownerId: string, data: StatusMessage) {
+    const value = data.sensors[alarm.sensorType];
+    let newExtreme = alarm.extremeValue || value;
+    if (value > alarm.upperThreshold) {
+      newExtreme = Math.max(newExtreme, value);
+    }
+    if (value < alarm.lowerThreshold) {
+      newExtreme = Math.min(newExtreme, value);
+    }
+
+    if (newExtreme !== alarm.extremeValue) {
+      await deviceModel.updateOne(
+        { device_id: deviceId, 'alarms.alarmId': alarm.alarmId },
+        {
+          $set: {
+            'alarms.$.extremeValue': newExtreme,
+          },
+        },
+      );
+      this.alarmCache.delete(deviceId); // Invalidate cache
+    }
   }
 }
 

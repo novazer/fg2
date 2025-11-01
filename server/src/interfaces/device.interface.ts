@@ -11,6 +11,7 @@ export interface Alarm {
   cooldownSeconds?: number;
   isTriggered?: boolean;
   lastTriggeredAt?: number;
+  extremeValue?: number;
 }
 
 export interface Device {

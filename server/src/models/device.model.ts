@@ -78,6 +78,7 @@ const deviceSchema: Schema = new Schema({
         isTriggered: { type: Boolean, required: false },
         lastTriggeredAt: { type: Number, required: false },
         additionalInfo: { type: Boolean, required: false },
+        extremeValue: { type: Number, required: false },
       },
     ],
     required: false,
