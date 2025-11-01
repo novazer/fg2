@@ -65,12 +65,12 @@ services:
      - influxdb
      - rabbitmq
     ports:
-      - ${API_PORT_EXTERNAL}:${API_PORT}
+      - ${API_PORT_EXTERNAL}:8081
     networks:
       - main
     environment:
       SECRET_KEY: ${TOKEN_SECRET_KEY}
-      PORT: ${API_PORT}
+      PORT: 8081
       API_URL_EXTERNAL: ${API_URL_EXTERNAL}
       DB_HOST: "mongodb"
       DB_PORT: "27017"
