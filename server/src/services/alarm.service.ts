@@ -26,7 +26,7 @@ class AlarmService {
         const thresholdExceeded =
           (alarm.upperThreshold !== undefined && sensorValue > alarm.upperThreshold) ||
           (alarm.lowerThreshold !== undefined && sensorValue < alarm.lowerThreshold);
-        if ((thresholdExceeded && !alarm.isTriggered) || (!thresholdExceeded && alarm.isTriggered)) {
+        if (thresholdExceeded !== alarm.isTriggered) {
           await this.handleAlarmAction(alarm, deviceId, ownerId, sensorValue);
         } else if (alarm.isTriggered) {
           await this.handleAlarmData(alarm, deviceId, ownerId, sensorValue);
