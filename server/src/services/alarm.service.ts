@@ -6,7 +6,7 @@ import { mailTransport } from '@services/auth.service';
 import { request as httpRequest } from 'http';
 import { request as httpsRequest } from 'https';
 
-const CACHE_EXPIRATION_SECONDS = 300;
+const CACHE_EXPIRATION_SECONDS = 600;
 
 class AlarmService {
   private alarmCache: Map<string, { alarms: Alarm[]; expiresAt: number }> = new Map();
@@ -27,9 +27,9 @@ class AlarmService {
           (alarm.upperThreshold !== undefined && sensorValue > alarm.upperThreshold) ||
           (alarm.lowerThreshold !== undefined && sensorValue < alarm.lowerThreshold);
         if ((thresholdExceeded && !alarm.isTriggered) || (!thresholdExceeded && alarm.isTriggered)) {
-          await this.handleAlarmAction(alarm, deviceId, ownerId, data);
+          await this.handleAlarmAction(alarm, deviceId, ownerId, sensorValue);
         } else if (alarm.isTriggered) {
-          await this.handleAlarmData(alarm, deviceId, ownerId, data);
+          await this.handleAlarmData(alarm, deviceId, ownerId, sensorValue);
         }
       }
     }
@@ -42,7 +42,6 @@ class AlarmService {
   private async getAlarms(deviceId: string): Promise<Alarm[]> {
     const cached = this.alarmCache.get(deviceId);
 
-    // Check if alarms are cached and not expired
     if (cached && cached.expiresAt > Date.now()) {
       return cached.alarms;
     }
@@ -57,38 +56,47 @@ class AlarmService {
     return alarms;
   }
 
-  private async handleAlarmAction(alarm: Alarm, deviceId: string, ownerId: string, data: StatusMessage) {
+  private async handleAlarmAction(alarm: Alarm, deviceId: string, ownerId: string, value: number) {
     const now = Date.now();
-
-    // Check if the action is within the cooldown period
     const inCooldownPeriod = now - (alarm.lastTriggeredAt || 0) < (alarm.cooldownSeconds || 0) * 1000;
-    const willSendAlarm = !inCooldownPeriod && !alarm.isTriggered;
 
-    await deviceModel.updateOne(
-      { device_id: deviceId, 'alarms.alarmId': alarm.alarmId },
-      {
-        $set: {
-          'alarms.$.lastTriggeredAt': willSendAlarm ? now : alarm.lastTriggeredAt,
-          'alarms.$.isTriggered': alarm.isTriggered ? false : !inCooldownPeriod,
+    if (alarm.isTriggered) {
+      await deviceModel.updateOne(
+        { device_id: deviceId, 'alarms.alarmId': alarm.alarmId },
+        {
+          $set: {
+            'alarms.$.isTriggered': false,
+            'alarms.$.extremeValue': undefined,
+          },
         },
-      },
-    );
-    this.alarmCache.delete(deviceId); // Invalidate cache
-
-    if (!alarm.isTriggered && inCooldownPeriod) {
+      );
+      this.invalidateAlarmCache(deviceId);
+    } else if (!inCooldownPeriod) {
+      await deviceModel.updateOne(
+        { device_id: deviceId, 'alarms.alarmId': alarm.alarmId },
+        {
+          $set: {
+            'alarms.$.lastTriggeredAt': now,
+            'alarms.$.isTriggered': true,
+            'alarms.$.extremeValue': value,
+          },
+        },
+      );
+      this.invalidateAlarmCache(deviceId);
+    } else {
       console.log(`Cooldown active for alarm ${alarm.alarmId} on device ${deviceId}. Skipping action.`);
       return;
     }
 
     if (alarm.actionType === 'email') {
       try {
-        await this.handleEmailAlarm(alarm, deviceId, data);
+        await this.handleEmailAlarm(alarm, deviceId, value);
       } catch (error) {
         console.error(`Failed to send alarm email for device ${deviceId}:`, error);
       }
     } else if (alarm.actionType === 'webhook') {
       try {
-        await this.handleWebhookAlarm(alarm, deviceId, data);
+        await this.handleWebhookAlarm(alarm, deviceId, value);
       } catch (error) {
         console.error(`Failed to send alarm webhook for device ${deviceId}:`, error);
       }
@@ -96,7 +104,7 @@ class AlarmService {
 
     if (alarm.actionType === 'info' || alarm.additionalInfo) {
       try {
-        await this.handleInfoAlarm(alarm, deviceId, data);
+        await this.handleInfoAlarm(alarm, deviceId, value);
       } catch (error) {
         console.error(`Failed to log alarm info for device ${deviceId}:`, error);
       }
@@ -105,7 +113,7 @@ class AlarmService {
     }
   }
 
-  private async handleEmailAlarm(alarm: Alarm, deviceId: string, data: StatusMessage) {
+  private async handleEmailAlarm(alarm: Alarm, deviceId: string, value: number) {
     const event = alarm.isTriggered ? 'resolved' : 'triggered';
     const name = 'Alarm' + (alarm.name ? ' ' + alarm.name : '');
     const emailSubject = `[FG2] ${name} ${event} for Device ${deviceId}`;
@@ -114,22 +122,22 @@ class AlarmService {
       `Sensor: ${alarm.sensorType}\n` +
       `Threshold: ${alarm.upperThreshold !== undefined ? `Upper: ${alarm.upperThreshold}` : ''} ` +
       `${alarm.lowerThreshold !== undefined ? `Lower: ${alarm.lowerThreshold}` : ''}\n` +
-      `Value: ${data.sensors[alarm.sensorType]}\n` +
+      `Value: ${value}\n` +
       `Alarm Name: ${alarm.name || 'N/A'}\n` +
       `Alarm ID: ${alarm.alarmId}\n` +
       (alarm.isTriggered ? `Extreme Value: ${alarm.extremeValue}\n` : '');
 
     await mailTransport.sendMail({
-      from: SMTP_SENDER, // Sender address
-      to: alarm.actionTarget, // Recipient email address
-      subject: emailSubject, // Email subject
-      text: emailBody, // Email body
+      from: SMTP_SENDER,
+      to: alarm.actionTarget,
+      subject: emailSubject,
+      text: emailBody,
     });
 
     console.log(`Alarm email sent to ${alarm.actionTarget} for device ${deviceId} and sensor ${alarm.sensorType}.`);
   }
 
-  private async handleWebhookAlarm(alarm: Alarm, deviceId: string, data: StatusMessage) {
+  private async handleWebhookAlarm(alarm: Alarm, deviceId: string, value: number) {
     if (!alarm.actionTarget) {
       console.error(`No webhook URL provided for alarm on device ${deviceId}`);
       return;
@@ -138,7 +146,7 @@ class AlarmService {
     const webhookPayload = JSON.stringify({
       deviceId,
       sensorType: alarm.sensorType,
-      value: data.sensors[alarm.sensorType],
+      value: value,
       upperThreshold: alarm.upperThreshold,
       lowerThreshold: alarm.lowerThreshold,
       timestamp: new Date().toISOString(),
@@ -180,13 +188,13 @@ class AlarmService {
     req.end();
   }
 
-  private async handleInfoAlarm(alarm: Alarm, deviceId: string, data: StatusMessage) {
+  private async handleInfoAlarm(alarm: Alarm, deviceId: string, value: number) {
     const name = `Alarm ${alarm.name ?? alarm.alarmId}`;
     const event = alarm.isTriggered ? 'resolved' : 'triggered';
     await deviceService.logMessage(deviceId, {
       title: `${name} ${event}`,
       message:
-        `${name} ${event}: Sensor ${alarm.sensorType}, value: ${data.sensors[alarm.sensorType]}, ` +
+        `${name} ${event}: Sensor ${alarm.sensorType}, value: ${value}, ` +
         `upper threshold=${alarm.upperThreshold || 'n/a'}, lower threshold=${alarm.lowerThreshold || 'n/a'}` +
         (alarm.isTriggered ? `, extreme value: ${alarm.extremeValue ?? 'n/a'}` : ''),
       severity: alarm.isTriggered ? 1 : 0,
@@ -194,8 +202,7 @@ class AlarmService {
     });
   }
 
-  private async handleAlarmData(alarm: Alarm, deviceId: string, ownerId: string, data: StatusMessage) {
-    const value = data.sensors[alarm.sensorType];
+  private async handleAlarmData(alarm: Alarm, deviceId: string, ownerId: string, value: number) {
     let newExtreme = alarm.extremeValue || value;
     if (value > alarm.upperThreshold) {
       newExtreme = Math.max(newExtreme, value);
@@ -213,7 +220,7 @@ class AlarmService {
           },
         },
       );
-      this.alarmCache.delete(deviceId); // Invalidate cache
+      this.invalidateAlarmCache(deviceId);
     }
   }
 }
