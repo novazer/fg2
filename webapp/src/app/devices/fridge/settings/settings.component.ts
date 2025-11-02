@@ -34,6 +34,18 @@ export class FridgeSettingComponent implements OnInit {
   public has_humidity:boolean = false;
   public has_co2:boolean = false;
 
+  // Edit mode for slider fields
+  public dayTempEditMode:boolean = false;
+  public dayHumidityEditMode:boolean = false;
+  public nightTempEditMode:boolean = false;
+  public nightHumidityEditMode:boolean = false;
+  public co2EditMode:boolean = false;
+  public sunriseEditMode:boolean = false;
+  public sunsetEditMode:boolean = false;
+  public maxLightEditMode:boolean = false;
+  public internalFanEditMode:boolean = false;
+  public externalFanEditMode:boolean = false;
+
   public changeWorkmode() {
     switch(this.settings.workmode) {
       case 'exp':
