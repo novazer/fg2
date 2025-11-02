@@ -6,6 +6,7 @@ import { mailTransport } from '@services/auth.service';
 import { request as httpRequest } from 'http';
 import { request as httpsRequest } from 'https';
 import * as console from 'node:console';
+import { v4 as uuidv4 } from 'uuid';
 
 const CACHE_EXPIRATION_SECONDS = 600;
 
@@ -18,6 +19,24 @@ class AlarmService {
     if (!alarms || alarms.length === 0) {
       return;
     }
+
+
+
+    // need for temporary migration
+    let hasChanged = false;
+    for (const alarm of alarms) {
+      if (!alarm.alarmId) {
+        alarm.alarmId = uuidv4();
+        hasChanged = true;
+      }
+    }
+    if (hasChanged) {
+      await deviceModel.updateOne({ device_id: deviceId }, { alarms: alarms });
+      this.invalidateAlarmCache(deviceId);
+    }
+    // remove this block after a few months
+
+
 
     // Iterate through the alarms and check conditions
     const values = data.sensors;
