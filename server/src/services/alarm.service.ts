@@ -128,8 +128,6 @@ class AlarmService {
       } catch (error) {
         console.error(`Failed to log alarm info for device ${deviceId}:`, error);
       }
-    } else {
-      console.log(`Alarm action type ${alarm.actionType} is not supported yet.`);
     }
   }
 
