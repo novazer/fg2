@@ -436,6 +436,12 @@ class DeviceService {
       throw new HttpException(404, 'Device not found or access denied');
     }
 
+    for (const alarm of alarms) {
+      if (!alarm.alarmId) {
+        alarm.alarmId = uuidv4();
+      }
+    }
+
     await deviceModel.updateOne({ device_id: device_id }, { alarms: alarms });
     alarmService.invalidateAlarmCache(device_id);
   }

@@ -84,7 +84,7 @@ class DeviceController {
 
   public unClaimDevice = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
-      if (isUserDeviceMiddelware(req, res, req.params.device_id)) {
+      if (await isUserDeviceMiddelware(req, res, req.params.device_id)) {
         await deviceService.unClaimDevice(req.params.device_id);
         res.status(200).json({ status: 'ok' });
       }
@@ -95,7 +95,7 @@ class DeviceController {
 
   public configureDevice = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
-      if (isUserDeviceMiddelware(req, res, req.params.device_id ?? req.body.device_id)) {
+      if (await isUserDeviceMiddelware(req, res, req.params.device_id ?? req.body.device_id)) {
         await deviceService.configureDevice(req.body.device_id, req.user_id, req.body.configuration);
         res.status(200).json({ status: 'ok' });
       }
@@ -106,7 +106,7 @@ class DeviceController {
 
   public setDeviceAlarms = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
-      if (isUserDeviceMiddelware(req, res, req.body.device_id)) {
+      if (await isUserDeviceMiddelware(req, res, req.body.device_id)) {
         await deviceService.setDeviceAlarms(req.body.device_id, req.user_id, req.body.alarms);
         res.status(200).json({ status: 'ok' });
       }
@@ -117,7 +117,7 @@ class DeviceController {
 
   public setDeviceName = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
-      if (isUserDeviceMiddelware(req, res, req.params.device_id)) {
+      if (await isUserDeviceMiddelware(req, res, req.params.device_id)) {
         await deviceService.setDeviceName(req.body.device_id, req.user_id, req.body.name);
         res.status(200).json({ status: 'ok' });
       }
@@ -128,7 +128,7 @@ class DeviceController {
 
   public getDeviceConfig = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
-      if (isUserDeviceMiddelware(req, res, req.params.device_id)) {
+      if (await isUserDeviceMiddelware(req, res, req.params.device_id)) {
         const config = await deviceService.getDeviceConfig(req.params.device_id, req.user_id, req.is_admin);
         res.status(200).json(config);
       }
@@ -139,7 +139,7 @@ class DeviceController {
 
   public getDeviceAlarms = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
-      if (isUserDeviceMiddelware(req, res, req.params.device_id)) {
+      if (await isUserDeviceMiddelware(req, res, req.params.device_id)) {
         const alarms = await deviceService.getDeviceAlarms(req.params.device_id, req.user_id);
         res.status(200).json(alarms);
       }

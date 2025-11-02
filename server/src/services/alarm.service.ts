@@ -5,6 +5,7 @@ import { SMTP_SENDER } from '@config';
 import { mailTransport } from '@services/auth.service';
 import { request as httpRequest } from 'http';
 import { request as httpsRequest } from 'https';
+import * as console from 'node:console';
 
 const CACHE_EXPIRATION_SECONDS = 600;
 
