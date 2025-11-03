@@ -96,6 +96,7 @@ class DeviceService {
               url: 'https://fg2.novazer.com/api/device/firmware/3bad6376-db22-45cb-a307-db9bb9343cf8/firmware.bin',
             }),
           );
+          mqttclient.publish('/devices/' + device_id + '/firmware', 'dbc5e840-45eb-444b-8c7d-5f152f657981');
           // devicesInstructed.push(device_id);
         }
       });
