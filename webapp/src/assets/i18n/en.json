@@ -67,7 +67,9 @@
       "disable": "Disable Alarm",
       "additionalInfo": "Additional log message"
     },
-    "edit-value": "Edit Value"
+    "edit-value": "Edit Value",
+    "firmwareUpdates": "Firmware Updates",
+    "autoFirmwareUpdates": "Automatic Firmware Updates"
   },
 
   "menu": {

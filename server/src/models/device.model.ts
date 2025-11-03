@@ -83,6 +83,12 @@ const deviceSchema: Schema = new Schema({
     ],
     required: false,
   },
+  firmwareSettings: {
+    type: {
+      autoUpdate: { type: Boolean, required: false },
+    },
+    required: false,
+  },
 });
 
 const deviceModel = model<Device & Document>('Device', deviceSchema);

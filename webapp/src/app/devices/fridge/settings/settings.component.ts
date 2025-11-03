@@ -24,6 +24,7 @@ export class FridgeSettingComponent implements OnInit {
   @Input() device_id:string = "";
   public settings:any = null
   public alarms:any = null;
+  public firmwareSettings:any = null;
   public availableSensorTypes = ['temperature','humidity','co2'];
   public activePreset:any = null;
   public daybreak:any = null;
@@ -144,6 +145,12 @@ export class FridgeSettingComponent implements OnInit {
         console.warn('Alarms endpoint unavailable, continuing without alarms.', err);
       }
 
+      try {
+        this.firmwareSettings = await this.devices.getFirmwareSettings(this.device_id);
+      } catch (err) {
+        console.warn('Firmware settings endpoint unavailable, continuing without firmware settings.', err);
+      }
+
       console.log(device_settings.daynight.float_start)
       console.log(this.settings.daynight.float_start)
     }
@@ -261,6 +268,13 @@ export class FridgeSettingComponent implements OnInit {
         await this.devices.setAlarms(this.device_id, this.alarms)
       } catch (err) {
         console.warn('Alarms endpoint unavailable, skipping alarm save.', err);
+      }
+    }
+    if (typeof this.firmwareSettings === 'object') {
+      try {
+        await this.devices.setFirmwareSettings(this.device_id, this.firmwareSettings);
+      } catch (err) {
+        console.warn('Firmware settings endpoint unavailable, skipping firmware settings save.', err);
       }
     }
     this.saved = true;

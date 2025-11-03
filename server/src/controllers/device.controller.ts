@@ -115,6 +115,17 @@ class DeviceController {
     }
   };
 
+  public setDeviceFirmwareSettings = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+    try {
+      if (await isUserDeviceMiddelware(req, res, req.body.device_id)) {
+        await deviceService.setDeviceFirmwareSettings(req.body.device_id, req.user_id, req.body.firmware_settings);
+        res.status(200).json({ status: 'ok' });
+      }
+    } catch (error) {
+      next(error);
+    }
+  };
+
   public setDeviceName = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
       if (await isUserDeviceMiddelware(req, res, req.params.device_id)) {
@@ -142,6 +153,17 @@ class DeviceController {
       if (await isUserDeviceMiddelware(req, res, req.params.device_id)) {
         const alarms = await deviceService.getDeviceAlarms(req.params.device_id, req.user_id);
         res.status(200).json(alarms);
+      }
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public getDeviceFirmwareSettings = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+    try {
+      if (await isUserDeviceMiddelware(req, res, req.params.device_id)) {
+        const settings = await deviceService.getDeviceFirmwareSettings(req.params.device_id, req.user_id);
+        res.status(200).json(settings);
       }
     } catch (error) {
       next(error);

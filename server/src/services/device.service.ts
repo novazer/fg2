@@ -1,4 +1,12 @@
-import { Alarm, Device, DeviceClass, DeviceClassCount, DeviceFirmware, DeviceFirmwareBinary } from '@interfaces/device.interface';
+import {
+  Alarm,
+  Device,
+  DeviceClass,
+  DeviceClassCount,
+  DeviceFirmware,
+  DeviceFirmwareBinary,
+  FirmwareSettings
+} from '@interfaces/device.interface';
 import deviceModel from '@models/device.model';
 import deviceLogModel from '@models/devicelog.model';
 import deviceClassModel from '@/models/deviceclass.model';
@@ -92,21 +100,21 @@ class DeviceService {
           switch (topic) {
             case 'status':
               await this.checkAndUpgrade(device);
-              this.statusMessage(device, parsedMessage);
+              await this.statusMessage(device, parsedMessage);
               break;
             case 'bulk':
               await this.checkAndUpgrade(device);
-              this.statusMessage(device, { ...parsedMessage, timestamp: undefined });
+              await this.statusMessage(device, { ...parsedMessage, timestamp: undefined });
               break;
             case 'fetch':
               await this.checkAndUpgrade(device);
-              this.fetchMessage(device, parsedMessage);
+              await this.fetchMessage(device, parsedMessage);
               break;
             case 'log':
-              this.logMessage(device.device_id, parsedMessage);
+              await this.logMessage(device.device_id, parsedMessage);
               break;
             case 'configuration':
-              this.settingsMessage(device, parsedMessage);
+              await this.settingsMessage(device, parsedMessage);
               break;
             case 'firmware':
               break;
@@ -125,7 +133,12 @@ class DeviceService {
 
   private async checkAndUpgrade(device: Device) {
     await deviceModel.findOneAndUpdate({ device_id: device.device_id }, { lastseen: Date.now() });
-    if (device.current_firmware != device.pending_firmware && device.pending_firmware && device.pending_firmware != '') {
+    if (
+      device.current_firmware != device.pending_firmware &&
+      device.pending_firmware &&
+      device.pending_firmware != '' &&
+      device.firmwareSettings?.autoUpdate
+    ) {
       mqttclient.publish('/devices/' + device.device_id + '/firmware', device.pending_firmware);
     }
   }
@@ -157,8 +170,10 @@ class DeviceService {
             lastseen: { $gte: Date.now() - ONLINE_TIMEOUT },
             class_id: device_class.class_id,
             pending_firmware: { $ne: device_class.firmware_id },
+            firmwareSettings: { autoUpdate: true },
           })
           .limit(device_class.concurrent - currently_upgrading);
+
         for (const device of devices) {
           console.log('upgrading device ' + device.device_id);
           await deviceModel.findByIdAndUpdate(device._id, { pending_firmware: device_class.firmware_id, fwupdate_start: Date.now() });
@@ -446,6 +461,18 @@ class DeviceService {
     alarmService.invalidateAlarmCache(device_id);
   }
 
+  public async setDeviceFirmwareSettings(device_id: string, user_id: string, settings: FirmwareSettings) {
+    const device = await deviceModel.findOne({ device_id: device_id, owner_id: user_id });
+
+    if (!device) {
+      throw new HttpException(404, 'Device not found or access denied');
+    }
+
+    device.firmwareSettings = settings;
+
+    await deviceModel.updateOne({ device_id: device_id }, { firmwareSettings: settings });
+  }
+
   public async setDeviceName(device_id: string, user_id: string, name: string) {
     await deviceModel.findOneAndUpdate({ device_id: device_id, owner_id: user_id }, { name: name });
   }
@@ -462,7 +489,12 @@ class DeviceService {
 
   public async getDeviceAlarms(device_id: string, user_id: string) {
     const device = await deviceModel.findOne({ device_id: device_id, owner_id: user_id }, { alarms: 1 });
-    return device.alarms || [];
+    return device.alarms ?? [];
+  }
+
+  public async getDeviceFirmwareSettings(device_id: string, user_id: string) {
+    const device = await deviceModel.findOne({ device_id: device_id, owner_id: user_id }, { firmwareSettings: 1 });
+    return device.firmwareSettings ?? {};
   }
 
   public async listClasses(): Promise<DeviceClass[]> {
@@ -541,12 +573,6 @@ class DeviceService {
     );
 
     if (update) {
-      if (update.firmware_id != firmware_id) {
-        const devices = await deviceModel.find({ class_id: class_id });
-        for (const device of devices) {
-          mqttclient.publish('/devices/' + device.device_id + '/firmware', firmware_id);
-        }
-      }
       return update;
     } else {
       throw new HttpException(404, 'Class not found');

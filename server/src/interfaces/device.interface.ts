@@ -14,6 +14,10 @@ export interface Alarm {
   extremeValue?: number;
 }
 
+export interface FirmwareSettings {
+  autoUpdate: boolean;
+}
+
 export interface Device {
   _id?: string;
   device_id: string;
@@ -30,6 +34,7 @@ export interface Device {
   fwupdate_start: number;
   fwupdate_end: number;
   alarms?: [Alarm];
+  firmwareSettings?: FirmwareSettings;
 }
 
 export interface DeviceClass {

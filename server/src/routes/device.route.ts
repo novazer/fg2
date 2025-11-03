@@ -131,6 +131,18 @@ class DeviceRoute implements Routes {
     this.router.post(`${this.path}/alarms`, authMiddleware, this.deviceController.setDeviceAlarms);
 
     /**
+     * @api {post} /device/firmwaresettings set device firmware settings
+     * @apiName set device firmware settings
+     * @apiGroup device
+     *
+     * @apiUse authentication
+     *
+     * @apiBody {String} [device_id] device uuid
+     * @apiBody {FirmwareSettings} [firmwaresettings] device firmware settings
+     */
+    this.router.post(`${this.path}/firmwaresettings`, authMiddleware, this.deviceController.setDeviceFirmwareSettings);
+
+    /**
      * @api {post} /device/setname set device name
      * @apiName name device
      * @apiGroup device
@@ -163,6 +175,7 @@ class DeviceRoute implements Routes {
      */
     this.router.get(`${this.path}/config/:device_id`, authMiddleware, this.deviceController.getDeviceConfig);
     this.router.get(`${this.path}/alarms/:device_id`, authMiddleware, this.deviceController.getDeviceAlarms);
+    this.router.get(`${this.path}/firmwaresettings/:device_id`, authMiddleware, this.deviceController.getDeviceFirmwareSettings);
 
     this.router.post(`${this.path}/claimcode`, this.deviceController.getClaimCode);
     this.router.post(`/auth/v0.0.1/device/claimcode`, this.deviceController.getClaimCode);

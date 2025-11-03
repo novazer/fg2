@@ -249,6 +249,18 @@
     </ion-card-content>
   </ion-card>
 
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title> {{'settings.firmwareUpdates' | translate}}</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-item lines="none">
+        <ion-label>{{'settings.autoFirmwareUpdates' | translate}}</ion-label>
+        <ion-checkbox [(ngModel)]="firmwareSettings.autoUpdate"></ion-checkbox>
+      </ion-item>
+    </ion-card-content>
+  </ion-card>
+
   <ion-card *ngIf="settings.workmode != 'off' && alarms !== null">
     <ion-card-header>
       <ion-card-title> {{'settings.alarms.title' | translate}}</ion-card-title>

@@ -67,7 +67,9 @@
       "disable": "Alarm deaktivieren",
       "additionalInfo": "Zusätzliche Log-Meldung",
       "edit-value": "Wert bearbeiten"
-    }
+    },
+    "firmwareUpdates": "Firmware Updates",
+    "autoFirmwareUpdates": "Automatische Firmware Updates"
   },
 
   "menu": {
