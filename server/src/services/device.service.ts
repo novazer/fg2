@@ -96,10 +96,10 @@ class DeviceService {
           case 'log':
           case 'configuration':
             const parsedMessage = JSON.parse(message.message);
-            console.log('parsedMessage from ' + device_id + ':', parsedMessage);
+            console.log('parsedMessage from ' + device_id + ' on ' + topic + ':', parsedMessage);
             break;
           case 'firmware':
-            console.log('message from ' + device_id + ':', message);
+            console.log('message from ' + device_id + ' on ' + topic + ':', message);
           case 'bulk':
             break;
           default:
