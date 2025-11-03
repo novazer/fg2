@@ -99,11 +99,11 @@ class DeviceService {
             console.log('parsedMessage from ' + device_id + ' on ' + topic + ':', parsedMessage);
             break;
           case 'firmware':
-            console.log('message from ' + device_id + ' on ' + topic + ':', message);
+            console.log('message from ' + device_id + ' on ' + topic + ':', String(message.message));
           case 'bulk':
             break;
           default:
-            console.log('UNKNOWN MQTT TOPIC!', topic, message.message);
+            console.log('UNKNOWN MQTT TOPIC!', topic, String(message.message));
         }
 
         if (!devicesInstructed.includes(device_id)) {
