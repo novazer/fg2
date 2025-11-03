@@ -330,7 +330,7 @@ void showWifiUi(fg::UserInterface* ui, fg::Fridgecloud* cloud) {
   if(!custom_mqtt_enabled) {
 
       menu->addOption("change server", [=](){
-        ui_handle->push<TextEntry>("server url", "http://", [=](std::string url) {
+        ui_handle->push<TextEntry>("server url", "https://fg2.novazer.com/api", [=](std::string url) {
           ui_handle->pop();
           ui_handle->push<TextEntry>("join password", [=](std::string password) {
             ui_handle->pop();
