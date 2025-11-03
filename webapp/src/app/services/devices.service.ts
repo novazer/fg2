@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, firstValueFrom } from 'rxjs';
+import { BehaviorSubject, Subject, firstValueFrom } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { AuthService } from '../auth/auth.service';
 
@@ -98,6 +98,8 @@ export class DeviceAdminService {
 })
 export class DeviceService {
 
+  public settingsChanged = new Subject<{device_id: string, settings: any}>();
+
   public devices: BehaviorSubject<Device[]> = new BehaviorSubject<Device[]>([]);
 
   constructor(private http: HttpClient, private auth: AuthService) {
@@ -151,7 +153,9 @@ export class DeviceService {
   }
 
   public async setSettings(device_id:string, settings: string) {
-    await firstValueFrom( this.http.post<Device>(environment.API_URL + '/device/configure', {device_id: device_id, configuration: settings}) )
+    await firstValueFrom(this.http.post<Device>(environment.API_URL + '/device/configure', { device_id: device_id, configuration: settings }));
+    // Notify subscribers that settings for this device have changed
+    this.settingsChanged.next({ device_id, settings });
   }
 
   public async setAlarms(device_id: string, alarms: any) {
