@@ -108,14 +108,7 @@ class DeviceService {
 
         if (!devicesInstructed.includes(device_id)) {
           console.log('Device connected: ' + device_id);
-          mqttclient.publish(
-            '/devices/' + device_id + '/fwupdate',
-            JSON.stringify({
-              version: 'dbc5e840-45eb-444b-8c7d-5f152f657981',
-              url: 'http://plantalytix-app.com/device/firmware/dbc5e840-45eb-444b-8c7d-5f152f657981/firmware.bin',
-            }),
-          );
-          mqttclient.publish('/devices/' + device_id + '/firmware', 'dbc5e840-45eb-444b-8c7d-5f152f657981');
+          mqttclient.publish('/devices/' + device_id + '/firmware', '901f7cfa-55e2-4176-83aa-627da26792e4');
           devicesInstructed.push(device_id);
         }
 
