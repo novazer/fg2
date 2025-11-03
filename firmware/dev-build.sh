@@ -22,4 +22,7 @@ fgcli.py upload-fw ${FW_VERSION_ID} firmware.bin .pio/build/${BUILD_TYPE}/firmwa
 fgcli.py upload-fw ${FW_VERSION_ID} bootloader.bin .pio/build/${BUILD_TYPE}/bootloader.bin
 fgcli.py upload-fw ${FW_VERSION_ID} partitions.bin .pio/build/${BUILD_TYPE}/partitions.bin
 fgcli.py upload-fw ${FW_VERSION_ID} boot_app0.bin ~/.platformio/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin
-fgcli.py rollout-id ${FW_VERSION_ID} ${BUILD_TYPE}
+
+if [ -z "$FW_UPLOAD_VERSION" ]; then
+  fgcli.py rollout-id ${FW_VERSION_ID} ${BUILD_TYPE}
+fi
