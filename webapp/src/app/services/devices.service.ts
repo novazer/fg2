@@ -41,9 +41,9 @@ export class DeviceAdminService {
   constructor(private http: HttpClient, private auth: AuthService) {
     this.auth.current_user.subscribe(async (user) => {
       if(user) {
-        setInterval(() => {
-          this.fetch();
-        }, 10000)
+        //setInterval(() => {
+        //  this.fetch();
+        //}, 10000)
         this.fetch();
       }
       else {
