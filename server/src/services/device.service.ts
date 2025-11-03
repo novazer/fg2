@@ -100,6 +100,7 @@ class DeviceService {
             break;
           case 'firmware':
             console.log('message from ' + device_id + ':', message);
+          case 'bulk':
             break;
           default:
             console.log('UNKNOWN MQTT TOPIC!', topic, message);
