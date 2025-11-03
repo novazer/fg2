@@ -31,6 +31,7 @@ services:
     restart: always
     ports:
       - ${MQTT_PORT_EXTERNAL}:1883
+      - "127.0.0.1:5072:15672"
     networks:
       - main
 
