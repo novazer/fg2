@@ -96,15 +96,13 @@ class DeviceService {
           case 'log':
           case 'configuration':
             const parsedMessage = JSON.parse(message.message);
-            console.log('parsedMessage', parsedMessage);
+            console.log('parsedMessage from ' + device_id + ':', parsedMessage);
             break;
           case 'firmware':
-            console.log('message', message);
+            console.log('message from ' + device_id + ':', message);
             break;
           default:
-            console.log('UNKNOWN MQTT TOPIC!');
-            console.log(topic);
-            console.log(message.message);
+            console.log('UNKNOWN MQTT TOPIC!', topic, message);
         }
 
         if (!devicesInstructed.includes(device_id)) {
