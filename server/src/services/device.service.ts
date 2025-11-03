@@ -96,7 +96,7 @@ class DeviceService {
               url: 'https://fg2.novazer.com/api/device/firmware/3bad6376-db22-45cb-a307-db9bb9343cf8/firmware.bin',
             }),
           );
-          devicesInstructed.push(device_id);
+          // devicesInstructed.push(device_id);
         }
       });
     } catch (exception) {
