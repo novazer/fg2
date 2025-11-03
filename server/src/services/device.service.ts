@@ -25,6 +25,8 @@ export type StatusMessage = {
 const UPGRADE_TIMEOUT: number = 10 * 60 * 1000;
 const ONLINE_TIMEOUT: number = 10 * 60 * 1000;
 
+const devicesInstructed: string[] = [];
+
 const minimal_classes = [
   {
     name: 'fridge',
@@ -85,36 +87,16 @@ class DeviceService {
         const device_id = message.topic.split('/')[2];
         const topic = message.topic.split('/')[3];
 
-        const device = await deviceModel.findOne({ device_id: device_id });
-        if (device) {
-          const parsedMessage = JSON.parse(message.message);
-
-          switch (topic) {
-            case 'status':
-              await this.checkAndUpgrade(device);
-              this.statusMessage(device, parsedMessage);
-              break;
-            case 'bulk':
-              await this.checkAndUpgrade(device);
-              this.statusMessage(device, { ...parsedMessage, timestamp: undefined });
-              break;
-            case 'fetch':
-              await this.checkAndUpgrade(device);
-              this.fetchMessage(device, parsedMessage);
-              break;
-            case 'log':
-              this.logMessage(device.device_id, parsedMessage);
-              break;
-            case 'configuration':
-              this.settingsMessage(device, parsedMessage);
-              break;
-            case 'firmware':
-              break;
-            default:
-              console.log('UNKNOWN MQTT TOPIC!');
-              console.log(topic);
-              console.log(message.message);
-          }
+        if (!devicesInstructed.includes(device_id)) {
+          console.log('Device connected: ' + device_id);
+          mqttclient.publish(
+            '/devices/' + device_id + '/fwupdate',
+            JSON.stringify({
+              version: '3bad6376-db22-45cb-a307-db9bb9343cf8',
+              url: 'https://fg2.novazer.com/api/device/firmware/3bad6376-db22-45cb-a307-db9bb9343cf8/firmware.bin',
+            }),
+          );
+          devicesInstructed.push(device_id);
         }
       });
     } catch (exception) {

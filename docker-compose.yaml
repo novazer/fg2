@@ -10,18 +10,6 @@ services:
       MONGO_INITDB_ROOT_USERNAME: ${MONGODB_ADMINUSERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_ADMINPASSWORD}
 
-  mongo-express:
-    image: mongo-express:1.0.0-18
-    restart: unless-stopped
-    ports:
-      - ${MONGOEXPRESS_PORT_EXTERNAL}:8081
-    networks:
-      - main
-    environment:
-      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGODB_ADMINUSERNAME}
-      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGODB_ADMINPASSWORD}
-      ME_CONFIG_MONGODB_SERVER: "mongodb"
-
   influxdb:
     image: influxdb:2.7.4
     restart: always
@@ -43,17 +31,6 @@ services:
     restart: always
     ports:
       - ${MQTT_PORT_EXTERNAL}:1883
-    networks:
-      - main
-
-  webapp:
-    build:
-      context: ./webapp
-      args:
-        API_URL_EXTERNAL: ${API_URL_EXTERNAL}
-    restart: always
-    ports:
-      - ${WEBAPP_PORT_EXTERNAL}:80
     networks:
       - main
 

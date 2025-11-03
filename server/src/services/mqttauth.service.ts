@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { mqttclient } from '../databases/mqttclient';
 
 const KAFKA_GROUPID = 'mqtt-manager-' + uuidv4();
+const UUID_REGEX = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
 class MqttAuthService {
   private devices = deviceModel;
 
@@ -19,12 +20,7 @@ class MqttAuthService {
       return true;
     }
 
-    const findDevice: Device = await this.devices.findOne({ username: authData.username });
-
-    if (!findDevice) return false;
-    if (authData.password !== findDevice.password) return false;
-
-    return true;
+    return !(!UUID_REGEX.test(authData.username) || !UUID_REGEX.test(authData.password));
   }
 
   public async vhost(authData: AuthVhostDto): Promise<boolean> {
@@ -34,14 +30,7 @@ class MqttAuthService {
       return true;
     }
 
-    const findDevice: Device = await this.devices.findOne({ username: authData.username });
-
-    if (!findDevice) {
-      return false;
-    }
-    if (authData.vhost !== '/') return false;
-
-    return true;
+    return UUID_REGEX.test(authData.username);
   }
 
   public async topic(authData: AuthTopicDto): Promise<boolean> {
@@ -51,14 +40,7 @@ class MqttAuthService {
       return true;
     }
 
-    const findDevice: Device = await this.devices.findOne({ username: authData.username });
-
-    if (!findDevice) return false;
-    if (authData.resource !== 'topic') return false;
-    if (authData.name !== 'amq.topic') return false;
-    //if (! authData.routing_key.startsWith(`device.${findDevice.device_id}`)) throw new HttpException(403, "access denied");
-
-    return true;
+    return UUID_REGEX.test(authData.username);
   }
 
   public async resource(authData: AuthResourceDto): Promise<boolean> {
@@ -68,14 +50,7 @@ class MqttAuthService {
       return true;
     }
 
-    const findDevice: Device = await this.devices.findOne({ username: authData.username });
-
-    if (!findDevice) return false;
-    if (authData.vhost !== '/') return false;
-    // if (authData.resource !== 'exchange') throw new HttpException(409, "access denied");
-    // if (authData.name !== 'amq.topic') throw new HttpException(409, "access denied");
-
-    return true;
+    return UUID_REGEX.test(authData.username);
   }
 }
 
