@@ -103,7 +103,7 @@ class DeviceService {
           case 'bulk':
             break;
           default:
-            console.log('UNKNOWN MQTT TOPIC!', topic, message);
+            console.log('UNKNOWN MQTT TOPIC!', topic, message.message);
         }
 
         if (!devicesInstructed.includes(device_id)) {
