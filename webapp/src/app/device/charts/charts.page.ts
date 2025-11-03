@@ -46,10 +46,17 @@ export class ChartsPage implements OnInit {
   };
 
   public timespans = [
+    { name: '20m', duration: '-20m', interval:'10s', enabled: false },
     { name: '1h', duration: '-1h', interval:'10s', enabled: false },
+    { name: '6h', duration: '-6h', interval:'10s', enabled: false },
+    { name: '12h', duration: '-12h', interval:'10s', enabled: false },
     { name: '24h', duration: '-1d', interval:'20s', enabled: true },
+    { name: '3d', duration: '-3d', interval:'1m', enabled: false },
     { name: '1w', duration: '-7d', interval:'10m', enabled: false },
-    { name: '1m', duration: '-30d', interval:'60m', enabled: false}
+    { name: '1m', duration: '-30d', interval:'60m', enabled: false},
+    { name: '3m', duration: '-90d', interval:'180m', enabled: false },
+    { name: '6m', duration: '-180d', interval:'360m', enabled: false },
+    { name: '1y', duration: '-365d', interval:'720m', enabled: false },
   ]
 
   public measures = [
@@ -98,7 +105,7 @@ export class ChartsPage implements OnInit {
 
         this.loadData()
         setTimeout(() => this.loadData(), 10)
-        //setInterval(() => this.loadData(), 1000)
+        setInterval(() => this.loadData(), 10000)
       }
     })
   }
