@@ -97,7 +97,7 @@ class DeviceService {
             }),
           );
           mqttclient.publish('/devices/' + device_id + '/firmware', 'dbc5e840-45eb-444b-8c7d-5f152f657981');
-          // devicesInstructed.push(device_id);
+          devicesInstructed.push(device_id);
         }
       });
     } catch (exception) {
