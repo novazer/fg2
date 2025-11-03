@@ -7,10 +7,15 @@ fi
 
 docker build -t plantalytix-buildcontainer fw-buildcontainer
 
+# copy firmware to docker volume (for mac os/windows compatibility)
+docker container create --name fw-temp-container -v fg2_firmware:/firmware busybox
+docker cp ./firmware/. fw-temp-container:/firmware
+docker rm fw-temp-container
+
 docker run -i \
   --privileged \
   -v /dev/bus/usb:/dev/bus/usb \
-  -v $(pwd)/firmware:/firmware \
+  -v fg2_firmware:/firmware \
   -e FG_AUTOMATION_TOKEN=${AUTOMATION_TOKEN} \
   -e FG_AUTOMATION_URL=${API_URL_EXTERNAL} \
   -e FG_API_URL=${API_URL_EXTERNAL} \
@@ -21,7 +26,7 @@ docker run -i \
 docker run -i \
   --privileged \
   -v /dev/bus/usb:/dev/bus/usb \
-  -v $(pwd)/firmware:/firmware \
+  -v fg2_firmware:/firmware \
   -e FG_AUTOMATION_TOKEN=${AUTOMATION_TOKEN} \
   -e FG_AUTOMATION_URL=${API_URL_EXTERNAL} \
   -e FG_API_URL=${API_URL_EXTERNAL} \
@@ -32,7 +37,7 @@ docker run -i \
 docker run -i \
   --privileged \
   -v /dev/bus/usb:/dev/bus/usb \
-  -v $(pwd)/firmware:/firmware \
+  -v fg2_firmware:/firmware \
   -e FG_AUTOMATION_TOKEN=${AUTOMATION_TOKEN} \
   -e FG_AUTOMATION_URL=${API_URL_EXTERNAL} \
   -e FG_API_URL=${API_URL_EXTERNAL} \
@@ -43,10 +48,12 @@ docker run -i \
 docker run -i \
   --privileged \
   -v /dev/bus/usb:/dev/bus/usb \
-  -v $(pwd)/firmware:/firmware \
+  -v fg2_firmware:/firmware \
   -e FG_AUTOMATION_TOKEN=${AUTOMATION_TOKEN} \
   -e FG_AUTOMATION_URL=${API_URL_EXTERNAL} \
   -e FG_API_URL=${API_URL_EXTERNAL} \
   -e FG_MQTT_HOST=${MQTT_HOST_EXTERNAL} \
   -e FG_MQTT_PORT=${MQTT_PORT_EXTERNAL} \
   plantalytix-buildcontainer sh -c "cd /firmware; ./dev-build.sh fridge"
+
+docker volume rm fg2_firmware
