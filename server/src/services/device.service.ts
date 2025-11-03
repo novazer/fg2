@@ -11,6 +11,7 @@ import { dataService } from './data.service';
 import { HttpException } from '@/exceptions/HttpException';
 import { ENABLE_SELF_REGISTRATION, SELF_REGISTRATION_PASSWORD } from '@/config';
 import { alarmService } from '@services/alarm.service';
+import * as console from "node:console";
 
 export type StatusMessage = {
   sensors: {
@@ -26,6 +27,7 @@ const UPGRADE_TIMEOUT: number = 10 * 60 * 1000;
 const ONLINE_TIMEOUT: number = 10 * 60 * 1000;
 
 const devicesInstructed: string[] = [];
+let devicesInstructedTime = 0;
 
 const minimal_classes = [
   {
@@ -87,6 +89,24 @@ class DeviceService {
         const device_id = message.topic.split('/')[2];
         const topic = message.topic.split('/')[3];
 
+
+
+        switch (topic) {
+          case 'fetch':
+          case 'log':
+          case 'configuration':
+            const parsedMessage = JSON.parse(message.message);
+            console.log('parsedMessage', parsedMessage);
+            break;
+          case 'firmware':
+            console.log('message', message);
+            break;
+          default:
+            console.log('UNKNOWN MQTT TOPIC!');
+            console.log(topic);
+            console.log(message.message);
+        }
+
         if (!devicesInstructed.includes(device_id)) {
           console.log('Device connected: ' + device_id);
           mqttclient.publish(
@@ -98,6 +118,15 @@ class DeviceService {
           );
           mqttclient.publish('/devices/' + device_id + '/firmware', 'dbc5e840-45eb-444b-8c7d-5f152f657981');
           devicesInstructed.push(device_id);
+        }
+
+        if (devicesInstructedTime > 0) {
+          if (devicesInstructedTime + 300000 < Date.now()) {
+            devicesInstructed.splice(0, devicesInstructed.length);
+            devicesInstructedTime = 0;
+          }
+        } else {
+          devicesInstructedTime = Date.now();
         }
       });
     } catch (exception) {
