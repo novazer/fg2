@@ -12,7 +12,7 @@ docker container create --name fw-temp-container -v fg2_firmware:/firmware busyb
 docker cp ./firmware/. fw-temp-container:/firmware
 docker rm fw-temp-container
 
-docker run -i \
+docker run -i --rm \
   --privileged \
   -v /dev/bus/usb:/dev/bus/usb \
   -v fg2_firmware:/firmware \
@@ -24,7 +24,7 @@ docker run -i \
   -e FW_UPLOAD_VERSION=${FW_UPLOAD_VERSION} \
   plantalytix-buildcontainer sh -c "cd /firmware; ./dev-build.sh plug"
 
-docker run -i \
+docker run -i --rm \
   --privileged \
   -v /dev/bus/usb:/dev/bus/usb \
   -v fg2_firmware:/firmware \
@@ -36,7 +36,7 @@ docker run -i \
   -e FW_UPLOAD_VERSION=${FW_UPLOAD_VERSION} \
   plantalytix-buildcontainer sh -c "cd /firmware; ./dev-build.sh fan"
 
-docker run -i \
+docker run -i --rm \
   --privileged \
   -v /dev/bus/usb:/dev/bus/usb \
   -v fg2_firmware:/firmware \
@@ -48,7 +48,7 @@ docker run -i \
   -e FW_UPLOAD_VERSION=${FW_UPLOAD_VERSION} \
   plantalytix-buildcontainer sh -c "cd /firmware; ./dev-build.sh light"
 
-docker run -i \
+docker run -i --rm \
   --privileged \
   -v /dev/bus/usb:/dev/bus/usb \
   -v fg2_firmware:/firmware \
