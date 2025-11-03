@@ -87,6 +87,8 @@ export class ChartsPage implements OnInit {
   public device_id:string = ""
   public device_type:string = ""
 
+  public autoUpdate:boolean = true;
+
   @ViewChild(BaseChartDirective) chart?: BaseChartDirective;
   @ViewChild('spacer') spacer? : ElementRef;
 
@@ -105,7 +107,11 @@ export class ChartsPage implements OnInit {
 
         this.loadData()
         setTimeout(() => this.loadData(), 10)
-        setInterval(() => this.loadData(), 10000)
+        setInterval(() => {
+          if (this.autoUpdate) {
+            void this.loadData();
+          }
+        }, 10000)
       }
     })
   }

@@ -22,6 +22,12 @@
         <img class="icon-off" src="assets/icon/{{m.icon}}_off.svg" />
       </ion-col>
     </ng-container>
+    <ng-container>
+      <ion-col class="onoff autoUpdate" style="cursor: pointer;" [class.on]="autoUpdate" (click)="autoUpdate = !autoUpdate" title="Auto update">
+        <img class="icon-on" src="assets/icon/autoUpdate.png" />
+        <img class="icon-off" src="assets/icon/autoUpdate_off.png" />
+      </ion-col>
+    </ng-container>
   </ion-row>
 
   <ion-button
