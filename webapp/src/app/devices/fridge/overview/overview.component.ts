@@ -102,6 +102,14 @@ export class FridgeOverviewComponent implements OnInit {
     this.config = this.normalizeConfig(rawConfig);
     this.updateTargets();
 
+    // Listen for settings updates saved from the Settings page and refresh targets immediately
+    this.devices.settingsChanged.subscribe(({ device_id, settings }) => {
+      if (device_id === this.device_id) {
+        this.config = this.normalizeConfig(settings);
+        this.updateTargets();
+      }
+    });
+
     if(this.logs.length) {
       this.has_logs = true;
     }
