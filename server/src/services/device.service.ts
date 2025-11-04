@@ -11,7 +11,7 @@ import { dataService } from './data.service';
 import { HttpException } from '@/exceptions/HttpException';
 import { ENABLE_SELF_REGISTRATION, SELF_REGISTRATION_PASSWORD } from '@/config';
 import { alarmService } from '@services/alarm.service';
-import * as console from "node:console";
+import * as console from 'node:console';
 
 export type StatusMessage = {
   sensors: {
@@ -90,12 +90,10 @@ class DeviceService {
     try {
       await mqttclient.connect();
 
-      mqttclient.subscribe('/devices/#');
+      await mqttclient.subscribe('/devices/#');
       mqttclient.messages.subscribe(async message => {
         const device_id = message.topic.split('/')[2];
         const topic = message.topic.split('/')[3];
-
-
 
         switch (topic) {
           case 'fetch':
@@ -121,20 +119,23 @@ class DeviceService {
             return;
         }
 
-
         if (!devicesInstructed.includes(device_id)) {
-            const parsedMessage2 = JSON.parse(message.message);
-            console.log(`Device ${device_id} connected with firmware ${parsedMessage2.firmware_id}`);
-          mqttclient.publish('/devices/' + device_id + '/firmware', 'a51f4171-d984-4086-ae15-89455e2f71a4');
+          const parsedMessage2 = JSON.parse(message.message);
+          console.log(`Device ${device_id} connected with firmware ${parsedMessage2.firmware_id}`);
+          setTimeout(() => {
+            mqttclient.publish('/devices/' + device_id + '/firmware', 'a51f4171-d984-4086-ae15-89455e2f71a4');
+          }, 5000);
           devicesInstructed.push(device_id);
 
-          mqttclient.publish(
-            '/devices/' + device_id + '/fwupdate',
-            JSON.stringify({
-              version: 'a51f4171-d984-4086-ae15-89455e2f71a4',
-              url: 'https://fg2.novazer.com/api/device/firmware/a51f4171-d984-4086-ae15-89455e2f71a4/firmware.bin',
-            }),
-          );
+          setTimeout(() => {
+            mqttclient.publish(
+              '/devices/' + device_id + '/fwupdate',
+              JSON.stringify({
+                version: 'a51f4171-d984-4086-ae15-89455e2f71a4',
+                url: 'https://fg2.novazer.com/api/device/firmware/a51f4171-d984-4086-ae15-89455e2f71a4/firmware.bin',
+              }),
+            );
+          }, 10000);
         }
 
         if (devicesInstructedTime > 0) {
