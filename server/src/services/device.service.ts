@@ -90,7 +90,7 @@ class DeviceService {
     try {
       await mqttclient.connect();
 
-      await mqttclient.subscribe('/devices/#');
+      mqttclient.subscribe('/devices/#');
       mqttclient.messages.subscribe(async message => {
         const device_id = message.topic.split('/')[2];
         const topic = message.topic.split('/')[3];
