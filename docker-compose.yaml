@@ -39,7 +39,7 @@ services:
     image: mongo-express:1.0.0-18
     restart: unless-stopped
     ports:
-      - ${MONGOEXPRESS_PORT_EXTERNAL:5088}:8081
+      - ${MONGOEXPRESS_PORT_EXTERNAL:-5088}:8081
     networks:
       - main
     environment:
