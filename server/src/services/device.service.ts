@@ -102,8 +102,6 @@ class DeviceService {
             const parsedMessage2 = JSON.parse(message.message);
             if (
               parsedMessage2.firmware_id &&
-              parsedMessage2.firmware_id != '901f7cfa-55e2-4176-83aa-627da26792e4' &&
-              parsedMessage2.firmware_id != 'e0d76fc7-38b1-414c-90ba-be0056955586' &&
               parsedMessage2.firwmare_id != 'a51f4171-d984-4086-ae15-89455e2f71a4' &&
               allowedFirmwares.includes(parsedMessage2.firmware_id)
             ) {
@@ -139,14 +137,14 @@ class DeviceService {
           );
         }
 
-        // if (devicesInstructedTime > 0) {
-        //   if (devicesInstructedTime + 300000 < Date.now()) {
-        //     devicesInstructed.splice(0, devicesInstructed.length);
-        //     devicesInstructedTime = 0;
-        //   }
-        // } else {
-        //   devicesInstructedTime = Date.now();
-        // }
+        if (devicesInstructedTime > 0) {
+          if (devicesInstructedTime + 1800000 < Date.now()) {
+            devicesInstructed.splice(0, devicesInstructed.length);
+            devicesInstructedTime = 0;
+          }
+        } else {
+          devicesInstructedTime = Date.now();
+        }
       });
     } catch (exception) {
       console.log(exception);
