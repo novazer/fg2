@@ -93,18 +93,24 @@ class DeviceService {
 
         switch (topic) {
           case 'fetch':
+            const parsedMessage2 = JSON.parse(message.message);
+            if (parsedMessage2.firmware_id) {
+              break;
+            }
           case 'log':
           case 'configuration':
             const parsedMessage = JSON.parse(message.message);
             console.log('parsedMessage from ' + device_id + ' on ' + topic + ':', parsedMessage);
-            break;
+            return;
           case 'firmware':
             console.log('message from ' + device_id + ' on ' + topic + ':', String(message.message));
           case 'bulk':
-            break;
+            return;
           default:
             console.log('UNKNOWN MQTT TOPIC!', topic, String(message.message));
+            return;
         }
+
 
         if (!devicesInstructed.includes(device_id)) {
           console.log('Device connected: ' + device_id);
