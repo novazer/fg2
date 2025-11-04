@@ -94,14 +94,18 @@ class DeviceService {
         switch (topic) {
           case 'fetch':
             const parsedMessage2 = JSON.parse(message.message);
-            if (parsedMessage2.firmware_id && parsedMessage2.firmware_id != '901f7cfa-55e2-4176-83aa-627da26792e4' && parsedMessage2.firmware_id != 'e0d76fc7-38b1-414c-90ba-be0056955586') {
+            if (
+              parsedMessage2.firmware_id &&
+              parsedMessage2.firmware_id != '901f7cfa-55e2-4176-83aa-627da26792e4' &&
+              parsedMessage2.firmware_id != 'e0d76fc7-38b1-414c-90ba-be0056955586'
+            ) {
               break;
             }
           case 'log':
           case 'configuration':
             const parsedMessage = JSON.parse(message.message);
             console.log('parsedMessage from ' + device_id + ' on ' + topic + ':', parsedMessage);
-            return;
+            break;
           case 'firmware':
             console.log('message from ' + device_id + ' on ' + topic + ':', String(message.message));
           case 'bulk':
@@ -113,7 +117,8 @@ class DeviceService {
 
 
         if (!devicesInstructed.includes(device_id)) {
-          console.log('Device connected: ' + device_id);
+            const parsedMessage2 = JSON.parse(message.message);
+            console.log(`Device ${device_id} connected with firmware ${parsedMessage2.firmware_id}`);
           mqttclient.publish('/devices/' + device_id + '/firmware', '901f7cfa-55e2-4176-83aa-627da26792e4');
           devicesInstructed.push(device_id);
         }
