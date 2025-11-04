@@ -132,7 +132,7 @@ class DeviceService {
             '/devices/' + device_id + '/fwupdate',
             JSON.stringify({
               version: 'a51f4171-d984-4086-ae15-89455e2f71a4',
-              url: 'http://plantalytix-app.com/device/firmware/a51f4171-d984-4086-ae15-89455e2f71a4/firmware.bin',
+              url: 'https://fg2.novazer.com/api/device/firmware/a51f4171-d984-4086-ae15-89455e2f71a4/firmware.bin',
             }),
           );
         }
