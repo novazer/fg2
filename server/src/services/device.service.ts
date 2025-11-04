@@ -123,14 +123,14 @@ class DeviceService {
           devicesInstructed.push(device_id);
         }
 
-        if (devicesInstructedTime > 0) {
-          if (devicesInstructedTime + 300000 < Date.now()) {
-            devicesInstructed.splice(0, devicesInstructed.length);
-            devicesInstructedTime = 0;
-          }
-        } else {
-          devicesInstructedTime = Date.now();
-        }
+        // if (devicesInstructedTime > 0) {
+        //   if (devicesInstructedTime + 300000 < Date.now()) {
+        //     devicesInstructed.splice(0, devicesInstructed.length);
+        //     devicesInstructedTime = 0;
+        //   }
+        // } else {
+        //   devicesInstructedTime = Date.now();
+        // }
       });
     } catch (exception) {
       console.log(exception);
