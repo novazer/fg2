@@ -6,6 +6,8 @@ import { DateTime, Interval } from "luxon";
 import { environment } from 'src/environments/environment';
 import { Router } from '@angular/router';
 
+const EXPIRE_SAFETY_SECONDS = 5;
+
 interface LoginData {
   userToken: any,
   refreshToken: any,
@@ -19,6 +21,7 @@ export class AuthService implements OnDestroy {
   private logout_timer:any;
   public authenticated: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   public current_user: BehaviorSubject<User|null> = new BehaviorSubject<User|null>(null);
+  private static waitForRefresh: Promise<void> = Promise.resolve();
 
   constructor(private http: HttpClient, public router: Router) {
     const user = localStorage.getItem('user');
@@ -63,7 +66,8 @@ export class AuthService implements OnDestroy {
     localStorage.setItem('id_token', login.userToken.token);
     localStorage.setItem('refresh_token', login.refreshToken.token);
     localStorage.setItem('user', JSON.stringify(login.user));
-    localStorage.setItem("expires_at", DateTime.now().plus({seconds: login.userToken.expiresIn}).toString() );
+    localStorage.setItem("expires_at", DateTime.now().plus({seconds: login.userToken.expiresIn - EXPIRE_SAFETY_SECONDS}).toString() );
+    localStorage.setItem("refresh_expires_at", DateTime.now().plus({seconds: login.refreshToken.expiresIn - EXPIRE_SAFETY_SECONDS}).toString() );
 
     this.authenticated.next(true);
     this.current_user.next(login.user);
@@ -78,16 +82,38 @@ export class AuthService implements OnDestroy {
     return await firstValueFrom(this.http.post<LoginData>(environment.API_URL + "/signup", {username: username, password: password}));
   }
 
+  public static async getToken(): Promise<string | null> {
+    await AuthService.waitForRefresh;
+    return localStorage.getItem('id_token');
+  }
+
   private async refresh() {
     const refresh_token = localStorage.getItem('refresh_token');
     try {
-      const login = await firstValueFrom(this.http.post<LoginData>(environment.API_URL + "/refresh", {token: refresh_token}));
+      const expires_at = localStorage.getItem('refresh_expires_at');
+      if(expires_at) {
+        if (DateTime.now().toUnixInteger() > DateTime.fromISO(expires_at).toUnixInteger()) {
+          this.authenticated.next(false);
+          return;
+        }
+      }
 
-      localStorage.setItem('id_token', login.userToken.token);
-      localStorage.setItem('refresh_token', login.refreshToken.token);
-      localStorage.setItem("expires_at", DateTime.now().plus({seconds: login.userToken.expiresIn}).toString() );
+      AuthService.waitForRefresh = new Promise(async (resolve, reject) => {
+        try {
+          const login = await firstValueFrom(this.http.post<LoginData>(environment.API_URL + "/refresh", {token: refresh_token}));
 
-      this.setTimer();
+          localStorage.setItem('id_token', login.userToken.token);
+          localStorage.setItem('refresh_token', login.refreshToken.token);
+          localStorage.setItem("expires_at", DateTime.now().plus({seconds: login.userToken.expiresIn - EXPIRE_SAFETY_SECONDS}).toString());
+          localStorage.setItem("refresh_expires_at", DateTime.now().plus({seconds: login.refreshToken.expiresIn - EXPIRE_SAFETY_SECONDS}).toString());
+          this.setTimer();
+          resolve();
+        } catch (err) {
+          reject(err);
+        }
+      });
+
+      await AuthService.waitForRefresh;
     }
     catch(err) {
       this.authenticated.next(false);

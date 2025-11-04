@@ -5,7 +5,8 @@ import {
   HttpEvent,
   HttpInterceptor
 } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import {from, lastValueFrom, Observable} from 'rxjs';
+import {AuthService} from "./auth.service";
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
@@ -14,18 +15,23 @@ export class AuthInterceptor implements HttpInterceptor {
 
   intercept(req: HttpRequest<any>,
     next: HttpHandler): Observable<HttpEvent<any>> {
+    return from(this.handle(req, next))
+  }
 
-    const idToken = localStorage.getItem("id_token");
+  async handle(req: HttpRequest<any>, next: HttpHandler): Promise<HttpEvent<any>> {
+    try {
+      const idToken = await AuthService.getToken();
+      if (idToken) {
+        const cloned = req.clone({
+          headers: req.headers.set("Authorization", "Bearer " + idToken)
+        });
 
-    if (idToken) {
-      const cloned = req.clone({
-        headers: req.headers.set("Authorization", "Bearer " + idToken)
-      });
-
-      return next.handle(cloned);
+        return lastValueFrom(next.handle(cloned));
+      }
+    } catch(error) {
+      // Ignore errors and proceed without token
     }
-    else {
-      return next.handle(req);
-    }
+
+    return lastValueFrom(next.handle(req));
   }
 }
