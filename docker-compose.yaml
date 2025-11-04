@@ -27,6 +27,8 @@ services:
     restart: always
     networks:
       - main
+    ports:
+      - ${INFLUXDB_PORT_EXTERNAL:-127.0.0.1:8086}:8086
     volumes:
       - influxdata:/var/lib/influxdb2
       # - ./config/influxdb-config.yml:/etc/influxdb2/config.yml

@@ -15,7 +15,7 @@
 1. `vi .env` (or edit this file in any other way) 
 1. `docker volume create fg2_influxdata`
 1. `docker volume create fg2_mongodata`
-1. `docker-compose up --build -d --remove-orphans`
+1. `docker compose up --build -d --remove-orphans`
 1. Go to `http://<youripOrDomain>:8080` to access the web interface
 
 ### Firmware building
@@ -31,10 +31,16 @@ server url specified in your .env file.
 ### Upgrading / Restarting
 1. `cd myfolder/fg2/`
 1. `git pull` (optional: this gets you the latest changes from the repo)
-1. `docker-compose up --build -d --remove-orphans`
+1. `docker compose up --build -d --remove-orphans`
 1. `./build-fw.sh` (if you want to update the firmware as well)
 
 ## Management
+
+### Admin tools
+After running, you can access the management tools:
+- http://localhost:8072 - RabbitMQ Management (guest, guest)
+- http://localhost:8088 - Mongo Express (admin, pass)
+- http://localhost:8086 - InfluxDB UI (*see `.env`*)
 
 ### Backup
 1. `cd myfolder/fg2/`
@@ -51,15 +57,15 @@ Additionally, you may want to back up the `.env` file as well.
 ### Restore
 1. `cd myfolder/fg2/`
 2. Place the backup files here
-2. `docker-compose stop server`
+2. `docker compose stop server`
 2. `./restore.sh backup-2025-10-29_22-12-27`
-2. `docker-compose up -d`
+2. `docker compose up -d`
 3. It may be necessary to create a new firmware version. Run `./build-fw.sh` if needed.
 
 ## Cleanup
 To remove all data and start fresh:
 1. `cd myfolder/fg2/`
-2. `docker-compose down --volumes`
+2. `docker compose down --volumes`
 3. `docker volume rm fg2_influxdata fg2_mongodata`
 4. `cd ../`
 5. `rm -rf fg2/`
