@@ -1,5 +1,9 @@
 # Fridge Grow Software Stack - Forked from Plantalytix
 
+See also:
+- [Running on Raspberry PI](RASPBERRY-PI.md)
+- [Upgrading an older firmware](UPGRADING-FIRMWARE.md)
+
 ## Getting started
 
 ### Prerequisites
