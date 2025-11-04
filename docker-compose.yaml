@@ -43,6 +43,7 @@ services:
     restart: always
     ports:
       - ${MQTT_PORT_EXTERNAL}:1883
+      - ${MQTT_MANAGEMENT_PORT_EXTERNAL:-8072}:15672
     networks:
       - main
 
