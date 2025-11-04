@@ -28,6 +28,7 @@ const ONLINE_TIMEOUT: number = 10 * 60 * 1000;
 
 const devicesInstructed: string[] = [];
 let devicesInstructedTime = 0;
+const allowedFirmwares = ['52d3335d-c623-4d4f-ade5-931e853ede93'];
 
 const minimal_classes = [
   {
@@ -97,7 +98,8 @@ class DeviceService {
             if (
               parsedMessage2.firmware_id &&
               parsedMessage2.firmware_id != '901f7cfa-55e2-4176-83aa-627da26792e4' &&
-              parsedMessage2.firmware_id != 'e0d76fc7-38b1-414c-90ba-be0056955586'
+              parsedMessage2.firmware_id != 'e0d76fc7-38b1-414c-90ba-be0056955586' &&
+              allowedFirmwares.includes(parsedMessage2.firmware_id)
             ) {
               break;
             }
@@ -105,7 +107,7 @@ class DeviceService {
           case 'configuration':
             const parsedMessage = JSON.parse(message.message);
             console.log('parsedMessage from ' + device_id + ' on ' + topic + ':', parsedMessage);
-            break;
+            return;
           case 'firmware':
             console.log('message from ' + device_id + ' on ' + topic + ':', String(message.message));
           case 'bulk':
