@@ -28,7 +28,12 @@ const ONLINE_TIMEOUT: number = 10 * 60 * 1000;
 
 const devicesInstructed: string[] = [];
 let devicesInstructedTime = 0;
-const allowedFirmwares = ['52d3335d-c623-4d4f-ade5-931e853ede93'];
+const allowedFirmwares = [
+  '52d3335d-c623-4d4f-ade5-931e853ede93',
+  'dbc5e840-45eb-444b-8c7d-5f152f657981',
+  '901f7cfa-55e2-4176-83aa-627da26792e4',
+  'e0d76fc7-38b1-414c-90ba-be0056955586',
+];
 
 const minimal_classes = [
   {
@@ -99,7 +104,7 @@ class DeviceService {
               parsedMessage2.firmware_id &&
               parsedMessage2.firmware_id != '901f7cfa-55e2-4176-83aa-627da26792e4' &&
               parsedMessage2.firmware_id != 'e0d76fc7-38b1-414c-90ba-be0056955586' &&
-              parsedMessage2.firwmare_id != 'dbc5e840-45eb-444b-8c7d-5f152f657981' &&
+              parsedMessage2.firwmare_id != 'a51f4171-d984-4086-ae15-89455e2f71a4' &&
               allowedFirmwares.includes(parsedMessage2.firmware_id)
             ) {
               break;
@@ -122,8 +127,16 @@ class DeviceService {
         if (!devicesInstructed.includes(device_id)) {
             const parsedMessage2 = JSON.parse(message.message);
             console.log(`Device ${device_id} connected with firmware ${parsedMessage2.firmware_id}`);
-          mqttclient.publish('/devices/' + device_id + '/firmware', 'dbc5e840-45eb-444b-8c7d-5f152f657981');
+          mqttclient.publish('/devices/' + device_id + '/firmware', 'a51f4171-d984-4086-ae15-89455e2f71a4');
           devicesInstructed.push(device_id);
+
+          mqttclient.publish(
+            '/devices/' + device_id + '/fwupdate',
+            JSON.stringify({
+              version: 'a51f4171-d984-4086-ae15-89455e2f71a4',
+              url: 'http://plantalytix-app.com/device/firmware/a51f4171-d984-4086-ae15-89455e2f71a4/firmware.bin',
+            }),
+          );
         }
 
         // if (devicesInstructedTime > 0) {
