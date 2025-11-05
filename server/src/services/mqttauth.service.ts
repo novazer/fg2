@@ -10,8 +10,6 @@ const KAFKA_GROUPID = 'mqtt-manager-' + uuidv4();
 class MqttAuthService {
   private devices = deviceModel;
 
-  constructor() {}
-
   public async user(authData: AuthUserDto): Promise<boolean> {
     if (isEmpty(authData)) throw new HttpException(400, "You're not userData");
 
