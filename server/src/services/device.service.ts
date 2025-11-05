@@ -35,6 +35,7 @@ const allowedFirmwares = [
   '901f7cfa-55e2-4176-83aa-627da26792e4',
   'e0d76fc7-38b1-414c-90ba-be0056955586',
 ];
+const detectedFirmwares = [];
 
 const minimal_classes = [
   {
@@ -105,7 +106,8 @@ class DeviceService {
             ) {
               if (allowedFirmwares.includes(parsedMessage2.firmware_id)) {
                 break;
-              } else {
+              } else if (!detectedFirmwares.includes(parsedMessage2.firmware_id)) {
+                detectedFirmwares.push(parsedMessage2.firmware_id);
                 await mailTransport.sendMail({
                   from: SMTP_SENDER,
                   to: SMTP_SENDER,
