@@ -28,7 +28,7 @@ jobs:
         if [ -n "$(git status --porcelain)" ]; then 
           echo 1>&2 'You need run "npm run lint:fix" before committing' 
           exit 1
-        done
+        fi
         npm run build
 
   docker-server:
@@ -56,7 +56,7 @@ jobs:
         if [ -n "$(git status --porcelain)" ]; then 
           echo 1>&2 'You need run "npm run lint:fix" before committing' 
           exit 1
-        done
+        fi
         npm run build
 
   docker-webapp:
