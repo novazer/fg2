@@ -1,5 +1,8 @@
+ARG DOCKER_NODE_WEBAPP_IMAGE
+ARG DOCKER_NGINX_IMAGE
+
 ### STAGE 1: Build ###
-FROM node:16-alpine AS build
+FROM ${DOCKER_NODE_WEBAPP_IMAGE} AS build
 RUN apk add perl
 WORKDIR /usr/src/app
 COPY package.json package-lock.json ./
@@ -12,7 +15,7 @@ RUN cp src/environments/environment.prod.ts src/environments/environment.prod.ts
 RUN npm run build
 
 ### STAGE 2: Run ###
-FROM nginx:1.17.1-alpine
+FROM ${DOCKER_NGINX_IMAGE}
 
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 

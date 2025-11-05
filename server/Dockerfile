@@ -1,5 +1,7 @@
+ARG DOCKER_NODE_SERVER_IMAGE
+
 # Common build stage
-FROM node:14.20.0-alpine3.16 as common-build-stage
+FROM ${DOCKER_NODE_SERVER_IMAGE} as common-build-stage
 
 RUN mkdir -p /app
 COPY package.json /app

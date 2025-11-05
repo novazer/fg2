@@ -33,10 +33,10 @@ fi
 
 docker cp "${BACKUP_FILENAME}.mongodump" "$MONGO_CONTAINER":/backup.mongodump
 docker compose exec mongodb mongorestore \
-    --username "$MONGODB_ADMINUSERNAME" \
-    --password "$MONGODB_ADMINPASSWORD" \
     --drop \
-    --archive=/backup.mongodump
+    --archive=/backup.mongodump \
+    --nsInclude="${MONGODB_DATABASE}.*" \
+    "mongodb://${MONGODB_ADMINUSERNAME}:${MONGODB_ADMINPASSWORD}@localhost:27017"
 docker compose exec mongodb rm -rf /backup.mongodump || true
 
 docker compose exec influxdb rm -rf /influxdb-backup* || true

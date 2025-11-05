@@ -1,6 +1,6 @@
 services:
   mongodb:
-    image: mongo:4.4.25
+    image: ${DOCKER_MONGODB_IMAGE:-mongo}
     restart: always
     networks:
       - main
@@ -11,7 +11,7 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_ADMINPASSWORD}
 
   mongo-express:
-    image: mongo-express:1.0.0-18
+    image: ${DOCKER_MONGOEXPRESS_IMAGE:-mongo-express}
     restart: unless-stopped
     ports:
       - ${MONGOEXPRESS_PORT_EXTERNAL}:8081
@@ -23,7 +23,7 @@ services:
       ME_CONFIG_MONGODB_SERVER: "mongodb"
 
   influxdb:
-    image: influxdb:2.7.4
+    image: ${DOCKER_INFLUXDB_IMAGE:-influxdb}
     restart: always
     networks:
       - main
@@ -41,7 +41,11 @@ services:
       DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUXDB_TOKEN}
 
   rabbitmq:
-    build: ./rabbitmq
+    build:
+      context: ./rabbitmq
+      args:
+        DOCKER_RABBITMQ_IMAGE: ${DOCKER_RABBITMQ_IMAGE:-rabbitmq:management}
+
     restart: always
     ports:
       - ${MQTT_PORT_EXTERNAL}:1883
@@ -54,6 +58,8 @@ services:
       context: ./webapp
       args:
         API_URL_EXTERNAL: ${API_URL_EXTERNAL}
+        DOCKER_NGINX_IMAGE: ${DOCKER_NGINX_IMAGE:-nginx:1-alpine}
+        DOCKER_NODE_WEBAPP_IMAGE: ${DOCKER_NODE_BUILD_IMAGE:-node:16-alpine}
     restart: always
     ports:
       - ${WEBAPP_PORT_EXTERNAL}:80
@@ -61,7 +67,10 @@ services:
       - main
 
   server:
-    build: ./server
+    build:
+      context: ./server
+      args:
+        DOCKER_NODE_SERVER_IMAGE: ${DOCKER_NODE_SERVER_IMAGE:-node:14.20.0-alpine3.16}
     restart: always
     links:
      - mongodb
@@ -106,8 +115,8 @@ networks:
 
 volumes:
   mongodata:
-    external: true
-    name: ${DOCKER_MONGODATA_VOUME:-fg2_mongodata}
+    external: ${DOCKER_MONGODATA_EXTERNAL:-false}
+    name: ${DOCKER_MONGODATA_VOLUME:-${COMPOSE_PROJECT_NAME}_mongodata}
   influxdata:
-    external: true
-    name: ${DOCKER_INFLUXDATA_VOLUME:-fg2_influxdata}
+    external: ${DOCKER_INFLUXDATA_EXTERNAL:-false}
+    name: ${DOCKER_INFLUXDATA_VOLUME:-${COMPOSE_PROJECT_NAME}_influxdata}
