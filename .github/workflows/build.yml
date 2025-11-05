@@ -76,5 +76,6 @@ jobs:
         export MQTT_HOST_EXTERNAL=192.168.0.100
         export MQTT_PORT_EXTERNAL=1883
         export FW_UPLOAD_VERSION=ci-test
+        export FW_VERSION_ID=ci-test
         export FW_NO_UPLOAD=1 
         ./build-fw.sh

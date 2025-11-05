@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -ex
 
 export BUILD_TYPE=${1}
 
@@ -16,7 +16,7 @@ export API_URL=${FG_API_URL}
 if [ -z "$FW_VERSION_ID" ]
 then
   echo "failed to get version id";
-  exit -1;
+  exit 1;
 fi
 
 pio run -e ${BUILD_TYPE}
