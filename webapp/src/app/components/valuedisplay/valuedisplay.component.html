@@ -31,7 +31,7 @@
     <!-- <line x1="150" x2="350" y1="250" y2="250" style="stroke:black;stroke-width:4"/> -->
     <text
       x="250"
-      y="190"
+      y="150"
       font-family="Open Sans"
       font-size="60px"
       style="font-weight: 300;"
@@ -43,28 +43,39 @@
 
     <text
       x="250"
-      y="230"
+      y="195"
       font-family="Open Sans"
-      font-size="25px"
+      font-size="35px"
       style="font-weight: 300;"
       text-anchor="middle"
       fill="#737373"
     >
       <tspan *ngIf="!isNaN(average_value)">Ø 1h: {{average_value}}</tspan>
-      <tspan *ngIf="!isNaN(target_value)"> | Ziel: {{target_value}}</tspan>
     </text>
 
     <text
       x="250"
-      y="265"
+      y="240"
       font-family="Open Sans"
-      font-size="30px"
+      font-size="35px"
+      style="font-weight: 300;"
+      text-anchor="middle"
+      fill="#737373"
+    >
+      <tspan *ngIf="!isNaN(target_value)">Ziel: {{target_value}}</tspan>
+    </text>
+
+    <text
+      x="250"
+      y="285"
+      font-family="Open Sans"
+      font-size="35px"
       text-anchor="middle"
     >
       {{unit}}
     </text>
 
-    <image x="190" y="285" width="120" height="120" attr.xlink:href="./assets/icon/{{icon}}.svg" />
+    <image x="190" y="295" width="120" height="120" attr.xlink:href="./assets/icon/{{icon}}.svg" />
 
     <text
       x="420"
