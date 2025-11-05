@@ -71,4 +71,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - run: API_URL_EXTERNAL=http://192.168.0.100:8081 MQTT_HOST_EXTERNAL=192.168.0.100 MQTT_PORT_EXTERNAL=1883 FW_UPLOAD_VERSION=ci-test FW_NO_UPLOAD=1 ./build-fw.sh
+    - run: |
+        export API_URL_EXTERNAL=http://192.168.0.100:8081
+        export MQTT_HOST_EXTERNAL=192.168.0.100
+        export MQTT_PORT_EXTERNAL=1883
+        export FW_UPLOAD_VERSION=ci-test
+        export FW_NO_UPLOAD=1 
+        ./build-fw.sh
