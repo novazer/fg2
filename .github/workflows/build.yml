@@ -1,0 +1,64 @@
+# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
+
+name: FG2 build
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  webapp:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    - run: cd webapp/
+    - run: npm ci
+    - run: npm run lint:fix
+    - run: if [ -n "$(git status --porcelain)" ]; then echo 1>&2 'You need run "npm run lint:fix" before comitting'; exit 1; done
+    - run: npm run build
+
+  docker-server:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - run: docker compose build server
+    
+  server:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    - run: cd server/
+    - run: npm ci
+    - run: npm run lint:fix
+    - run: if [ -n "$(git status --porcelain)" ]; then echo 1>&2 'You need run "npm run lint:fix" before comitting'; exit 1; done
+    - run: npm run build
+
+  docker-webapp:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - run: docker compose build webapp
+    
+  firmware:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - run: API_URL_EXTERNAL=http://192.168.0.100:8081 MQTT_HOST_EXTERNAL=192.168.0.100 MQTT_PORT_EXTERNAL=1883 FW_UPLOAD_VERSION=ci-test FW_NO_UPLOAD=1 ./build-fw.sh
