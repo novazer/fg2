@@ -60,6 +60,7 @@ services:
         API_URL_EXTERNAL: ${API_URL_EXTERNAL}
         DOCKER_NGINX_IMAGE: ${DOCKER_NGINX_IMAGE:-nginx:1-alpine}
         DOCKER_NODE_WEBAPP_IMAGE: ${DOCKER_NODE_BUILD_IMAGE:-node:16-alpine}
+        CUSTOM_LINKS_HTML: ${CUSTOM_LINKS_HTML:-}
     restart: always
     ports:
       - ${WEBAPP_PORT_EXTERNAL}:80

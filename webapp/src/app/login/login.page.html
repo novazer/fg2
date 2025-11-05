@@ -31,7 +31,7 @@
         <ol *ngIf="showInstructions">
           <li>Neuen Account erstellen (die alten wurden nicht migriert)</li>
           <li>Am Modul unter "Wifi Connection" den Punkt "Change Server" aufrufen. (Tipp: Die Eingabe scheint besser zu funktionieren, wenn man vorher auf den "Off"-Modus wechselt.)</li>
-          <li>Dort die Adresse "https://fg2.novazer.com/api" eingeben. (Achtung, man muss dafür erst das "://" löschen, um das "s" hinzuzufügen.)</li>
+          <li>Dort die Adresse "#API_URL_EXTERNAL#" eingeben. (Achtung, man muss dafür erst das "://" löschen, um das "s" hinzuzufügen.)</li>
           <li>Bei Kennwort ein einfaches "a" eingeben (Tipp: Das a auch tatsächlich eingeben! Es muss aa da stehen, bevor man auf Done geht.)</li>
           <li>Jetzt warten, bis das Firmware Update durch ist und das Modul neu gestartet hat</li>
           <li>Falls an der Stelle "Connection failed" auftaucht, dann muss das Modul neu gestartet werden. Sonst kommt man aus dem Menü nicht mehr raus.</li>
@@ -186,28 +186,8 @@
 
       <ion-card color="info" *ngIf="message == 0">
         <ion-card-content class="ion-text-center">
-          <p>
-            <a href="https://t.me/+w-XFn8c8pLQyNWFi">
-              Telegram Channel
-            </a>
-            |
-            <a href="https://apps.garmin.com/apps/c9002f59-4324-4a2c-9207-874002b1459a">
-              Garmin App
-            </a>
-            |
-            <a href="https://makerworld.com/de/models/1150951-plantalytix-fridge-grow-2-0-scrog-net-grow">
-              Scrog Net
-            </a>
-          </p>
-          <p>
-            <a href="https://github.com/novazer/fg2">
-                novazer/fg2 on GitHub
-              </a>
-            |
-            <a href="https://fg2.novazer.com/api/api-docs/">
-              API Documentation
-            </a>
-          </p>
+          #CUSTOM_LINKS_HTML#
+
         </ion-card-content>
       </ion-card>
     </div>
