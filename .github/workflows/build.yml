@@ -12,7 +12,6 @@ on:
 jobs:
   webapp:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v4
     - name: Use Node.js
@@ -33,14 +32,12 @@ jobs:
 
   docker-server:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v4
     - run: docker compose build server
     
   server:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v4
     - name: Use Node.js ${{ matrix.node-version }}
@@ -61,14 +58,13 @@ jobs:
 
   docker-webapp:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v4
     - run: docker compose build webapp
     
   firmware:
     runs-on: ubuntu-latest
-
+    if: ${{ github.event.pull_request.base.ref == 'master' }}
     steps:
     - uses: actions/checkout@v4
     - run: |
