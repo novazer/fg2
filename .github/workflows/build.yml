@@ -21,11 +21,15 @@ jobs:
         node-version: 18.x
         cache: 'npm'
         cache-dependency-path: webapp/package-lock.json
-    - run: cd webapp/
-    - run: npm ci
-    - run: npm run lint:fix
-    - run: if [ -n "$(git status --porcelain)" ]; then echo 1>&2 'You need run "npm run lint:fix" before comitting'; exit 1; done
-    - run: npm run build
+    - run: |
+        cd webapp/
+        npm ci
+        npm run lint:fix
+        if [ -n "$(git status --porcelain)" ]; then 
+          echo 1>&2 'You need run "npm run lint:fix" before committing' 
+          exit 1
+        done
+        npm run build
 
   docker-server:
     runs-on: ubuntu-latest
@@ -45,11 +49,15 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
         cache-dependency-path: server/package-lock.json
-    - run: cd server/
-    - run: npm ci
-    - run: npm run lint:fix
-    - run: if [ -n "$(git status --porcelain)" ]; then echo 1>&2 'You need run "npm run lint:fix" before comitting'; exit 1; done
-    - run: npm run build
+    - run: |
+        cd server/
+        npm ci
+        npm run lint:fix
+        if [ -n "$(git status --porcelain)" ]; then 
+          echo 1>&2 'You need run "npm run lint:fix" before committing' 
+          exit 1
+        done
+        npm run build
 
   docker-webapp:
     runs-on: ubuntu-latest
