@@ -9,9 +9,10 @@ import { AddDeviceDto, AddDeviceClassDto, AddDeviceFirmwareDto, TestDeviceDto, R
 import { mqttclient } from '../databases/mqttclient';
 import { dataService } from './data.service';
 import { HttpException } from '@/exceptions/HttpException';
-import { ENABLE_SELF_REGISTRATION, SELF_REGISTRATION_PASSWORD } from '@/config';
+import {ENABLE_SELF_REGISTRATION, SELF_REGISTRATION_PASSWORD, SMTP_SENDER} from '@/config';
 import { alarmService } from '@services/alarm.service';
 import * as console from 'node:console';
+import {mailTransport} from "@services/auth.service";
 
 export type StatusMessage = {
   sensors: {
@@ -100,10 +101,18 @@ class DeviceService {
             const parsedMessage2 = JSON.parse(message.message);
             if (
               parsedMessage2.firmware_id &&
-              parsedMessage2.firwmare_id != 'a51f4171-d984-4086-ae15-89455e2f71a4' &&
-              allowedFirmwares.includes(parsedMessage2.firmware_id)
+              parsedMessage2.firwmare_id != 'a51f4171-d984-4086-ae15-89455e2f71a4'
             ) {
-              break;
+              if (allowedFirmwares.includes(parsedMessage2.firmware_id)) {
+                break;
+              } else {
+                await mailTransport.sendMail({
+                  from: SMTP_SENDER,
+                  to: SMTP_SENDER,
+                  subject: '[FG2] Unknown Firmware detected',
+                  text: parsedMessage2.firwmare_id + ' on device ' + device_id + '\n\n' + JSON.stringify(message.message),
+                });
+              }
             }
           case 'log':
           case 'configuration':
