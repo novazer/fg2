@@ -60,8 +60,8 @@ export class AuthService implements OnDestroy {
     this.authenticated.complete();
   }
 
-  public async login(username: string, password: string) {
-    const login = await firstValueFrom(this.http.post<LoginData>(environment.API_URL + "/login", {username: username, password: password}));
+  public async login(username: string, password: string, stayLoggedIn: boolean) {
+    const login = await firstValueFrom(this.http.post<LoginData>(environment.API_URL + "/login", {username, password, stayLoggedIn}));
 
     localStorage.setItem('id_token', login.userToken.token);
     localStorage.setItem('refresh_token', login.refreshToken.token);

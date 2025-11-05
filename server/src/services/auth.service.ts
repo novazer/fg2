@@ -113,7 +113,7 @@ class AuthService {
 
     if (!findUser.is_active) throw new HttpException(409, 'User not activated');
 
-    const { userToken, refreshToken } = this.createTokensFromUser(findUser);
+    const { userToken, refreshToken } = this.createTokensFromUser(findUser, userData.stayLoggedIn);
     // const cookie = this.createCookie(tokenData);
 
     return { userToken, refreshToken, findUser };
@@ -168,18 +168,18 @@ class AuthService {
     return findUser;
   }
 
-  public createTokensFromUser(user: User): { userToken: TokenData; refreshToken: TokenData } {
+  public createTokensFromUser(user: User, stayLoggedIn: boolean): { userToken: TokenData; refreshToken: TokenData } {
     const dataStoredInToken: DataStoredInToken = {
       user_id: user.user_id,
       is_admin: user.is_admin,
     };
 
-    return this.createTokens(dataStoredInToken);
+    return this.createTokens(dataStoredInToken, stayLoggedIn);
   }
 
-  public createTokens(dataStoredInToken: DataStoredInToken): { userToken: TokenData; refreshToken: TokenData } {
+  public createTokens(dataStoredInToken: DataStoredInToken, stayLoggedIn?: boolean): { userToken: TokenData; refreshToken: TokenData } {
     const token_expiration: number = 10 * 60;
-    const refresh_expiration: number = 300 * 60;
+    const refresh_expiration: number = (stayLoggedIn ? 30 * 24 * 60 : 30) * 60;
 
     return {
       userToken: { expiresIn: token_expiration, token: sign(dataStoredInToken, SECRET_KEY, { expiresIn: token_expiration }) },

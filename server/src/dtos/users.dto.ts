@@ -6,6 +6,9 @@ export class LoginDto {
 
   @IsString()
   public password: string;
+
+  @IsBoolean()
+  public stayLoggedIn?: boolean;
 }
 
 export class ActivationDto {

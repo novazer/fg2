@@ -23,6 +23,7 @@ export class LoginPage implements OnInit {
   public working:boolean = false;
   public dsvgo_agreed:boolean = false;
   public showInstructions:boolean = false;
+  public stayLoggedIn:boolean = false;
 
   private _destroySub$ = new Subject<void>();
   private readonly returnUrl: string;
@@ -89,7 +90,7 @@ export class LoginPage implements OnInit {
   public async login() {
     this.working = true;
     try {
-      await this._authService.login(this.username, this.password)
+      await this._authService.login(this.username, this.password, this.stayLoggedIn)
       console.log("auth")
       // this.loginValid = true;
       this._router.navigateByUrl('/list');

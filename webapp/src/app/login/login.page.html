@@ -15,12 +15,12 @@
 <ion-content class="maxwidth">
   <div class="outer">
     <div class="inner">
-    <div style="text-align: center;" *ngIf="!showInstructions">
+    <div style="text-align: center;">
       <img src="assets/plantalytix_logo.png" style="width:60%;height:auto"/>
     </div>
 
     <ion-card color="info" *ngIf="message == 0">
-      <ion-card-header *ngIf="!showInstructions">
+      <ion-card-header>
         <ion-card-title>RIP Microgreenbox ♡</ion-card-title>
       </ion-card-header>
       <ion-card-content>
@@ -119,6 +119,10 @@
       <ion-item lines="none">
         <ion-label position="floating">password</ion-label>
         <ion-input placeholder="password" [(ngModel)]="password" (keydown.enter)="login()" type="password"></ion-input>
+      </ion-item>
+      <ion-item lines="none">
+        <ion-checkbox slot="start" [(ngModel)]="stayLoggedIn"></ion-checkbox>
+        <ion-label>stay logged in</ion-label>
       </ion-item>
     </ng-container>
 
