@@ -100,11 +100,11 @@ class DeviceService {
           switch (topic) {
             case 'status':
               await this.checkAndUpgrade(device);
-              await this.statusMessage(device, parsedMessage);
+              await this.statusMessage(device, { ...parsedMessage, timestamp: undefined });
               break;
             case 'bulk':
               await this.checkAndUpgrade(device);
-              await this.statusMessage(device, { ...parsedMessage, timestamp: undefined });
+              await this.statusMessage(device, parsedMessage);
               break;
             case 'fetch':
               await this.checkAndUpgrade(device);
