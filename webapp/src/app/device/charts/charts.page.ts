@@ -87,7 +87,7 @@ export class ChartsPage implements OnInit {
   public device_id:string = ""
   public device_type:string = ""
 
-  public autoUpdate:boolean = true;
+  public autoUpdate:boolean = false;
 
   @ViewChild(BaseChartDirective) chart?: BaseChartDirective;
   @ViewChild('spacer') spacer? : ElementRef;
