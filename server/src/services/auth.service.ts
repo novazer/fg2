@@ -12,7 +12,7 @@ import {
   SMTP_PASSWORD,
   SMTP_SENDER,
 } from '@config';
-import { LoginDto, ActivationDto } from '@dtos/users.dto';
+import { LoginDto, SignupDto, ActivationDto } from '@dtos/users.dto';
 import { HttpException } from '@exceptions/HttpException';
 import { DataStoredInToken, TokenData } from '@interfaces/auth.interface';
 import { User, PasswordToken } from '@interfaces/users.interface';
@@ -37,7 +37,7 @@ export const mailTransport = nodemailer.createTransport({
 });
 
 class AuthService {
-  public async signup(userData: LoginDto): Promise<User> {
+  public async signup(userData: SignupDto): Promise<User> {
     if (isEmpty(userData)) throw new HttpException(400, 'Invalid request data.');
 
     const findUser: User = await userModel.findOne({ username: userData.username });
