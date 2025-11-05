@@ -33,7 +33,7 @@
     </ion-card-content>
   </ion-card>
 
-  <ion-card *ngIf="settings.workmode != 'off'">
+  <ion-card *ngIf="settings.workmode !== 'off'">
     <ion-card-header>
       <ion-card-title> {{'settings.climate' | translate}}</ion-card-title>
     </ion-card-header>
@@ -59,7 +59,7 @@
     </ion-card-content>
   </ion-card>
 
-  <ion-card *ngIf="settings.workmode != 'off'">
+  <ion-card *ngIf="settings.workmode !== 'off'">
     <ion-card-header>
       <ion-card-title> {{'settings.fanspeeds' | translate}}</ion-card-title>
     </ion-card-header>

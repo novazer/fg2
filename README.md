@@ -76,7 +76,27 @@ To remove all data and start fresh:
 
 ## Development
 
-Easiest method is probably the same as above for now.
+### Frontend
+
+1. `cd webapp/`
+2. `npm install`
+3. Optional: Edit `src/environments/environment.ts` to point to `https://fg2.novazer.com/api` for easier testing.
+4. `npm start`
+
+And before committing:
+1. `npm run lint:fix`
+1. `npm run build`
+
+### Backend
+
+1. `cd server/`
+2. `npm install`
+3. Set all required environment variables (see the server's environment variables in `docker-compose.yaml`).
+4. `npm start`
+
+And before committing:
+1. `npm run lint:fix`
+2. `npm run build`
 
 ## Documentation
 - Webapp: [Webapp](webapp/README.md)

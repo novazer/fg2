@@ -128,7 +128,7 @@
     </ion-card-content>
   </ion-card>
 
-  <ion-card *ngIf="settings.workmode != 'off'">
+  <ion-card *ngIf="settings.workmode !== 'off'">
     <ion-card-header *ngIf="has_daycycle">
       <ion-card-title> <i class="icon-night"></i> {{'settings.night-climate' | translate}}</ion-card-title>
     </ion-card-header>
@@ -221,7 +221,7 @@
     </ion-card-content>
   </ion-card>
 
-  <ion-card *ngIf="settings.workmode != 'off'">
+  <ion-card *ngIf="settings.workmode !== 'off'">
     <ion-card-header>
       <ion-card-title> {{'settings.fanspeeds' | translate}}</ion-card-title>
     </ion-card-header>
@@ -261,7 +261,7 @@
     </ion-card-content>
   </ion-card>
 
-  <ion-card *ngIf="settings.workmode != 'off' && alarms !== null">
+  <ion-card *ngIf="settings.workmode !== 'off' && alarms !== null">
     <ion-card-header>
       <ion-card-title> {{'settings.alarms.title' | translate}}</ion-card-title>
     </ion-card-header>

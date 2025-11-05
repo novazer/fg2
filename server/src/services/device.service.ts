@@ -1,12 +1,4 @@
-import {
-  Alarm,
-  Device,
-  DeviceClass,
-  DeviceClassCount,
-  DeviceFirmware,
-  DeviceFirmwareBinary,
-  FirmwareSettings
-} from '@interfaces/device.interface';
+import { Alarm, Device, DeviceClass, DeviceClassCount, DeviceFirmware, DeviceFirmwareBinary, FirmwareSettings } from '@interfaces/device.interface';
 import deviceModel from '@models/device.model';
 import deviceLogModel from '@models/devicelog.model';
 import deviceClassModel from '@/models/deviceclass.model';

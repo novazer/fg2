@@ -60,7 +60,7 @@ constructorType="stockChart"
     <ion-row>
       <ion-col span="2" style="text-align: center;"><b>Device Settings</b></ion-col>
     </ion-row>
-    <ng-container *ngIf="device_type == 'fridge'">
+    <ng-container *ngIf="device_type === 'fridge'">
       <ion-row>
         <ion-col>Workmode</ion-col>
         <ion-col>{{device_config.workmode}}</ion-col>

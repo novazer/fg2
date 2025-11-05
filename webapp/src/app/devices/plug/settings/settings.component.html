@@ -20,7 +20,7 @@
     </ion-card-content>
   </ion-card>
 
-  <ion-card *ngIf="settings.workmode == 'co2'">
+  <ion-card *ngIf="settings.workmode === 'co2'">
     <ion-card-header>
       <ion-card-title> <i class="icon-co2"></i> {{'devices.plug.co2sensor-title' | translate}}</ion-card-title>
     </ion-card-header>
@@ -29,7 +29,7 @@
     </ion-card-content>
   </ion-card>
 
-  <ion-card *ngIf="settings.workmode != 'off' && settings.workmode != 'timer' && settings.workmode != 'co2'">
+  <ion-card *ngIf="settings.workmode !== 'off' && settings.workmode !== 'timer' && settings.workmode !== 'co2'">
     <ion-card-header>
       <ion-card-title>
         <i class="icon-light"></i> {{'settings.daynight' | translate}}
@@ -39,7 +39,7 @@
 
       <ion-item>
         <ion-label>{{'settings.use-daynight' | translate}}</ion-label>
-        <ion-checkbox labelPlacement="end" [disabled]="settings.workmode == 'light'" [(ngModel)]="settings.usedaynight">{{'settings.use-daynight' | translate}}</ion-checkbox>
+        <ion-checkbox labelPlacement="end" [disabled]="settings.workmode === 'light'" [(ngModel)]="settings.usedaynight">{{'settings.use-daynight' | translate}}</ion-checkbox>
       </ion-item>
 
       <ng-container *ngIf="settings.usedaynight">
@@ -117,7 +117,7 @@
     </ion-card-content>
   </ion-card>
 
-  <ion-card *ngIf="settings.workmode == 'timer'">
+  <ion-card *ngIf="settings.workmode === 'timer'">
     <ion-card-header>
       <ion-card-title>{{'settings.timer' | translate}}</ion-card-title>
     </ion-card-header>
@@ -148,7 +148,7 @@
   </ion-card>
 
 
-  <ion-card *ngIf="settings.workmode == 'heater'">
+  <ion-card *ngIf="settings.workmode === 'heater'">
     <ion-card-header>
       <ion-card-title *ngIf="!settings.usedaynight"> <i class="icon-temperature"></i> {{'devices.plug.settings.heater-name' | translate}}</ion-card-title>
       <ion-card-title *ngIf="settings.usedaynight"> <i class="icon-temperature"></i> {{'devices.plug.settings.heater-day' | translate}}</ion-card-title>
@@ -177,7 +177,7 @@
     </ion-card-content>
   </ion-card>
 
-  <ion-card *ngIf="settings.workmode == 'heater' && settings.usedaynight">
+  <ion-card *ngIf="settings.workmode === 'heater' && settings.usedaynight">
     <ion-card-header>
       <ion-card-title> <i class="icon-temperature"></i> {{'devices.plug.settings.heater-night' | translate}}</ion-card-title>
     </ion-card-header>
@@ -205,7 +205,7 @@
     </ion-card-content>
   </ion-card>
 
-  <ion-card *ngIf="settings.workmode == 'cooler'">
+  <ion-card *ngIf="settings.workmode === 'cooler'">
     <ion-card-header>
       <ion-card-title *ngIf="!settings.usedaynight"> <i class="icon-temperature"></i> {{'devices.plug.settings.cooler-name' | translate}}</ion-card-title>
       <ion-card-title *ngIf="settings.usedaynight"> <i class="icon-temperature"></i> {{'devices.plug.settings.cooler-name-day' | translate}}</ion-card-title>
@@ -234,7 +234,7 @@
     </ion-card-content>
   </ion-card>
 
-  <ion-card *ngIf="settings.workmode == 'cooler' && settings.usedaynight">
+  <ion-card *ngIf="settings.workmode === 'cooler' && settings.usedaynight">
     <ion-card-header>
       <ion-card-title> <i class="icon-temperature"></i> {{'devices.plug.settings.cooler-name-night' | translate}}</ion-card-title>
     </ion-card-header>
@@ -263,7 +263,7 @@
   </ion-card>
 
 
-  <ion-card *ngIf="settings.workmode == 'humidify'">
+  <ion-card *ngIf="settings.workmode === 'humidify'">
     <ion-card-header>
       <ion-card-title *ngIf="!settings.usedaynight"> <i class="icon-humidity"></i> {{'devices.plug.settings.humidify-name' | translate}}</ion-card-title>
       <ion-card-title *ngIf="settings.usedaynight"> <i class="icon-humidity"></i> {{'devices.plug.settings.humidify-name-day' | translate}}</ion-card-title>
@@ -292,7 +292,7 @@
     </ion-card-content>
   </ion-card>
 
-  <ion-card *ngIf="settings.workmode == 'humidify' && settings.usedaynight">
+  <ion-card *ngIf="settings.workmode === 'humidify' && settings.usedaynight">
     <ion-card-header>
       <ion-card-title> <i class="icon-humidity"></i> {{'devices.plug.settings.humidify-name-night' | translate}}</ion-card-title>
     </ion-card-header>
@@ -320,7 +320,7 @@
     </ion-card-content>
   </ion-card>
 
-  <ion-card *ngIf="settings.workmode == 'dehumidify'">
+  <ion-card *ngIf="settings.workmode === 'dehumidify'">
     <ion-card-header>
       <ion-card-title *ngIf="!settings.usedaynight"> <i class="icon-humidity"></i> {{'devices.plug.settings.dehumidify-name' | translate}}</ion-card-title>
       <ion-card-title *ngIf="settings.usedaynight"> <i class="icon-humidity"></i> {{'devices.plug.settings.dehumidify-name-day' | translate}}</ion-card-title>
@@ -349,7 +349,7 @@
     </ion-card-content>
   </ion-card>
 
-  <ion-card *ngIf="settings.workmode == 'dehumidify' && settings.usedaynight">
+  <ion-card *ngIf="settings.workmode === 'dehumidify' && settings.usedaynight">
     <ion-card-header>
       <ion-card-title> <i class="icon-humidity"></i> {{'devices.plug.settings.dehumidify-name-night' | translate}}</ion-card-title>
     </ion-card-header>
@@ -380,7 +380,7 @@
 
 
 
-  <ng-container *ngIf="settings.workmode == 'co2'">
+  <ng-container *ngIf="settings.workmode === 'co2'">
     <ion-card>
       <ion-card-header>
         <ion-card-title>
@@ -434,7 +434,7 @@
       </ion-card-content>
     </ion-card>
 
-    <ng-container *ngIf="settings.co2.mode == 'periodic'">
+    <ng-container *ngIf="settings.co2.mode === 'periodic'">
 
       <ion-card>
         <ion-card-header>
@@ -472,7 +472,7 @@
               <ion-select-option *ngFor="let fan of fans" [value]="fan.device_id">{{fan.name}}</ion-select-option>
             </ion-select>
           </ion-item>
-          <ng-container *ngIf="current_fan_id != 'none'">
+          <ng-container *ngIf="current_fan_id !== 'none'">
             <ion-item lines="none">
               <ion-label>{{'devices.plug.settings.co2.fanspeed' | translate}}</ion-label>
               <ion-item lines="none">{{settings.fan.speed}} %</ion-item>
@@ -515,7 +515,7 @@
     </ion-card>
   </ng-container>
 
-  <ion-card *ngIf="settings.workmode != 'timer'">
+  <ion-card *ngIf="settings.workmode !== 'timer'">
     <ion-card-header>
       <ion-card-title> {{'devices.plug.settings.limits.title' | translate}}</ion-card-title>
     </ion-card-header>
@@ -603,7 +603,7 @@
     </ion-card-content>
   </ion-card>
 
-  <ion-card *ngIf="settings.workmode == 'watering'">
+  <ion-card *ngIf="settings.workmode === 'watering'">
     <ion-card-header>
       <ion-card-title>NOT YET IMPLEMENTED</ion-card-title>
     </ion-card-header>

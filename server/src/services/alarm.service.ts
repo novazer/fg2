@@ -20,8 +20,6 @@ class AlarmService {
       return;
     }
 
-
-
     // need for temporary migration
     let hasChanged = false;
     for (const alarm of alarms) {
@@ -35,8 +33,6 @@ class AlarmService {
       this.invalidateAlarmCache(deviceId);
     }
     // remove this block after a few months
-
-
 
     // Iterate through the alarms and check conditions
     const values = data.sensors;
