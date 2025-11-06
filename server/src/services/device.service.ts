@@ -125,12 +125,10 @@ class DeviceService {
 
   private async checkAndUpgrade(device: Device) {
     await deviceModel.findOneAndUpdate({ device_id: device.device_id }, { lastseen: Date.now() });
-    if (
-      device.current_firmware != device.pending_firmware &&
-      device.pending_firmware &&
-      device.pending_firmware != '' &&
-      device.firmwareSettings?.autoUpdate
-    ) {
+    if (device.current_firmware != device.pending_firmware && device.pending_firmware && device.pending_firmware != '') {
+      console.log(
+        `Sending instruction to upgrade device ${device.device_id} to firmware ${device.pending_firmware} from firmware ${device.current_firmware}`,
+      );
       mqttclient.publish('/devices/' + device.device_id + '/firmware', device.pending_firmware);
     }
   }
