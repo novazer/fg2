@@ -1,5 +1,5 @@
 #!/bin/bash
-set -ex
+set -e
 
 export BUILD_TYPE=${1}
 
