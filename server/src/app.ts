@@ -33,10 +33,10 @@ class App {
   public async run() {
     try {
       await this.connectToDatabase();
-      await this.initializeMiddlewares();
-      await this.initializeRoutes(this.routes);
-      await this.initializeSwagger();
-      await this.initializeErrorHandling();
+      this.initializeMiddlewares();
+      this.initializeRoutes(this.routes);
+      this.initializeSwagger();
+      this.initializeErrorHandling();
 
       this.app.listen(this.port, () => {
         logger.info(`=================================`);
@@ -53,17 +53,19 @@ class App {
     return this.app;
   }
 
-  private connectToDatabase() {
+  private async connectToDatabase() {
     if (this.env !== 'production') {
       set('debug', true);
     }
 
-    connect(dbConnection.url, dbConnection.options);
+    await connect(dbConnection.url, dbConnection.options);
     console.log(connection.readyState);
   }
 
   private initializeMiddlewares() {
-    this.app.use(morgan(LOG_FORMAT, { stream }));
+    if (LOG_FORMAT !== 'disabled') {
+      this.app.use(morgan(LOG_FORMAT, { stream }));
+    }
     // this.app.use(cors({ origin: ORIGIN, credentials: CREDENTIALS }));
     this.app.use(cors());
     this.app.use(hpp());
