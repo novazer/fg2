@@ -19,6 +19,7 @@
 1. `docker volume create influxdata`
 1. `docker compose up --build -d --remove-orphans`
 1. Go to `http://<youripOrDomain>:8080` to access the web interface
+1. Now continue with the [Firmware building](README.md#firmware-building) steps to build upload your custom firmware.
 
 Please note that the `backup.sh` and `restore.sh` scripts are not compatible with the Raspberry Pi setup due to 
 differences in the MongoDB image used. You will need to perform backups and restores manually. See
