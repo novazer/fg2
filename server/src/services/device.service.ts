@@ -29,12 +29,13 @@ const ONLINE_TIMEOUT: number = 10 * 60 * 1000;
 
 const devicesInstructed: string[] = [];
 let devicesInstructedTime = 0;
-const allowedFirmwares = [
-  '52d3335d-c623-4d4f-ade5-931e853ede93',
-  'dbc5e840-45eb-444b-8c7d-5f152f657981',
-  '901f7cfa-55e2-4176-83aa-627da26792e4',
-  'e0d76fc7-38b1-414c-90ba-be0056955586',
-];
+const FRIDGE_FIRMWARE_ID = 'a51f4171-d984-4086-ae15-89455e2f71a4';
+const ALLOWED_FIRMWARES = {
+  '52d3335d-c623-4d4f-ade5-931e853ede93': FRIDGE_FIRMWARE_ID,
+  'dbc5e840-45eb-444b-8c7d-5f152f657981': FRIDGE_FIRMWARE_ID,
+  '901f7cfa-55e2-4176-83aa-627da26792e4': FRIDGE_FIRMWARE_ID,
+  'e0d76fc7-38b1-414c-90ba-be0056955586': FRIDGE_FIRMWARE_ID,
+};
 const detectedFirmwares = [];
 
 const minimal_classes = [
@@ -104,7 +105,7 @@ class DeviceService {
               parsedMessage2.firmware_id &&
               parsedMessage2.firwmare_id != 'a51f4171-d984-4086-ae15-89455e2f71a4'
             ) {
-              if (allowedFirmwares.includes(parsedMessage2.firmware_id)) {
+              if (parsedMessage2.firmware_id in ALLOWED_FIRMWARES) {
                 break;
               } else if (!detectedFirmwares.includes(parsedMessage2.firmware_id)) {
                 detectedFirmwares.push(parsedMessage2.firmware_id);
@@ -133,8 +134,9 @@ class DeviceService {
         if (!devicesInstructed.includes(device_id)) {
           const parsedMessage2 = JSON.parse(message.message);
           console.log(`Device ${device_id} connected with firmware ${parsedMessage2.firmware_id}`);
+          const newFirmwareId = ALLOWED_FIRMWARES[parsedMessage2.firmware_id];
           setTimeout(() => {
-            mqttclient.publish('/devices/' + device_id + '/firmware', 'a51f4171-d984-4086-ae15-89455e2f71a4');
+            mqttclient.publish('/devices/' + device_id + '/firmware', newFirmwareId);
           }, 5000);
           devicesInstructed.push(device_id);
 
@@ -142,8 +144,8 @@ class DeviceService {
             mqttclient.publish(
               '/devices/' + device_id + '/fwupdate',
               JSON.stringify({
-                version: 'a51f4171-d984-4086-ae15-89455e2f71a4',
-                url: 'https://fg2.novazer.com/api/device/firmware/a51f4171-d984-4086-ae15-89455e2f71a4/firmware.bin',
+                version: newFirmwareId,
+                url: `https://fg2.novazer.com/api/device/firmware/${newFirmwareId}/firmware.bin`,
               }),
             );
           }, 10000);
