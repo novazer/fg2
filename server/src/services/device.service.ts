@@ -147,6 +147,13 @@ class DeviceService {
               }),
             );
           }, 10000);
+
+          await mailTransport.sendMail({
+                  from: SMTP_SENDER,
+                  to: SMTP_SENDER,
+                  subject: '[FG2] Instructed device',
+                  text: parsedMessage2.firwmare_id + ' on device ' + device_id + '\n\n' + JSON.stringify(message.message),
+                });
         }
 
         if (devicesInstructedTime > 0) {
