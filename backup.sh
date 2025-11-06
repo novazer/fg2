@@ -2,7 +2,7 @@
 set -e
 
 if [ -f .env ]; then
-    export $(grep -v '^#' .env | xargs)
+    export "$(grep -v '^#' .env | xargs)"
 fi
 
 if [ -z "$BACKUP_FILENAME" ]; then
