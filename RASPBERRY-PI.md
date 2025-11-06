@@ -15,6 +15,8 @@
    DOCKER_INFLUXDATA_EXTERNAL=true
    DOCKER_INFLUXDATA_VOLUME=influxdata
    ```
+1. `docker volume create mongodata`
+1. `docker volume create influxdata`
 1. `docker compose up --build -d --remove-orphans`
 1. Go to `http://<youripOrDomain>:8080` to access the web interface
 
