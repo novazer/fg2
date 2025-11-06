@@ -135,6 +135,7 @@ namespace fg {
 
     TickType_t co2_inject_end = 0;
     TickType_t co2_valve_close = 0;
+    TickType_t pause_until_tick = 0;
 
     TickType_t directmode_timer = 0;
 

@@ -183,7 +183,7 @@ namespace fg {
 
     if(state.is_day) {
       if(co2_inject_end < xTaskGetTickCount()) {
-        if((co2_avg.avg() < settings.co2.target)) {
+        if((co2_avg.avg() < settings.co2.target && xTaskGetTickCount() > pause_until_tick)) {
           state.out_co2 = 1;
           out_co2.set(1);
           co2_valve_close = xTaskGetTickCount() + co2_inject_count * CO2_INJECT_DURATION;
@@ -876,6 +876,13 @@ namespace fg {
 
 
     auto menu = ui->push<SelectMenu>();
+
+    menu->addOption("Maintenance", ICON_SETTINGS, [ui, this](){
+      ui->push<FloatInput>("Pause timer", 30, "min", 0, 60, 1, 0, [ui, this](float value) {
+        pause_until_tick = xTaskGetTickCount() + configTICK_RATE_HZ * value * 60;
+        ui->pop();
+      });
+    });
 
     menu->addOption("Dashboard", ICON_DASHBOARD, [ui, this](){ ui->pop(); });
 
