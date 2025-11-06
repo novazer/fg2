@@ -1,4 +1,4 @@
-import { IsBoolean, IsString } from 'class-validator';
+import { IsBoolean, IsOptional, IsString } from 'class-validator';
 
 export class LoginDto {
   @IsString()
@@ -8,6 +8,7 @@ export class LoginDto {
   public password: string;
 
   @IsBoolean()
+  @IsOptional()
   public stayLoggedIn?: boolean;
 }
 
