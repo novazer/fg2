@@ -70,6 +70,8 @@ To remove all data and start fresh:
 2. `docker compose down --volumes`
 4. `cd ../`
 5. `rm -rf fg2/`
+6. When starting fresh, you'll also need to use the module's "Change server" again, as this registers the module in the 
+   server again.
 
 ## Development
 
