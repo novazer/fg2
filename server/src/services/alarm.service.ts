@@ -9,7 +9,7 @@ import * as console from 'node:console';
 import { v4 as uuidv4 } from 'uuid';
 
 const CACHE_EXPIRATION_SECONDS = 600;
-const MAINTENANCE_MODE_COOLDOWN_MINUTES = 5;
+const MAINTENANCE_MODE_COOLDOWN_MINUTES = 10;
 
 class AlarmService {
   private alarmCache: Map<string, { device: Pick<Device, 'alarms' | 'maintenance_mode_until'>; expiresAt: number }> = new Map();
