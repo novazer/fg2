@@ -1,6 +1,6 @@
 import { deviceService, StatusMessage } from '@services/device.service';
 import deviceModel from '@models/device.model';
-import { Alarm } from '@interfaces/device.interface';
+import { Alarm, Device } from '@interfaces/device.interface';
 import { SMTP_SENDER } from '@config';
 import { mailTransport } from '@services/auth.service';
 import { request as httpRequest } from 'http';
@@ -9,40 +9,28 @@ import * as console from 'node:console';
 import { v4 as uuidv4 } from 'uuid';
 
 const CACHE_EXPIRATION_SECONDS = 600;
+const MAINTENANCE_MODE_COOLDOWN_MINUTES = 5;
 
 class AlarmService {
-  private alarmCache: Map<string, { alarms: Alarm[]; expiresAt: number }> = new Map();
+  private alarmCache: Map<string, { device: Pick<Device, 'alarms' | 'maintenance_mode_until'>; expiresAt: number }> = new Map();
 
   async onDataReceived(deviceId: string, ownerId: string, data: StatusMessage) {
     // Retrieve alarms from cache or database
-    const alarms = await this.getAlarms(deviceId);
-    if (!alarms || alarms.length === 0) {
+    const device = await this.getDeviceAlarms(deviceId);
+    if (!device?.alarms || device.alarms.length <= 0) {
       return;
     }
 
-    // need for temporary migration
-    let hasChanged = false;
-    for (const alarm of alarms) {
-      if (!alarm.alarmId) {
-        alarm.alarmId = uuidv4();
-        hasChanged = true;
-      }
-    }
-    if (hasChanged) {
-      await deviceModel.updateOne({ device_id: deviceId }, { alarms: alarms });
-      this.invalidateAlarmCache(deviceId);
-    }
-    // remove this block after a few months
-
     // Iterate through the alarms and check conditions
     const values = data.sensors;
-    for (const alarm of alarms) {
+    for (const alarm of device.alarms) {
       const sensorValue = values[alarm.sensorType];
       if (sensorValue !== undefined && !alarm.disabled) {
         const thresholdExceeded =
           (alarm.upperThreshold !== undefined && sensorValue > alarm.upperThreshold) ||
           (alarm.lowerThreshold !== undefined && sensorValue < alarm.lowerThreshold);
-        if (thresholdExceeded !== alarm.isTriggered) {
+        const inMaintenanceMode = device.maintenance_mode_until && device.maintenance_mode_until > Date.now();
+        if (thresholdExceeded !== alarm.isTriggered && !inMaintenanceMode) {
           await this.handleAlarmAction(alarm, deviceId, ownerId, sensorValue);
         } else if (alarm.isTriggered) {
           await this.handleAlarmData(alarm, deviceId, ownerId, sensorValue);
@@ -51,25 +39,39 @@ class AlarmService {
     }
   }
 
-  invalidateAlarmCache(deviceId: string) {
+  public invalidateAlarmCache(deviceId: string) {
     this.alarmCache.delete(deviceId);
   }
 
-  private async getAlarms(deviceId: string): Promise<Alarm[]> {
+  public async maintenanceActivatedForDevice(deviceId: string, durationMinutes: number) {
+    await deviceModel.updateOne(
+      { device_id: deviceId },
+      {
+        $set: {
+          maintenance_mode_until: Date.now() + (durationMinutes + MAINTENANCE_MODE_COOLDOWN_MINUTES) * 60 * 1000,
+        },
+      },
+    );
+    this.invalidateAlarmCache(deviceId);
+  }
+
+  private async getDeviceAlarms(deviceId: string): Promise<Pick<Device, 'alarms' | 'maintenance_mode_until'>> {
     const cached = this.alarmCache.get(deviceId);
 
     if (cached && cached.expiresAt > Date.now()) {
-      return cached.alarms;
+      return cached.device;
     }
 
     // Fetch alarms from the database
-    const device = await deviceModel.findOne({ device_id: deviceId }).select('alarms').lean();
-    const alarms = device?.alarms || [];
+    const device = await deviceModel.findOne({ device_id: deviceId }).select('alarms').select('maintenance_mode_until').lean();
 
     // Cache the alarms with a 5-minute expiration
-    this.alarmCache.set(deviceId, { alarms, expiresAt: Date.now() + CACHE_EXPIRATION_SECONDS * 1000 });
+    this.alarmCache.set(deviceId, {
+      device: device as unknown,
+      expiresAt: Date.now() + CACHE_EXPIRATION_SECONDS * 1000,
+    });
 
-    return alarms;
+    return device as unknown;
   }
 
   private async handleAlarmAction(alarm: Alarm, deviceId: string, ownerId: string, value: number) {

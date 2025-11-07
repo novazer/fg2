@@ -11,6 +11,7 @@ import { dataService } from './data.service';
 import { HttpException } from '@/exceptions/HttpException';
 import { ENABLE_SELF_REGISTRATION, SELF_REGISTRATION_PASSWORD } from '@/config';
 import { alarmService } from '@services/alarm.service';
+import { isNumeric } from 'influx/lib/src/grammar';
 
 export type StatusMessage = {
   sensors: {
@@ -211,6 +212,7 @@ class DeviceService {
       const last_logs: any = await deviceLogModel.find({ device_id: deviceId }).sort({ time: -1 }).skip(99).limit(1);
       await deviceLogModel.deleteMany({ device_id: deviceId, time: { $lt: last_logs[0].time } });
     }
+
     await deviceLogModel.create({
       device_id: deviceId,
       message: msg.message,
@@ -218,6 +220,11 @@ class DeviceService {
       severity: msg.severity,
       raw: msg.raw,
     });
+
+    const [messageKey, value] = msg.message.split(':');
+    if (messageKey === 'message-maintenance-mode-activated' && isNumeric(value)) {
+      await alarmService.maintenanceActivatedForDevice(deviceId, parseInt(value));
+    }
   }
 
   public async getDeviceLogs(device_id: string, user_id: string, is_admin: boolean) {

@@ -35,6 +35,7 @@ export interface Device {
   fwupdate_end: number;
   alarms?: [Alarm];
   firmwareSettings?: FirmwareSettings;
+  maintenance_mode_until?: number;
 }
 
 export interface DeviceClass {

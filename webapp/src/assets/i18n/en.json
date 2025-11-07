@@ -253,7 +253,11 @@
   "message-co2-low-text": "Check your CO2 bottle!",
   "message-device-firmware-update-title": "Update",
   "message-device-firmware-update-text": "The software of your device was updated",
-  "message-ext-sensor-deviate": "External and internal sensor differ! Check sensor placement!",
-  "message-ext-sensor-fail": "External sensor has failed!"
+  "message-ext-sensor-deviate-title": "External and internal sensor deviation",
+  "message-ext-sensor-deviate-text": "External and internal sensor differ! Check sensor placement!",
+  "message-ext-sensor-fail-title": "External sensor has failed!",
+  "message-ext-sensor-fail-text": "The external sensor has failed!",
+  "message-maintenance-mode-activated-title": "Maintenance mode activated",
+  "message-maintenance-mode-activated-text": "Your device was manually put into maintenance mode for {{value}} minutes. Alarms will be disabled during this time"
 }
 

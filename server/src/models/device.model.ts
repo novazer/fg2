@@ -89,6 +89,10 @@ const deviceSchema: Schema = new Schema({
     },
     required: false,
   },
+  maintenance_mode_until: {
+    type: Number,
+    required: false,
+  },
 });
 
 const deviceModel = model<Device & Document>('Device', deviceSchema);

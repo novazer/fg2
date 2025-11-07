@@ -285,7 +285,11 @@ namespace fg {
         humidity_avg.clear();
       }
     }
-    if(dehumidify && temperature_override) {
+
+    if (xTaskGetTickCount() <= pause_until_tick) {
+          state.out_dehumidifier = 0;
+    }
+    else if(dehumidify && temperature_override) {
       if(state.timeofday - turn_off_time > MINIMAL_DEHUMIDIFIER_OFF_TIME) {
         state.out_dehumidifier = 1;
       }
@@ -322,7 +326,11 @@ namespace fg {
       cool = 0;
     }
 
-    if(cool) {
+
+    if (xTaskGetTickCount() <= pause_until_tick) {
+      state.out_dehumidifier = 0;
+    }
+    else if(cool) {
       if(state.timeofday - turn_off_time > MINIMAL_DEHUMIDIFIER_OFF_TIME) {
         state.out_dehumidifier = 1;
       }
@@ -340,15 +348,22 @@ namespace fg {
 
   void FridgeController::controlHeater() {
 
-    if(state.is_day) {
+    if (xTaskGetTickCount() <= pause_until_tick) {
+      state.out_heater = 0;
+    }
+    else if(state.is_day) {
       state.out_heater = heater_day_pid.tick(state.temperature, settings.day.temperature);
-      heater_turn_off = (float)xTaskGetTickCount() + (float)configTICK_RATE_HZ * state.out_heater;
     }
     else {
       state.out_heater = heater_night_pid.tick(state.temperature, settings.night.temperature);
-      heater_turn_off = (float)xTaskGetTickCount() + (float)configTICK_RATE_HZ * state.out_heater;
     }
-    if(heater_temp < HEATER_MAX_TEMPERATURE) {
+
+    heater_turn_off = (float)xTaskGetTickCount() + (float)configTICK_RATE_HZ * state.out_heater;
+
+    if (xTaskGetTickCount() < pause_until_tick) {
+      out_heater.set(0);
+    }
+    else if(heater_temp < HEATER_MAX_TEMPERATURE) {
       out_heater.set(1);
     }
     else {
@@ -877,10 +892,20 @@ namespace fg {
 
     auto menu = ui->push<SelectMenu>();
 
-    menu->addOption("Maintenance", ICON_SETTINGS, [ui, this](){
-      ui->push<FloatInput>("Pause timer", 30, "min", 0, 60, 1, 0, [ui, this](float value) {
+    menu->addOption("Maintenance mode", ICON_SETTINGS, [ui, this](){
+      ui->push<FloatInput>("Pause fridge for", 30, "min", 0, 120, 5, 0, [ui, this](float value) {
+        char buf[64];
+
         pause_until_tick = xTaskGetTickCount() + configTICK_RATE_HZ * value * 60;
+        snprintf(buf, sizeof(buf), "message-maintenance-mode-activated:%d", (int)roundf(value));
+        cloud.log(buf);
         ui->pop();
+        ui->pop();
+
+        snprintf(buf, sizeof(buf), "be paused for %d mins", (int)roundf(value));
+        ui->push<TextDisplay>("CO2, Fridge and Heater will", buf, 2, [ui, this](){
+          ui->pop();
+        });
       });
     });
 

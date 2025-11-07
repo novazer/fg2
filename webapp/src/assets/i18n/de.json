@@ -239,9 +239,11 @@
   "message-co2-low-text": "CO2 Flasche prüfen!",
   "message-device-firmware-update-title": "Update",
   "message-device-firmware-update-text": "Die Software von deinem Gerät wurde geupdated.",
-  "message-ext-sensor-deviate": "Externer und interner Sensor weichen ab! Sensorplazierung überprüfen!",
-  "message-ext-sensor-fail": "Externer Sensor ist ausgefallen!"
-
-
+  "message-ext-sensor-deviate-title": "Abweichung externer und interner Sensor",
+  "message-ext-sensor-deviate-text": "Externer und interner Sensor weichen ab! Sensorplazierung überprüfen!",
+  "message-ext-sensor-fail-title": "Externer Sensor ist ausgefallen!",
+  "message-ext-sensor-fail-text": "Externer Sensor ist ausgefallen!",
+  "message-maintenance-mode-activated-title": "Wartungsmodus aktiviert",
+  "message-maintenance-mode-activated-text": "Das Modul wurde manuell in den Wartungsmodus versetzt für {{value}} Minuten. Alarme werden während dieser Zeit deaktiviert."
 }
 
