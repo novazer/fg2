@@ -244,6 +244,6 @@
   "message-ext-sensor-fail-title": "Externer Sensor ist ausgefallen!",
   "message-ext-sensor-fail-text": "Externer Sensor ist ausgefallen!",
   "message-maintenance-mode-activated-title": "Wartungsmodus aktiviert",
-  "message-maintenance-mode-activated-text": "Das Modul wurde manuell in den Wartungsmodus versetzt für {{value}} Minuten. Alarme werden während dieser Zeit deaktiviert."
+  "message-maintenance-mode-activated-text": "Das Modul wurde manuell für {{value}} Minuten in den Wartungsmodus versetzt. Alarme werden während dieser Zeit deaktiviert."
 }
 
