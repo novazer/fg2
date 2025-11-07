@@ -220,13 +220,19 @@ namespace fg {
       float out = 1.0f - (state.temperature - t_min) / (t_max - t_min);
 
       float max_out = 1.0f;
-      if((state.timeofday + SECONDS_PER_DAY) < (settings.daynight.day + SECONDS_PER_DAY + settings.lights.sunrise * 60)) {
-        //LOG("TON: %d\n", state.time - settings.daynight.day);
-        max_out = static_cast<float>(state.timeofday - settings.daynight.day) / (settings.lights.sunrise * 60.0f);
+      if (xTaskGetTickCount() <= pause_until_tick) {
+          max_out = 0.2f;
       }
-      if((state.timeofday + SECONDS_PER_DAY) > (settings.daynight.night + SECONDS_PER_DAY - settings.lights.sunset * 60)) {
-        //LOG("TOFF: %d\n", state.time - settings.daynight.night);
-        max_out = static_cast<float>(settings.daynight.night - state.timeofday) / (settings.lights.sunset * 60.0f);
+      else
+      {
+          if((state.timeofday + SECONDS_PER_DAY) < (settings.daynight.day + SECONDS_PER_DAY + settings.lights.sunrise * 60)) {
+            //LOG("TON: %d\n", state.time - settings.daynight.day);
+            max_out = static_cast<float>(state.timeofday - settings.daynight.day) / (settings.lights.sunrise * 60.0f);
+          }
+          if((state.timeofday + SECONDS_PER_DAY) > (settings.daynight.night + SECONDS_PER_DAY - settings.lights.sunset * 60)) {
+            //LOG("TOFF: %d\n", state.time - settings.daynight.night);
+            max_out = static_cast<float>(settings.daynight.night - state.timeofday) / (settings.lights.sunset * 60.0f);
+          }
       }
 
       out = out > 1 ? 1 : out;
