@@ -31,7 +31,7 @@ export class AuthService implements OnDestroy {
     const refresh_expires_at = localStorage.getItem('refresh_expires_at');
 
     try {
-      if(user && id_token && expires_at && refresh_token && refresh_expires_at) {
+      if(user && ((id_token && expires_at) || (refresh_token && refresh_expires_at))) {
         if((expires_at && DateTime.fromISO(expires_at) > DateTime.now())
           || (refresh_expires_at && DateTime.fromISO(refresh_expires_at) > DateTime.now())) {
           this.setTimer();
@@ -102,7 +102,7 @@ export class AuthService implements OnDestroy {
         }
       }
 
-      AuthService.waitForRefresh = new Promise(async (resolve, reject) => {
+      const refreshPromise: Promise<void> = new Promise(async (resolve, reject) => {
         try {
           const login = await firstValueFrom(this.http.post<LoginData>(environment.API_URL + "/refresh", {token: refresh_token}));
 
@@ -110,14 +110,18 @@ export class AuthService implements OnDestroy {
           localStorage.setItem('refresh_token', login.refreshToken.token);
           localStorage.setItem("expires_at", DateTime.now().plus({seconds: login.userToken.expiresIn - EXPIRE_SAFETY_SECONDS}).toString());
           localStorage.setItem("refresh_expires_at", DateTime.now().plus({seconds: login.refreshToken.expiresIn - EXPIRE_SAFETY_SECONDS}).toString());
+
           this.setTimer();
           resolve();
         } catch (err) {
           reject(err);
+        } finally {
+          AuthService.waitForRefresh = Promise.resolve();
         }
       });
 
-      await AuthService.waitForRefresh;
+      AuthService.waitForRefresh = refreshPromise;
+      await refreshPromise;
     }
     catch(err) {
       this.authenticated.next(false);
