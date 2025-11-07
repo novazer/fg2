@@ -26,10 +26,14 @@ export class AuthService implements OnDestroy {
   constructor(private http: HttpClient, public router: Router) {
     const user = localStorage.getItem('user');
     const id_token = localStorage.getItem('id_token');
+    const refresh_token = localStorage.getItem('refresh_token');
     const expires_at = localStorage.getItem('expires_at');
+    const refresh_expires_at = localStorage.getItem('refresh_expires_at');
+
     try {
-      if(user && id_token && expires_at) {
-        if(DateTime.fromISO(expires_at) > DateTime.now()) {
+      if(user && id_token && expires_at && refresh_token && refresh_expires_at) {
+        if((expires_at && DateTime.fromISO(expires_at) > DateTime.now())
+          || (refresh_expires_at && DateTime.fromISO(refresh_expires_at) > DateTime.now())) {
           this.setTimer();
           this.authenticated.next(true);
           this.current_user.next(JSON.parse(user));
