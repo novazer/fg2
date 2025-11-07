@@ -908,8 +908,8 @@ namespace fg {
         ui->pop();
         ui->pop();
 
-        snprintf(buf, sizeof(buf), "be paused for %d mins", (int)roundf(value));
-        ui->push<TextDisplay>("CO2, Fridge and Heater will", buf, 2, [ui, this](){
+        snprintf(buf, sizeof(buf), "CO2, Fridge and Heater will\nbe paused for %d mins", (int)roundf(value));
+        ui->push<TextDisplay>(buf, 1, [ui, this](){
           ui->pop();
         });
       });
