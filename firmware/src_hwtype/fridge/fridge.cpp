@@ -221,7 +221,7 @@ namespace fg {
 
       float max_out = 1.0f;
       if (xTaskGetTickCount() <= pause_until_tick) {
-          max_out = 0.2f;
+          max_out = 0.15f;
       }
       else
       {
@@ -908,7 +908,12 @@ namespace fg {
         ui->pop();
         ui->pop();
 
-        snprintf(buf, sizeof(buf), "CO2, Fridge and Heater will\nbe paused for %d mins", (int)roundf(value));
+        if (value > 0) {
+          snprintf(buf, sizeof(buf), "CO2, Fridge & Heater\nwill be paused for\n%d minutes", (int)roundf(value));
+        }
+        else {
+          snprintf(buf, sizeof(buf), "Maintenance mode\ndeactivated");;
+        }
         ui->push<TextDisplay>(buf, 1, [ui, this](){
           ui->pop();
         });
