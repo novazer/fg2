@@ -1,17 +1,24 @@
-import { Alarm, Device, DeviceClass, DeviceClassCount, DeviceFirmware, DeviceFirmwareBinary, FirmwareSettings } from '@interfaces/device.interface';
+import {
+  Alarm,
+  Device,
+  DeviceClass,
+  DeviceFirmware,
+  DeviceFirmwareBinary,
+  FirmwareSettings
+} from '@interfaces/device.interface';
 import deviceModel from '@models/device.model';
 import deviceLogModel from '@models/devicelog.model';
 import deviceClassModel from '@/models/deviceclass.model';
-import { deviceFirmwareModel, deviceFirmwareBinaryModel } from '@/models/devicefirmware.model';
+import {deviceFirmwareBinaryModel, deviceFirmwareModel} from '@/models/devicefirmware.model';
 import claimCodeModel from '@/models/claimcode.model';
-import { v4 as uuidv4 } from 'uuid';
-import { AddDeviceDto, AddDeviceClassDto, AddDeviceFirmwareDto, TestDeviceDto, RegisterDeviceDto } from '@/dtos/device.dto';
-import { mqttclient } from '../databases/mqttclient';
-import { dataService } from './data.service';
-import { HttpException } from '@/exceptions/HttpException';
-import { ENABLE_SELF_REGISTRATION, SELF_REGISTRATION_PASSWORD } from '@/config';
-import { alarmService } from '@services/alarm.service';
-import { isNumeric } from 'influx/lib/src/grammar';
+import {v4 as uuidv4} from 'uuid';
+import {AddDeviceDto, RegisterDeviceDto, TestDeviceDto} from '@/dtos/device.dto';
+import {mqttclient} from '../databases/mqttclient';
+import {dataService} from './data.service';
+import {HttpException} from '@/exceptions/HttpException';
+import {ENABLE_SELF_REGISTRATION, SELF_REGISTRATION_PASSWORD} from '@/config';
+import {alarmService} from '@services/alarm.service';
+import {isNumeric} from 'influx/lib/src/grammar';
 
 export type StatusMessage = {
   sensors: {
@@ -88,26 +95,24 @@ class DeviceService {
 
         const device = await deviceModel.findOne({ device_id: device_id });
         if (device) {
-          const parsedMessage = JSON.parse(message.message);
-
           switch (topic) {
             case 'status':
               await this.checkAndUpgrade(device);
-              await this.statusMessage(device, { ...parsedMessage, timestamp: undefined });
+              await this.statusMessage(device, { ...(JSON.parse(message.message)), timestamp: undefined });
               break;
             case 'bulk':
               await this.checkAndUpgrade(device);
-              await this.statusMessage(device, parsedMessage);
+              await this.statusMessage(device, JSON.parse(message.message));
               break;
             case 'fetch':
               await this.checkAndUpgrade(device);
-              await this.fetchMessage(device, parsedMessage);
+              await this.fetchMessage(device, JSON.parse(message.message));
               break;
             case 'log':
-              await this.logMessage(device.device_id, parsedMessage);
+              await this.logMessage(device.device_id, JSON.parse(message.message));
               break;
             case 'configuration':
-              await this.settingsMessage(device, parsedMessage);
+              await this.settingsMessage(device, JSON.parse(message.message));
               break;
             case 'firmware':
               break;
