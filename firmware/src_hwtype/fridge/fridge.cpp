@@ -909,10 +909,10 @@ namespace fg {
         ui->pop();
 
         if (value > 0) {
-          snprintf(buf, sizeof(buf), "CO2, Fridge & Heater\nwill be paused for\n%d minutes", (int)roundf(value));
+          snprintf(buf, sizeof(buf), " CO2, Fridge & Heater \n   will be paused for: \n        %d minutes    ", (int)roundf(value));
         }
         else {
-          snprintf(buf, sizeof(buf), "Maintenance mode\ndeactivated");;
+          snprintf(buf, sizeof(buf), "  Maintenance mode  \n     deactivated");;
         }
         ui->push<TextDisplay>(buf, 1, [ui, this](){
           ui->pop();
