@@ -1,24 +1,17 @@
-import {
-  Alarm,
-  Device,
-  DeviceClass,
-  DeviceFirmware,
-  DeviceFirmwareBinary,
-  FirmwareSettings
-} from '@interfaces/device.interface';
+import { Alarm, Device, DeviceClass, DeviceFirmware, DeviceFirmwareBinary, FirmwareSettings } from '@interfaces/device.interface';
 import deviceModel from '@models/device.model';
 import deviceLogModel from '@models/devicelog.model';
 import deviceClassModel from '@/models/deviceclass.model';
-import {deviceFirmwareBinaryModel, deviceFirmwareModel} from '@/models/devicefirmware.model';
+import { deviceFirmwareBinaryModel, deviceFirmwareModel } from '@/models/devicefirmware.model';
 import claimCodeModel from '@/models/claimcode.model';
-import {v4 as uuidv4} from 'uuid';
-import {AddDeviceDto, RegisterDeviceDto, TestDeviceDto} from '@/dtos/device.dto';
-import {mqttclient} from '../databases/mqttclient';
-import {dataService} from './data.service';
-import {HttpException} from '@/exceptions/HttpException';
-import {ENABLE_SELF_REGISTRATION, SELF_REGISTRATION_PASSWORD} from '@/config';
-import {alarmService} from '@services/alarm.service';
-import {isNumeric} from 'influx/lib/src/grammar';
+import { v4 as uuidv4 } from 'uuid';
+import { AddDeviceDto, RegisterDeviceDto, TestDeviceDto } from '@/dtos/device.dto';
+import { mqttclient } from '../databases/mqttclient';
+import { dataService } from './data.service';
+import { HttpException } from '@/exceptions/HttpException';
+import { ENABLE_SELF_REGISTRATION, SELF_REGISTRATION_PASSWORD } from '@/config';
+import { alarmService } from '@services/alarm.service';
+import { isNumeric } from 'influx/lib/src/grammar';
 
 export type StatusMessage = {
   sensors: {
@@ -98,7 +91,7 @@ class DeviceService {
           switch (topic) {
             case 'status':
               await this.checkAndUpgrade(device);
-              await this.statusMessage(device, { ...(JSON.parse(message.message)), timestamp: undefined });
+              await this.statusMessage(device, { ...JSON.parse(message.message), timestamp: undefined });
               break;
             case 'bulk':
               await this.checkAndUpgrade(device);
