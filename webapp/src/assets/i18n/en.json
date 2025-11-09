@@ -260,6 +260,8 @@
   "message-maintenance-mode-activated:0-title": "Maintenance mode deactivated",
   "message-maintenance-mode-activated:0-text": "Your device's maintenance mode was manually disabled. Alarms will be re-enabled in 10 minutes.",
   "message-maintenance-mode-activated-title": "Maintenance mode activated",
-  "message-maintenance-mode-activated-text": "Your device was manually put into maintenance mode for {{value}} minutes. Alarms will be disabled during this time"
+  "message-maintenance-mode-activated-text": "Your device was manually put into maintenance mode for {{value}} minutes. Alarms will be disabled during this time",
+  "message-firmware-update-complete-title": "Firmware update complette",
+  "message-firmware-update-complete-text": "You device's firmware update was completed"
 }
 

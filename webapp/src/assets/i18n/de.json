@@ -246,6 +246,8 @@
   "message-maintenance-mode-activated:0-title": "Pflegemodus deaktiviert",
   "message-maintenance-mode-activated:0-text": "Der Pflegemodus des Moduls wurde manuell deaktiviert. Alarme werden in 10 Minuten wieder aktiviert.",
   "message-maintenance-mode-activated-title": "Pflegemodus aktiviert",
-  "message-maintenance-mode-activated-text": "Das Modul wurde manuell für {{value}} Minuten in den Pflegemodus versetzt. Alarme werden während dieser Zeit deaktiviert."
+  "message-maintenance-mode-activated-text": "Das Modul wurde manuell für {{value}} Minuten in den Pflegemodus versetzt. Alarme werden während dieser Zeit deaktiviert.",
+  "message-firmware-update-complete-title": "Firmware-Update abgeschlossen",
+  "message-firmware-update-complete-text": "Die Firmware deines Geräts wurde erfolgreich aktualisiert."
 }
 

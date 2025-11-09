@@ -191,6 +191,10 @@ class DeviceService {
           if (payload.firmware_id == device.pending_firmware) {
             await deviceModel.findByIdAndUpdate(device._id, { current_firmware: payload.firmware_id, fwupdate_end: Date.now() });
             console.log('device ' + device.device_id + ' finished firmware update, time: ' + (Date.now() - device.fwupdate_start) / 1000 + 's');
+            await deviceService.logMessage(device.device_id, {
+              message: `message-firmware-update-complete`,
+              severity: 0,
+            });
           } else {
             await deviceModel.findByIdAndUpdate(device._id, { current_firmware: payload.firmware_id });
           }
