@@ -243,6 +243,8 @@
   "message-ext-sensor-deviate-text": "Externer und interner Sensor weichen ab! Sensorplazierung überprüfen!",
   "message-ext-sensor-fail-title": "Externer Sensor ist ausgefallen!",
   "message-ext-sensor-fail-text": "Externer Sensor ist ausgefallen!",
+  "message-maintenance-mode-activated:0-title": "Pflegemodus deaktiviert",
+  "message-maintenance-mode-activated:0-text": "Der Pflegemodus des Moduls wurde manuell deaktiviert. Alarme werden in 10 Minuten wieder aktiviert.",
   "message-maintenance-mode-activated-title": "Pflegemodus aktiviert",
   "message-maintenance-mode-activated-text": "Das Modul wurde manuell für {{value}} Minuten in den Pflegemodus versetzt. Alarme werden während dieser Zeit deaktiviert."
 }
