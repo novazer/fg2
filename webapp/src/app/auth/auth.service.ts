@@ -81,11 +81,11 @@ export class AuthService implements OnDestroy {
 
     try {
       if (idToken && expiresAt && nowUnixtime < DateTime.fromISO(expiresAt).toUnixInteger() && user) {
-        const parsedUser = JSON.parse(user);
-
         if (!this.authenticated.getValue()) {
           this.authenticated.next(true);
         }
+
+        const parsedUser = JSON.parse(user);
         if (this.current_user.getValue()?.user_id !== parsedUser.user_id) {
           this.current_user.next(parsedUser);
         }
@@ -134,9 +134,6 @@ export class AuthService implements OnDestroy {
   }
 
   private setLogin(login: LoginData) {
-    if (login.user) {
-      localStorage.setItem('user', JSON.stringify(login.user));
-    }
     localStorage.setItem('id_token', login.userToken.token);
     localStorage.setItem('refresh_token', login.refreshToken.token);
     localStorage.setItem("expires_at", DateTime.now().plus({seconds: login.userToken.expiresIn - EXPIRE_SAFETY_SECONDS}).toString());
@@ -145,8 +142,22 @@ export class AuthService implements OnDestroy {
     if (!this.authenticated.getValue()) {
       this.authenticated.next(true);
     }
-    if (login.user && this.current_user.getValue()?.user_id !== login.user?.user_id) {
-      this.current_user.next(login.user);
+
+    if (login.user) {
+      localStorage.setItem('user', JSON.stringify(login.user));
+
+      if (this.current_user.getValue()?.user_id !== login.user?.user_id) {
+        this.current_user.next(login.user);
+      }
+    } else {
+      try {
+        const parsedUser = JSON.parse(localStorage.getItem('user') || '');
+
+        if (parsedUser && this.current_user.getValue()?.user_id !== parsedUser?.user_id) {
+          this.current_user.next(login.user);
+        }
+      } catch (err) {}
     }
+
   }
 }
