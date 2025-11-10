@@ -190,10 +190,9 @@
         <ion-item lines="none">{{settings.lights.sunrise}} min</ion-item>
       </ion-item>
       <ion-item lines="none" [hidden]="!sunriseEditMode">
-        <ion-range min="0" max="60" step="1" [(ngModel)]="settings.lights.sunrise" (ngModelChange)="selectCustomPreset()">
-          <ion-label slot="start">0min</ion-label>
-          <ion-label slot="end">60min</ion-label>
-        </ion-range>
+        <ion-button size="small" fill="clear" (click)="settings.lights.sunrise = settings.lights.sunrise - 1" [disabled]="settings.lights.sunrise <= 0"><ion-icon name="remove-circle"></ion-icon></ion-button>
+        <ion-range min="0" max="60" step="1" [(ngModel)]="settings.lights.sunrise" (ngModelChange)="selectCustomPreset()"></ion-range>
+        <ion-button size="small" fill="clear" (click)="settings.lights.sunrise = settings.lights.sunrise + 1" [disabled]="settings.lights.sunrise >= 60"><ion-icon name="add-circle"></ion-icon></ion-button>
       </ion-item>
       <ion-button size="small" fill="clear" [hidden]="sunriseEditMode" (click)="sunriseEditMode = true">{{'settings.edit-value' | translate}}</ion-button>
       <ion-item lines="none">
@@ -201,10 +200,9 @@
         <ion-item lines="none">{{settings.lights.sunset}} min</ion-item>
       </ion-item>
       <ion-item lines="none" [hidden]="!sunsetEditMode">
-        <ion-range min="0" max="60" step="1" [(ngModel)]="settings.lights.sunset" (ngModelChange)="selectCustomPreset()">
-          <ion-label slot="start">0min</ion-label>
-          <ion-label slot="end">60min</ion-label>
-        </ion-range>
+        <ion-button size="small" fill="clear" (click)="settings.lights.sunset = settings.lights.sunset - 1" [disabled]="settings.lights.sunset <= 0"><ion-icon name="remove-circle"></ion-icon></ion-button>
+        <ion-range min="0" max="60" step="1" [(ngModel)]="settings.lights.sunset" (ngModelChange)="selectCustomPreset()"></ion-range>
+        <ion-button size="small" fill="clear" (click)="settings.lights.sunset = settings.lights.sunset + 1" [disabled]="settings.lights.sunset >= 60"><ion-icon name="add-circle"></ion-icon></ion-button>
       </ion-item>
       <ion-button size="small" fill="clear" [hidden]="sunsetEditMode" (click)="sunsetEditMode = true">{{'settings.edit-value' | translate}}</ion-button>
       <ion-item lines="none">
@@ -212,10 +210,9 @@
         <ion-item lines="none">{{settings.lights.limit}} %</ion-item>
       </ion-item>
       <ion-item lines="none" [hidden]="!maxLightEditMode">
-        <ion-range min="0" max="100" step="1" [(ngModel)]="settings.lights.limit" (ngModelChange)="selectCustomPreset()">
-          <ion-label slot="start">0%</ion-label>
-          <ion-label slot="end">100%</ion-label>
-        </ion-range>
+        <ion-button size="small" fill="clear" (click)="settings.lights.limit = settings.lights.limit - 1" [disabled]="settings.lights.limit <= 0"><ion-icon name="remove-circle"></ion-icon></ion-button>
+        <ion-range min="0" max="100" step="1" [(ngModel)]="settings.lights.limit" (ngModelChange)="selectCustomPreset()"></ion-range>
+        <ion-button size="small" fill="clear" (click)="settings.lights.limit = settings.lights.limit + 1" [disabled]="settings.lights.limit >= 100"><ion-icon name="add-circle"></ion-icon></ion-button>
       </ion-item>
       <ion-button size="small" fill="clear" [hidden]="maxLightEditMode" (click)="maxLightEditMode = true">{{'settings.edit-value' | translate}}</ion-button>
     </ion-card-content>
@@ -231,9 +228,9 @@
         <ion-item lines="none">{{settings.externalfan}} %</ion-item>
       </ion-item>
       <ion-item lines="none" [hidden]="!externalFanEditMode">
-        <ion-button size="small" fill="clear" (click)="settings.externalfan = settings.externalfan - 1" [disabled]="settings.externalfan <= 100"><ion-icon name="remove-circle"></ion-icon></ion-button>
+        <ion-button size="small" fill="clear" (click)="settings.externalfan = settings.externalfan - 1" [disabled]="settings.externalfan <= 0"><ion-icon name="remove-circle"></ion-icon></ion-button>
         <ion-range [(ngModel)]="settings.externalfan" min="0" max="100" step="1"></ion-range>
-        <ion-button size="small" fill="clear" (click)="settings.externalfan = settings.externalfan + 1" [disabled]="settings.externalfan >= 0"><ion-icon name="add-circle"></ion-icon></ion-button>
+        <ion-button size="small" fill="clear" (click)="settings.externalfan = settings.externalfan + 1" [disabled]="settings.externalfan >= 100"><ion-icon name="add-circle"></ion-icon></ion-button>
       </ion-item>
       <ion-button size="small" fill="clear" [hidden]="externalFanEditMode" (click)="externalFanEditMode = true">{{'settings.edit-value' | translate}}</ion-button>
       <ion-item lines="none">
@@ -241,9 +238,9 @@
         <ion-item lines="none">{{settings.internalfan}} %</ion-item>
       </ion-item>
       <ion-item lines="none" [hidden]="!internalFanEditMode">
-        <ion-button size="small" fill="clear" (click)="settings.internalfan = settings.internalfan - 1" [disabled]="settings.internalfan <= 100"><ion-icon name="remove-circle"></ion-icon></ion-button>
+        <ion-button size="small" fill="clear" (click)="settings.internalfan = settings.internalfan - 1" [disabled]="settings.internalfan <= 10"><ion-icon name="remove-circle"></ion-icon></ion-button>
         <ion-range [(ngModel)]="settings.internalfan" min="10" max="100" step="1"></ion-range>
-        <ion-button size="small" fill="clear" (click)="settings.internalfan = settings.internalfan + 1" [disabled]="settings.internalfan >= 10"><ion-icon name="add-circle"></ion-icon></ion-button>
+        <ion-button size="small" fill="clear" (click)="settings.internalfan = settings.internalfan + 1" [disabled]="settings.internalfan >= 100"><ion-icon name="add-circle"></ion-icon></ion-button>
       </ion-item>
       <ion-button size="small" fill="clear" [hidden]="internalFanEditMode" (click)="internalFanEditMode = true">{{'settings.edit-value' | translate}}</ion-button>
     </ion-card-content>
