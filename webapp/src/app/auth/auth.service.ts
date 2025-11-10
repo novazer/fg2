@@ -108,9 +108,6 @@ export class AuthService implements OnDestroy {
     if (this.authenticated.getValue()) {
       this.authenticated.next(false);
     }
-    if (this.current_user.getValue()) {
-      this.current_user.next(null);
-    }
   }
 
   public async logout() {
