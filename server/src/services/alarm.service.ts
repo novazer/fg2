@@ -25,7 +25,7 @@ class AlarmService {
     const values = data.sensors;
     for (const alarm of device.alarms) {
       const sensorValue = values[alarm.sensorType];
-      if (sensorValue !== undefined && !alarm.disabled) {
+      if (sensorValue !== undefined && !alarm.disabled && (alarm.upperThreshold || alarm.lowerThreshold)) {
         const thresholdExceeded =
           (alarm.upperThreshold && sensorValue > alarm.upperThreshold) || (alarm.lowerThreshold && sensorValue < alarm.lowerThreshold);
         const inMaintenanceMode = device.maintenance_mode_until && device.maintenance_mode_until > Date.now();
