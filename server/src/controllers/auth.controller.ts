@@ -63,19 +63,24 @@ class AuthController {
   public refresh = async (req: RequestWithToken, res: Response, next: NextFunction) => {
     const token = req.body.token;
     if (token) {
-      const secretKey: string = SECRET_KEY;
-      const verificationResponse = (await verify(token, secretKey)) as DataStoredInToken;
+      try {
+        const secretKey: string = SECRET_KEY;
+        const verificationResponse = (await verify(token, secretKey)) as DataStoredInToken;
 
-      if (verificationResponse.user_id) {
-        const { userToken, refreshToken } = await this.authService.refresh(verificationResponse);
+        if (verificationResponse.user_id) {
+          const { userToken, refreshToken } = await this.authService.refresh(verificationResponse);
 
-        res.status(200).json({
-          userToken: userToken,
-          refreshToken: refreshToken,
-        });
-      } else {
-        next(new HttpException(401, 'Wrong authentication token'));
+          res.status(200).json({
+            userToken: userToken,
+            refreshToken: refreshToken,
+          });
+          return;
+        }
+      } catch (error) {
+        console.log('Failed to verify token', error);
       }
+
+      next(new HttpException(401, 'Wrong authentication token'));
     } else {
       next(new HttpException(404, 'Authentication token missing'));
     }

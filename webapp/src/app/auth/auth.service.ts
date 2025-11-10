@@ -101,12 +101,12 @@ export class AuthService implements OnDestroy {
           this.setLogin(login);
           return;
       }
-    } catch (err) {
+    } catch (err: any) {
       console.log("auth error", err)
-    }
 
-    if (this.authenticated.getValue()) {
-      this.authenticated.next(false);
+      if (err && 'status' in err && err.status === 401) {
+        await this.logout();
+      }
     }
   }
 
