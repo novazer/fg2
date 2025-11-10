@@ -4,6 +4,7 @@ import { User } from '@interfaces/users.interface';
 export interface DataStoredInToken {
   user_id: string;
   is_admin: boolean;
+  stay_logged_in?: boolean;
 }
 
 export interface TokenData {

@@ -155,7 +155,11 @@ class AuthService {
   }
 
   public async refresh(tokenData: DataStoredInToken): Promise<{ userToken: TokenData; refreshToken: TokenData }> {
-    const { userToken, refreshToken } = this.createTokens({ user_id: tokenData.user_id, is_admin: tokenData.is_admin });
+    const { userToken, refreshToken } = this.createTokens({
+      user_id: tokenData.user_id,
+      is_admin: tokenData.is_admin,
+      stay_logged_in: tokenData.stay_logged_in,
+    });
     return { userToken, refreshToken };
   }
 
@@ -172,14 +176,15 @@ class AuthService {
     const dataStoredInToken: DataStoredInToken = {
       user_id: user.user_id,
       is_admin: user.is_admin,
+      stay_logged_in: stayLoggedIn,
     };
 
-    return this.createTokens(dataStoredInToken, stayLoggedIn);
+    return this.createTokens(dataStoredInToken);
   }
 
-  public createTokens(dataStoredInToken: DataStoredInToken, stayLoggedIn?: boolean): { userToken: TokenData; refreshToken: TokenData } {
-    const token_expiration: number = 10 * 60;
-    const refresh_expiration: number = (stayLoggedIn ? 30 * 24 * 60 : 30) * 60;
+  public createTokens(dataStoredInToken: DataStoredInToken): { userToken: TokenData; refreshToken: TokenData } {
+    const token_expiration: number = 5 * 60;
+    const refresh_expiration: number = (dataStoredInToken.stay_logged_in ? 30 * 24 * 60 : 30) * 60;
 
     return {
       userToken: { expiresIn: token_expiration, token: sign(dataStoredInToken, SECRET_KEY, { expiresIn: token_expiration }) },
