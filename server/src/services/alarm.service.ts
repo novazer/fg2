@@ -27,8 +27,7 @@ class AlarmService {
       const sensorValue = values[alarm.sensorType];
       if (sensorValue !== undefined && !alarm.disabled) {
         const thresholdExceeded =
-          (alarm.upperThreshold !== undefined && sensorValue > alarm.upperThreshold) ||
-          (alarm.lowerThreshold !== undefined && sensorValue < alarm.lowerThreshold);
+          (alarm.upperThreshold && sensorValue > alarm.upperThreshold) || (alarm.lowerThreshold && sensorValue < alarm.lowerThreshold);
         const inMaintenanceMode = device.maintenance_mode_until && device.maintenance_mode_until > Date.now();
         if (thresholdExceeded !== alarm.isTriggered && !inMaintenanceMode) {
           await this.handleAlarmAction(alarm, deviceId, ownerId, sensorValue);
@@ -220,10 +219,10 @@ class AlarmService {
 
   private async handleAlarmData(alarm: Alarm, deviceId: string, ownerId: string, value: number) {
     let newExtreme = alarm.extremeValue || value;
-    if (value > alarm.upperThreshold) {
+    if (alarm.upperThreshold && value > alarm.upperThreshold) {
       newExtreme = Math.max(newExtreme, value);
     }
-    if (value < alarm.lowerThreshold) {
+    if (alarm.lowerThreshold && value < alarm.lowerThreshold) {
       newExtreme = Math.min(newExtreme, value);
     }
 
