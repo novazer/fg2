@@ -86,7 +86,7 @@ export class AuthService implements OnDestroy {
         }
 
         const parsedUser = JSON.parse(user);
-        if (this.current_user.getValue()?.user_id !== parsedUser.user_id) {
+        if (parsedUser && this.current_user.getValue()?.user_id !== parsedUser.user_id) {
           this.current_user.next(parsedUser);
         }
         return;
