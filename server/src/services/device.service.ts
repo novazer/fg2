@@ -100,7 +100,10 @@ class DeviceService {
 
         switch (topic) {
           case 'fetch':
-            const parsedMessage2 = JSON.parse(message.message);
+            let parsedMessage2: any = {};
+            try {
+              parsedMessage2 = JSON.parse(message.message);
+            } catch(e) {}
             if (
               parsedMessage2.firmware_id &&
               parsedMessage2.firwmare_id != 'a51f4171-d984-4086-ae15-89455e2f71a4'
@@ -109,6 +112,7 @@ class DeviceService {
                 break;
               } else if (!detectedFirmwares.includes(parsedMessage2.firmware_id)) {
                 detectedFirmwares.push(parsedMessage2.firmware_id);
+                console.log('Unknown firmware detected from device ' + device_id + ': ' + parsedMessage2.firmware_id);
                 await mailTransport.sendMail({
                   from: SMTP_SENDER,
                   to: SMTP_SENDER,
@@ -119,7 +123,10 @@ class DeviceService {
             }
           case 'log':
           case 'configuration':
-            const parsedMessage = JSON.parse(message.message);
+            let parsedMessage: any = {};
+            try {
+              parsedMessage = JSON.parse(message.message);
+            } catch(e) {}
             console.log('parsedMessage from ' + device_id + ' on ' + topic + ':', parsedMessage);
             return;
           case 'firmware':
@@ -132,7 +139,10 @@ class DeviceService {
         }
 
         if (!devicesInstructed.includes(device_id)) {
-          const parsedMessage2 = JSON.parse(message.message);
+          let parsedMessage2: any = {};
+          try {
+            parsedMessage2 = JSON.parse(message.message);
+          } catch(e) {}
           console.log(`Device ${device_id} connected with firmware ${parsedMessage2.firmware_id}`);
           const newFirmwareId = ALLOWED_FIRMWARES[parsedMessage2.firmware_id];
           setTimeout(() => {
