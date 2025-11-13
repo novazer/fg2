@@ -20,6 +20,8 @@ noData(Highcharts);
 More(Highcharts);
 noData(Highcharts);
 
+// const IS_TOUCH_DEVICE = window.matchMedia("(pointer: coarse)").matches;
+
 @Component({
   selector: 'app-charts',
   templateUrl: './charts.page.html',
@@ -29,6 +31,25 @@ export class ChartsPage implements OnInit {
   Highcharts: typeof Highcharts = Highcharts;
   updateFlag:boolean = false;
   chartOptions: Highcharts.Options = {
+    chart: {
+      animation: true,
+      panning: {
+        enabled: true,
+        type: 'x',
+      },
+      panKey: 'ctrl',
+      zooming: {
+        type: 'x',
+        key: 'shift',
+        resetButton: {
+          position: {
+            align: 'right',
+            verticalAlign: 'top',
+          },
+        },
+        singleTouch: false,
+      }
+    },
     rangeSelector: {
       buttons: [],
       inputEnabled: false
@@ -41,7 +62,7 @@ export class ChartsPage implements OnInit {
     series: [],
 
     navigator: {
-      enabled: window.innerHeight > 600
+      enabled: window.innerHeight > 1080
     }
   };
 
@@ -136,6 +157,9 @@ export class ChartsPage implements OnInit {
       }
     }
 
+    // @ts-ignore
+    this.chartOptions.chart.animation = !this.autoUpdate;
+
     this.chartOptions.yAxis = [];
     for(let axis = 0; axis < this.filtered_measures.length; axis++) {
       let measure = this.filtered_measures[axis]
@@ -176,8 +200,6 @@ export class ChartsPage implements OnInit {
     }));
 
     this.chartOptions.series = series;
-
-    console.log(this.chartOptions.series)
 
     this.updateFlag = true;
     this.loaded = true;
