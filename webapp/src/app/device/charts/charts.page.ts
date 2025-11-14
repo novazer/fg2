@@ -130,7 +130,6 @@ export class ChartsPage implements OnInit, OnDestroy {
         this.filtered_measures = this.measures.filter((measure) => measure.types.includes(this.device_type))
         console.log(this.filtered_measures)
 
-        this.loadData()
         setTimeout(() => this.loadData(), 10)
         this.interval = setInterval(() => {
           if (this.autoUpdate) {
