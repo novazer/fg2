@@ -20,7 +20,7 @@ noData(Highcharts);
 More(Highcharts);
 noData(Highcharts);
 
-// const IS_TOUCH_DEVICE = window.matchMedia("(pointer: coarse)").matches;
+const IS_TOUCH_DEVICE = window.matchMedia("(pointer: coarse)").matches;
 
 @Component({
   selector: 'app-charts',
@@ -62,7 +62,7 @@ export class ChartsPage implements OnInit, OnDestroy {
     series: [],
 
     navigator: {
-      enabled: window.innerHeight > 1080
+      enabled: window.innerHeight > 600 && !IS_TOUCH_DEVICE,
     }
   };
 
