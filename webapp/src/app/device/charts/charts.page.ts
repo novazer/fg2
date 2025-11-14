@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import {Component, ElementRef, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ChartConfiguration, ChartEvent, ChartType } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
@@ -27,7 +27,7 @@ noData(Highcharts);
   templateUrl: './charts.page.html',
   styleUrls: ['./charts.page.scss'],
 })
-export class ChartsPage implements OnInit {
+export class ChartsPage implements OnInit, OnDestroy {
   Highcharts: typeof Highcharts = Highcharts;
   updateFlag:boolean = false;
   chartOptions: Highcharts.Options = {
@@ -110,8 +110,12 @@ export class ChartsPage implements OnInit {
 
   public autoUpdate:boolean = false;
 
+  public chartInstance!: Highcharts.Chart;
+
   @ViewChild(BaseChartDirective) chart?: BaseChartDirective;
   @ViewChild('spacer') spacer? : ElementRef;
+
+  private interval?: NodeJS.Timeout;
 
   constructor(private route: ActivatedRoute, private data: DataService, private devices: DeviceService) {
   }
@@ -128,13 +132,19 @@ export class ChartsPage implements OnInit {
 
         this.loadData()
         setTimeout(() => this.loadData(), 10)
-        setInterval(() => {
+        this.interval = setInterval(() => {
           if (this.autoUpdate) {
             void this.loadData();
           }
         }, 10000)
       }
     })
+  }
+
+  ngOnDestroy() {
+    if(this.interval) {
+      clearInterval(this.interval);
+    }
   }
 
   private async loadData() {
@@ -213,7 +223,7 @@ export class ChartsPage implements OnInit {
     for(let tsp of this.timespans) {tsp.enabled = false}
     ts.enabled = true;
 
-    this.loadData();
+    this.loadData().then(() => this.chartInstance?.zoomOut());
   }
 
   public toggleMeasure(measure:any) {
@@ -222,4 +232,7 @@ export class ChartsPage implements OnInit {
     this.loadData();
   }
 
+  public onChartInstance(chart: Highcharts.Chart) {
+    this.chartInstance = chart;
+  }
 }
