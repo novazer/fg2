@@ -13,6 +13,8 @@ export class ListPage implements OnInit {
   public all_devices:Device[] = [];
   public id:string = '';
 
+  private reloaded = false;
+
   constructor(private deviceService: DeviceService, public data: DataService) { }
 
   ngOnInit(): void {
@@ -20,8 +22,11 @@ export class ListPage implements OnInit {
       console.log(devices)
       this.all_devices = devices;
 
-      if (devices.length <= 0) {
-        setTimeout(() => this.deviceService.refetchDevices(), 10000);
+      if (devices.length <= 0 && !this.reloaded) {
+        this.reloaded = true;
+        setTimeout(() => this.deviceService.refetchDevices(), 10);
+      } else {
+        this.reloaded = false;
       }
     });
   }
