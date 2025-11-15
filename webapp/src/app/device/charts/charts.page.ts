@@ -184,7 +184,8 @@ export class ChartsPage implements OnInit, OnDestroy {
         softMin: 0,
         softMax: 1,
         opposite: measure.right,
-        visible: (this.spacer?.nativeElement.offsetWidth || 0) > 320 ? measure.enabled : false
+        visible: (this.spacer?.nativeElement.offsetWidth || 0) > 320 ? measure.enabled : false,
+        zoomEnabled: false,
       })
 
       measure.axis = axis;
