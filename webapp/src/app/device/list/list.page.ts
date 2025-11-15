@@ -13,16 +13,20 @@ export class ListPage implements OnInit {
   public all_devices:Device[] = [];
   public id:string = '';
 
-  constructor(private devices: DeviceService, public data: DataService) { }
+  constructor(private deviceService: DeviceService, public data: DataService) { }
 
   ngOnInit(): void {
-    this.devices.devices.subscribe(devices => {
+    this.deviceService.devices.subscribe(devices => {
       console.log(devices)
       this.all_devices = devices;
+
+      if (devices.length < 0) {
+        setTimeout(() => this.deviceService.refetchDevices(), 10);
+      }
     });
   }
 
   claimDevice() {
-    this.devices.claim(this.id.toUpperCase());
+    this.deviceService.claim(this.id.toUpperCase());
   }
 }

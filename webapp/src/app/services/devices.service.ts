@@ -107,23 +107,25 @@ export class DeviceService {
   }
 
   fetchDevices() {
-    this.auth.current_user.subscribe(async (user) => {
-      if(user) {
-        const devices = await firstValueFrom(this.http.get<Device[]>(environment.API_URL + '/device'))
-        for(let device of devices) {
-          try {
-            device.settings = JSON.parse(device.configuration);
-          }
-          catch(err) {
-            device.settings = {};
-          }
+    this.auth.current_user.subscribe(() => this.refetchDevices());
+  }
+
+  public async refetchDevices() {
+    try {
+      const devices = await firstValueFrom(this.http.get<Device[]>(environment.API_URL + '/device'))
+      for(let device of devices) {
+        try {
+          device.settings = JSON.parse(device.configuration);
         }
-        this.devices.next(devices);
+        catch(err) {
+          device.settings = {};
+        }
       }
-      else {
-        this.devices.next([]);
-      }
-    })
+      this.devices.next(devices);
+    } catch(e) {
+      console.log('Failed fetching devices', e);
+      this.devices.next([]);
+    }
   }
 
   public async claim(claim_code:string) {
