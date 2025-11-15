@@ -20,8 +20,8 @@ export class ListPage implements OnInit {
       console.log(devices)
       this.all_devices = devices;
 
-      if (devices.length < 0) {
-        setTimeout(() => this.deviceService.refetchDevices(), 10);
+      if (devices.length <= 0) {
+        setTimeout(() => this.deviceService.refetchDevices(), 10000);
       }
     });
   }
