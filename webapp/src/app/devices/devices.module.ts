@@ -16,12 +16,14 @@ import { PlugOverviewComponent } from './plug/overview/overview.component';
 import { PlugSettingsComponent } from './plug/settings/settings.component';
 import { DryerOverviewComponent } from './dryer/overview/overview.component';
 import { DryerSettingComponent } from './dryer/settings/settings.component';
+import {FridgeSettingsConfigurationComponent} from "./fridge/settings/configuration/configuration.component";
 
 
 @NgModule({
   declarations: [
     FridgeOverviewComponent,
     FridgeSettingComponent,
+    FridgeSettingsConfigurationComponent,
     FanOverviewComponent,
     FanSettingsComponent,
     LightOverviewComponent,
@@ -34,6 +36,7 @@ import { DryerSettingComponent } from './dryer/settings/settings.component';
   exports: [
     FridgeOverviewComponent,
     FridgeSettingComponent,
+    FridgeSettingsConfigurationComponent,
     FanOverviewComponent,
     FanSettingsComponent,
     LightOverviewComponent,
