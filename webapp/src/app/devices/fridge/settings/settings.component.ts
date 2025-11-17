@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { combineLatest } from 'rxjs';
 import { DataService } from 'src/app/services/data.service';
@@ -100,6 +100,7 @@ export class FridgeSettingComponent implements OnInit {
     private devices: DeviceService,
     public data: DataService,
     private route: ActivatedRoute,
+    private _router: Router,
     private translate: TranslateService
   ) {
     this.offset = new Date().getTimezoneOffset()*60;
@@ -280,9 +281,9 @@ export class FridgeSettingComponent implements OnInit {
     this.saved = true;
     setTimeout(() => {
       this.saving = false;
-    }, 500)
+    }, 500);
 
-
+    return this._router.navigateByUrl('/list');
   }
 
   timeStringToSeconds(time:string) {

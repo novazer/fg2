@@ -111,6 +111,11 @@ export class DeviceService {
   }
 
   public async refetchDevices() {
+    if (!this.auth.authenticated.getValue()) {
+      this.devices.next([]);
+      return;
+    }
+
     try {
       const devices = await firstValueFrom(this.http.get<Device[]>(environment.API_URL + '/device'))
       for(let device of devices) {

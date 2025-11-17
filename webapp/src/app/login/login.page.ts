@@ -11,7 +11,7 @@ import { DsgvoModalPage } from './dsgvo/dsgvo.page';
   templateUrl: './login.page.html',
   styleUrls: ['./login.page.scss'],
 })
-export class LoginPage implements OnInit {
+export class LoginPage implements OnInit, OnDestroy {
   public loginValid = false;
   public username = '';
   public password = '';
@@ -41,9 +41,16 @@ export class LoginPage implements OnInit {
   }
 
   public ngOnInit(): void {
-    if(this._authService.authenticated.value) {
-      this._router.navigateByUrl(this.returnUrl)
-    }
+    const authSubscription = this._authService.authenticated.subscribe(authenticated => {
+      if (authenticated) {
+        return this._router.navigateByUrl(this.returnUrl)
+      } else {
+        return Promise.resolve();
+      }
+    });
+    this._destroySub$.subscribe(() => {
+      authSubscription.unsubscribe();
+    });
 
     if(this.activation_code) {
       this.activate()
