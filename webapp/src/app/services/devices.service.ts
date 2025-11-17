@@ -135,12 +135,12 @@ export class DeviceService {
 
   public async claim(claim_code:string) {
     await firstValueFrom( this.http.post<Device>(environment.API_URL + '/device', {claim_code: claim_code}) )
-    this.fetchDevices();
+    await this.refetchDevices();
   }
 
   public async unclaim(device_id:string) {
     await firstValueFrom( this.http.delete(environment.API_URL + '/device/' + device_id) )
-    this.fetchDevices();
+    await this.refetchDevices();
   }
 
   public async getConfig(device_id:string) {
