@@ -118,7 +118,7 @@
               <ion-button color="danger" (click)="removeRecipeStep(step)" [disabled]="recipe.steps.length <= 1">{{'devices.fridge.recipe.deleteStep' | translate}}</ion-button>
             </ion-buttons>
 
-            <fridge-settings-config [hidden]="!settingsOpened" [(deviceSettings)]="step.settings" />
+            <fridge-settings-config *ngIf="settingsOpened" [(deviceSettings)]="step.settings" />
 
             <ion-button color="primary" expand="block" [hidden]="!settingsOpened" (click)="settingsOpened = false">{{'devices.fridge.recipe.step.closeSettings' | translate}}</ion-button>
           </div>
