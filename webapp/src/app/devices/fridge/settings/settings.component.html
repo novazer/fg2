@@ -67,7 +67,7 @@
       </ion-item>
 
       <ion-item-divider>
-        <ion-label>{{ 'device.fridge.recipe.steps' | translate }}</ion-label>
+        <ion-label>{{ 'devices.fridge.recipe.steps' | translate }}</ion-label>
       </ion-item-divider>
 
       <ion-accordion-group (ionChange)="onRecipeStepOpened($event)">
@@ -110,13 +110,13 @@
               </ion-select>
             </ion-item>
 
-            <ion-buttons>
+            <ion-item>
               <ion-button color="primary" [hidden]="!settingsOpened" (click)="closeSettings()">{{'devices.fridge.recipe.step.closeSettings' | translate}}</ion-button>
               <ion-button color="secondary" [hidden]="settingsOpened" (click)="openSettings()">{{'devices.fridge.recipe.step.editSettings' | translate}}</ion-button>
               <ion-button color="tertiary" (click)="moveRecipeStep(i, -1)" [disabled]="i === 0">{{'devices.fridge.recipe.step.moveUp' | translate}}</ion-button>
               <ion-button color="tertiary" (click)="moveRecipeStep(i, 1)" [disabled]="i === recipe.steps.length - 1">{{'devices.fridge.recipe.step.moveDown' | translate}}</ion-button>
-              <ion-button color="danger" (click)="removeRecipeStep(step)" [disabled]="recipe.steps.length <= 1">{{'devices.fridge.recipe.deleteStep' | translate}}</ion-button>
-            </ion-buttons>
+              <ion-button color="danger" (click)="removeRecipeStep(step)" [disabled]="recipe.activeStepIndex === i && recipe.activeSince > 0">{{'devices.fridge.recipe.deleteStep' | translate}}</ion-button>
+            </ion-item>
 
             <fridge-settings-config *ngIf="settingsOpened" [(deviceSettings)]="step.settings" />
 
@@ -126,7 +126,7 @@
       </ion-accordion-group>
 
       <!-- Add step + run controls -->
-      <ion-buttons [hidden]="settingsmode !== 'recipe' || settingsOpened">
+      <ion-item [hidden]="settingsmode !== 'recipe' || settingsOpened">
         <ion-button color="primary" (click)="addRecipeStep()">{{'devices.fridge.recipe.addStep' | translate}}</ion-button>
         <ion-button color="success"
                     (click)="setRunning(true)"
@@ -139,7 +139,7 @@
                     [hidden]="recipe.activeSince <= 0">
           {{'devices.fridge.recipe.step.clearRunning' | translate}}
         </ion-button>
-      </ion-buttons>
+      </ion-item>
 
     </ion-card-content>
   </ion-card>

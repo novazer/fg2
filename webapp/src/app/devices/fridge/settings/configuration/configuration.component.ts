@@ -74,8 +74,6 @@ export class FridgeSettingsConfigurationComponent implements OnChanges {
         this.has_co2 = false;
         break;
     }
-
-    this.onSettingsChanged();
   }
 
 
@@ -153,48 +151,46 @@ export class FridgeSettingsConfigurationComponent implements OnChanges {
   }
 
   onSettingsChanged() {
-    setTimeout(() => {
-      let device_settings = {
-        workmode: this.settings.workmode,
+    let device_settings = {
+      workmode: this.settings.workmode,
 
-        daynight: {
-          day: this.timeStringToSeconds(this.daybreak),
-          night: this.timeStringToSeconds(this.nightfall),
-          floating: this.settings.daynight.floating,
-          float_start: this.dateTimeStringToSeconds(this.settings.daynight.float_start),
-          day_duration: this.settings.daynight.day_duration * 3600,
-          light_duration: this.settings.daynight.light_duration * 3600,
-        },
+      daynight: {
+        day: this.timeStringToSeconds(this.daybreak),
+        night: this.timeStringToSeconds(this.nightfall),
+        floating: this.settings.daynight.floating,
+        float_start: this.dateTimeStringToSeconds(this.settings.daynight.float_start),
+        day_duration: this.settings.daynight.day_duration * 3600,
+        light_duration: this.settings.daynight.light_duration * 3600,
+      },
 
-        co2: {
-          target: this.settings.co2
-        },
+      co2: {
+        target: this.settings.co2
+      },
 
-        day: {
-          temperature: this.settings.day.temperature,
-          humidity: this.settings.day.humidity,
-        },
+      day: {
+        temperature: this.settings.day.temperature,
+        humidity: this.settings.day.humidity,
+      },
 
-        night: {
-          temperature: this.settings.night.temperature,
-          humidity: this.settings.night.humidity,
-        },
+      night: {
+        temperature: this.settings.night.temperature,
+        humidity: this.settings.night.humidity,
+      },
 
-        lights: {
-          sunrise: this.settings.lights.sunrise,
-          sunset: this.settings.lights.sunset,
-          limit: this.settings.lights.limit,
-        },
+      lights: {
+        sunrise: this.settings.lights.sunrise,
+        sunset: this.settings.lights.sunset,
+        limit: this.settings.lights.limit,
+      },
 
-        fans: {
-          external: this.settings.externalfan,
-          internal: this.settings.internalfan,
-        }
+      fans: {
+        external: this.settings.externalfan,
+        internal: this.settings.internalfan,
       }
+    }
 
-      this.deviceSettings = device_settings;
-      this.deviceSettingsChange.emit(device_settings);
-    }, 0);
+    this.deviceSettings = device_settings;
+    this.deviceSettingsChange.emit(device_settings);
   }
 
   timeStringToSeconds(time:string) {

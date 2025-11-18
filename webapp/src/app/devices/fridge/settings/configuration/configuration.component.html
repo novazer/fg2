@@ -5,7 +5,7 @@
   </ion-card-header>
   <ion-card-content>
     <ion-item>
-      <ion-select *ngIf="workmodes" [(ngModel)]="settings.workmode" [interfaceOptions]="{'cssClass': 'wider-popover'}" (ngModelChange)="changeWorkmode()">
+      <ion-select *ngIf="workmodes" [(ngModel)]="settings.workmode" [interfaceOptions]="{'cssClass': 'wider-popover'}" (ngModelChange)="changeWorkmode(); onSettingsChanged()">
         <ion-select-option *ngFor="let mode of workmodes" [value]="mode.value">{{mode.name}}</ion-select-option>
       </ion-select>
     </ion-item>
