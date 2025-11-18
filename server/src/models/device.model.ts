@@ -93,6 +93,25 @@ const deviceSchema: Schema = new Schema({
     type: Number,
     required: false,
   },
+  recipe: {
+    type: {
+      steps: {
+        type: [
+          {
+            settings: { type: Schema.Types.Mixed, required: true },
+            durationUnit: { type: String, enum: ['hours', 'days', 'weeks'], required: true },
+            duration: { type: Number, required: true },
+            waitForConfirmation: { type: Boolean, required: true },
+            lastTimeApplied: { type: Number, required: false },
+          },
+        ],
+        required: true,
+      },
+      activeStepIndex: { type: Number, required: true },
+      activeSince: { type: Number, required: true }, // epoch seconds
+    },
+    required: false,
+  },
 });
 
 const deviceModel = model<Device & Document>('Device', deviceSchema);

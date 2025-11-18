@@ -5,6 +5,7 @@ import { RequestWithUser } from '@/interfaces/auth.interface';
 import { AddDeviceClassDto, TestDeviceDto } from '@dtos/device.dto';
 import { isUserDeviceMiddelware } from '@/middlewares/auth.middleware';
 import { version } from 'os';
+import deviceModel from '@models/device.model'; // added import
 
 class DeviceController {
   public getDevices = async (req: Request, res: Response, next: NextFunction) => {
@@ -333,6 +334,56 @@ class DeviceController {
       const devices: any = await deviceService.getFirmwareVersions();
 
       res.status(200).json(devices);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  // GET /device/recipe/:device_id
+  public getRecipe = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+    try {
+      const device_id = req.params.device_id;
+      if (!device_id) {
+        return res.status(400).json({ error: 'Missing device_id' });
+      }
+
+      if (await isUserDeviceMiddelware(req, res, device_id)) {
+        const doc = await deviceModel.findOne({ device_id }).select('recipe').lean().exec();
+        const defaultRecipe = { steps: [], activeStepIndex: 0, activeSince: 0 };
+        const recipeObj = doc && doc.recipe ? doc.recipe : defaultRecipe;
+        res.status(200).json(recipeObj);
+      }
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  // POST /device/recipe
+  // Body: { device_id: string, recipe: object }
+  public setRecipe = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+    try {
+      const device_id = req.body.device_id;
+      const recipePayload = req.body.recipe;
+
+      if (!device_id) {
+        return res.status(400).json({ error: 'Missing device_id' });
+      }
+
+      if (recipePayload === undefined || recipePayload === null) {
+        return res.status(400).json({ error: 'Missing recipe payload' });
+      }
+
+      if (!(await isUserDeviceMiddelware(req, res, device_id))) {
+        return; // middleware already handled response if unauthorized
+      }
+
+      const updated = await deviceModel.findOneAndUpdate({ device_id }, { $set: { recipe: recipePayload } }, { new: true, useFindAndModify: false });
+
+      if (!updated) {
+        return res.status(404).json({ error: 'Device not found' });
+      }
+
+      return res.status(200).json({ status: 'ok' });
     } catch (error) {
       next(error);
     }

@@ -19,10 +19,10 @@ interface Preset {
   templateUrl: './configuration.component.html',
   styleUrls: ['./configuration.component.scss'],
 })
-export class FridgeSettingsConfigurationComponent implements OnInit, OnChanges {
-  @Input() settingsJson:string = '{}';
-  @Output() settingsJsonChange = new EventEmitter<string>();
+export class FridgeSettingsConfigurationComponent implements OnChanges {
 
+  @Input() deviceSettings: any = {};
+  @Output() deviceSettingsChange = new EventEmitter<any>();
   public settings:any = null
   public daybreak:any = null;
   public nightfall:any = null;
@@ -104,26 +104,13 @@ export class FridgeSettingsConfigurationComponent implements OnInit, OnChanges {
     this.offset = new Date().getTimezoneOffset()*60;
   }
 
-  ngOnInit() {
-    // this.loadSettings(this.settingsJson);
-  }
-
   ngOnChanges(changes: SimpleChanges) {
-    if ('settingsJson' in changes) {
-      this.loadSettings(changes['settingsJson'].currentValue);
+    if ('deviceSettings' in changes) {
+      this.loadSettings(changes['deviceSettings'].currentValue);
     }
   }
 
-  private loadSettings(settingsJson: string) {
-    let device_settings;
-    try {
-      device_settings = JSON.parse(settingsJson);
-    }
-    catch(error) {
-      console.log("error parsing current device settings")
-      console.log(error)
-    }
-
+  private loadSettings(device_settings: any) {
     this.daybreak = this.secondsToTimeString(device_settings?.daynight?.day ?? 36000);
     this.nightfall = this.secondsToTimeString(device_settings?.daynight?.night ?? 79200);
 
@@ -204,8 +191,8 @@ export class FridgeSettingsConfigurationComponent implements OnInit, OnChanges {
       }
     }
 
-    this.settingsJson = JSON.stringify(device_settings);
-    this.settingsJsonChange.emit(JSON.stringify(device_settings));
+    this.deviceSettings = device_settings;
+    this.deviceSettingsChange.emit(device_settings);
   }
 
   timeStringToSeconds(time:string) {

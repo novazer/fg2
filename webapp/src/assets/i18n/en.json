@@ -10,7 +10,10 @@
     "close": "Close",
     "saving": "saving...",
     "save": "save",
-    "settings": "Settings"
+    "settings": "Settings",
+    "errorOccurred": "An error occurred",
+    "unableToSaveSettings": "Unable to save settings",
+    "unableToLoadSettings": "Unable to load settings"
   },
 
   "settings": {
@@ -128,6 +131,39 @@
         "float-start": "Start of first variable day",
         "day_duration": "Duration of full day/night cycle",
         "light_duration": "Duration of lighting period"
+      },
+      "settingsmode": "Settings mode",
+      "settingsmode-manual": "Manual",
+      "settingsmode-recipe": "Recipe",
+      "recipe": {
+        "notRunning": "Not running",
+        "stepTimeRemaining": "Time remaining",
+        "waitingForConfirmation": "Waiting for confirmation",
+        "confirmStep": "Confirm step",
+        "title": "Recipe",
+        "add": "Add Recipe",
+        "addStep": "Add step",
+        "deleteStep": "Delete step",
+        "steps": "Recipe steps",
+        "activeStep": "Active step",
+        "startTime": "Step start time",
+        "step": {
+          "name": "Step name",
+          "waitForConfirmation": "Wait for confirmation",
+          "duration": "Duration",
+          "durationUnit": {
+            "hours": "hours",
+            "days": "days",
+            "weeks": "weeks"
+          },
+          "closeSettings": "Close settings",
+          "editSettings": "Edit settings",
+          "moveUp": "Move up",
+          "moveDown": "Move down",
+          "confirmationMessage": "Confirmation message",
+          "setRunning": "Start recipe",
+          "clearRunning": "Stop recipe"
+        }
       }
     },
 
@@ -264,4 +300,3 @@
   "message-firmware-update-complete-title": "Firmware update complette",
   "message-firmware-update-complete-text": "You device's firmware update was completed"
 }
-

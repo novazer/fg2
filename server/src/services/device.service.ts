@@ -61,6 +61,9 @@ class DeviceService {
     setInterval(async () => {
       await this.findUpgradeableDevices();
     }, 10000);
+    setInterval(async () => {
+      await this.runRecipes();
+    }, 60000);
     this.checkDeviceClasses();
   }
 
@@ -176,10 +179,58 @@ class DeviceService {
     }
   }
 
+  private async runRecipes() {
+    const devices: Device[] = await deviceModel.find({ 'recipe.activeSince': { $gt: 0 } });
+    const now = Date.now();
+
+    for (const device of devices) {
+      let activeStep = device.recipe.steps[device.recipe.activeStepIndex];
+      let hasChanges = false;
+
+      const elapsedMs = now - device.recipe.activeSince;
+      const stepDurationMs =
+        activeStep.duration * 3600 * 1000 * (activeStep.durationUnit === 'weeks' ? 24 * 7 : activeStep.durationUnit === 'days' ? 24 : 1);
+      const remainingMs = stepDurationMs - elapsedMs;
+      if (remainingMs <= 0 && !activeStep.waitForConfirmation) {
+        if (device.recipe.activeStepIndex < device.recipe.steps.length - 1) {
+          device.recipe.activeStepIndex += 1;
+          device.recipe.activeSince = now;
+          activeStep = device.recipe.steps[device.recipe.activeStepIndex];
+          activeStep.lastTimeApplied = 0;
+
+          console.log('Advancing to next recipe step ' + device.recipe.activeStepIndex + ' for device ' + device.device_id);
+        } else {
+          device.recipe.activeSince = 0;
+          device.recipe.activeStepIndex = 0;
+          activeStep = null;
+
+          console.log('Recipe completed for device ' + device.device_id);
+        }
+
+        hasChanges = true;
+      }
+
+      if (activeStep && (!activeStep.lastTimeApplied || activeStep.lastTimeApplied < now - 3600 * 1000)) {
+        mqttclient.publish('/devices/' + device.device_id + '/configuration', activeStep.settings);
+        device.configuration = activeStep.settings;
+        activeStep.lastTimeApplied = now;
+        hasChanges = true;
+
+        console.log(`Applied recipe step ${device.recipe.activeStepIndex} to device ${device.device_id}`);
+      }
+
+      if (hasChanges) {
+        await deviceModel.findByIdAndUpdate(device._id, { recipe: device.recipe, configuration: device.configuration });
+      }
+    }
+  }
+
   private async statusMessage(device: Device, message: StatusMessage) {
     if (device.owner_id) {
       await dataService.addData(device.device_id, device.owner_id, message);
-      await alarmService.onDataReceived(device.device_id, device.owner_id, message);
+      if (!message.timestamp) {
+        await alarmService.onDataReceived(device.device_id, device.owner_id, message);
+      }
     }
   }
 

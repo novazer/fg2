@@ -155,6 +155,16 @@ export class DeviceService {
     return await firstValueFrom( this.http.get<string>(environment.API_URL + '/device/firmwaresettings/' + device_id) )
   }
 
+  public async getRecipe(device_id:string) {
+    // returns the recipe object
+    return await firstValueFrom( this.http.get<any>(environment.API_URL + '/device/recipe/' + device_id) )
+  }
+
+  public async setRecipe(device_id:string, recipe: any) {
+    const payload = { device_id, recipe };
+    await firstValueFrom( this.http.post(environment.API_URL + '/device/recipe', payload) );
+  }
+
   public async getLogs(device_id:string) {
     return await firstValueFrom( this.http.get<string>(environment.API_URL + '/device/logs/' + device_id) )
   }

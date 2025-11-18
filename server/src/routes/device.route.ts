@@ -177,6 +177,10 @@ class DeviceRoute implements Routes {
     this.router.get(`${this.path}/alarms/:device_id`, authMiddleware, this.deviceController.getDeviceAlarms);
     this.router.get(`${this.path}/firmwaresettings/:device_id`, authMiddleware, this.deviceController.getDeviceFirmwareSettings);
 
+    // Recipe endpoints
+    this.router.get(`${this.path}/recipe/:device_id`, authMiddleware, this.deviceController.getRecipe);
+    this.router.post(`${this.path}/recipe`, authMiddleware, this.deviceController.setRecipe);
+
     this.router.post(`${this.path}/claimcode`, this.deviceController.getClaimCode);
     this.router.post(`/auth/v0.0.1/device/claimcode`, this.deviceController.getClaimCode);
     this.router.get(`${this.path}/firmware`, authAdminMiddleware, this.deviceController.listFirmware);

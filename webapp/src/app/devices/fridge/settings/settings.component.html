@@ -1,4 +1,4 @@
-<ng-container *ngIf="deviceSettingsJson">
+<ng-container *ngIf="deviceSettings">
 
   <ion-card *ngIf="errorSaving">
     <ion-card-header>
@@ -25,7 +25,126 @@
     </div>
   </div>
 
-  <fridge-settings-config [settingsJson]="deviceSettingsJson" [(settingsJson)]="deviceSettingsJson" />
+  <ion-card [hidden]="!device_id.startsWith('56f4ebb7-32f6-462d') && !device_id.startsWith('003549a8-b480-4239')">
+    <ion-card-header>
+      <ion-card-title>{{'devices.fridge.settingsmode' | translate}}</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-item>
+        <ion-select [(ngModel)]="settingsmode" [interfaceOptions]="{'cssClass': 'wider-popover'}" (ionChange)="onSettingsModeChange()">
+          <ion-select-option value="manual">{{'devices.fridge.settingsmode-manual' | translate}}</ion-select-option>
+          <ion-select-option value="recipe">{{'devices.fridge.settingsmode-recipe' | translate}}</ion-select-option>
+        </ion-select>
+      </ion-item>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card *ngIf="settingsmode === 'recipe'">
+    <ion-card-header>
+      <ion-card-title> {{'devices.fridge.recipe.title' | translate}}</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <!-- Active step and starting time -->
+      <ion-item lines="none">
+        <ion-label>{{'devices.fridge.recipe.activeStep' | translate}}</ion-label>
+        <ion-select [(ngModel)]="recipe.activeStepIndex" class="ion-text-right" style="width: 150px;" (ionChange)="onActiveStepChanged()">
+          <ion-select-option *ngFor="let step of recipe.steps; let i = index" [value]="i">
+            #{{i + 1}} {{step.name}}
+          </ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <!-- Start time: show activeSince as disabled read-only datetime only when running -->
+      <ion-item lines="none">
+        <ion-label>{{'devices.fridge.recipe.startTime' | translate}}</ion-label>
+        <div class="ion-text-right">{{ getActiveSinceISO() ? (getActiveSinceISO() | date:'dd.MM.YYY - HH:mm') : ('devices.fridge.recipe.notRunning' | translate) }}</div>
+      </ion-item>
+
+      <ion-item *ngIf="stepWaitingForConfirmation(recipe.steps[recipe.activeStepIndex])" lines="none">
+        <ion-label>{{'devices.fridge.recipe.waitingForConfirmation' | translate}}</ion-label>
+        <ion-text color="warning" class="ion-text-right"> {{recipe.steps[recipe.activeStepIndex].confirmationMessage || 'Please confirm' }} </ion-text>
+        <ion-button color="primary" (click)="confirmCurrentStep()">{{'devices.fridge.recipe.confirmStep' | translate}}</ion-button>
+      </ion-item>
+
+      <ion-item-divider>
+        <ion-label>{{ 'device.fridge.recipe.steps' | translate }}</ion-label>
+      </ion-item-divider>
+
+      <ion-accordion-group (ionChange)="onRecipeStepOpened($event)">
+        <ion-accordion *ngFor="let step of recipe.steps; let i = index" toggle-icon-slot="end">
+          <ion-item slot="header" [color]="recipe.activeStepIndex === i ? recipe.activeSince > 0 ? 'success' : 'medium' : 'light'">
+            <ion-label>
+              #{{i + 1}}
+              [{{ calculateTimeRemaining(step) }}]
+              {{ step.name }}
+
+              <span *ngIf="step.settings">
+                ({{ step.settings?.day?.temperature ?? 'n/a' }}&deg;C/{{ step.settings?.night?.temperature ?? 'n/a' }}&deg;C,
+                {{ step.settings?.day?.humidity ?? 'n/a' }}%/{{ step.settings?.night?.humidity ?? 'n/a' }}%)
+              </span>
+            </ion-label>
+          </ion-item>
+          <div class="ion-padding" slot="content">
+            <ion-item lines="none">
+              <ion-label>{{'devices.fridge.recipe.step.name' | translate}}</ion-label>
+              <ion-input type="text" [(ngModel)]="step.name" class="ion-text-right"></ion-input>
+            </ion-item>
+
+            <ion-item lines="none">
+              <ion-label>{{'devices.fridge.recipe.step.waitForConfirmation' | translate}}</ion-label>
+              <ion-checkbox [(ngModel)]="step.waitForConfirmation"></ion-checkbox>
+            </ion-item>
+
+            <ion-item lines="none" [hidden]="!step.waitForConfirmation">
+              <ion-label>{{'devices.fridge.recipe.step.confirmationMessage' | translate}}</ion-label>
+              <ion-input type="text" [(ngModel)]="step.confirmationMessage" class="ion-text-right"></ion-input>
+            </ion-item>
+
+            <ion-item lines="none">
+              <ion-label>{{'devices.fridge.recipe.step.duration' | translate}}</ion-label>
+              <ion-input type="number" [(ngModel)]="step.duration" class="ion-text-right"></ion-input>
+              <ion-select [(ngModel)]="step.durationUnit" class="ion-text-right" style="width: 100px; margin-left: 10px;">
+                <ion-select-option value="hours">{{'devices.fridge.recipe.step.durationUnit.hours' | translate}}</ion-select-option>
+                <ion-select-option value="days">{{'devices.fridge.recipe.step.durationUnit.days' | translate}}</ion-select-option>
+                <ion-select-option value="weeks">{{'devices.fridge.recipe.step.durationUnit.weeks' | translate}}</ion-select-option>
+              </ion-select>
+            </ion-item>
+
+            <ion-buttons>
+              <ion-button color="primary" [hidden]="!settingsOpened" (click)="closeSettings()">{{'devices.fridge.recipe.step.closeSettings' | translate}}</ion-button>
+              <ion-button color="secondary" [hidden]="settingsOpened" (click)="openSettings()">{{'devices.fridge.recipe.step.editSettings' | translate}}</ion-button>
+              <ion-button color="tertiary" (click)="moveRecipeStep(i, -1)" [disabled]="i === 0">{{'devices.fridge.recipe.step.moveUp' | translate}}</ion-button>
+              <ion-button color="tertiary" (click)="moveRecipeStep(i, 1)" [disabled]="i === recipe.steps.length - 1">{{'devices.fridge.recipe.step.moveDown' | translate}}</ion-button>
+              <ion-button color="danger" (click)="removeRecipeStep(step)" [disabled]="recipe.steps.length <= 1">{{'devices.fridge.recipe.deleteStep' | translate}}</ion-button>
+            </ion-buttons>
+
+            <fridge-settings-config [hidden]="!settingsOpened" [(deviceSettings)]="step.settings" />
+
+            <ion-button color="primary" expand="block" [hidden]="!settingsOpened" (click)="settingsOpened = false">{{'devices.fridge.recipe.step.closeSettings' | translate}}</ion-button>
+          </div>
+        </ion-accordion>
+      </ion-accordion-group>
+
+      <!-- Add step + run controls -->
+      <ion-buttons [hidden]="settingsmode !== 'recipe' || settingsOpened">
+        <ion-button color="primary" (click)="addRecipeStep()">{{'devices.fridge.recipe.addStep' | translate}}</ion-button>
+        <ion-button color="success"
+                    (click)="setRunning(true)"
+                    [hidden]="recipe.activeSince > 0"
+                    [disabled]="recipe.steps.length === 0">
+          {{'devices.fridge.recipe.step.setRunning' | translate}}
+        </ion-button>
+        <ion-button color="danger"
+                    (click)="setRunning(false)"
+                    [hidden]="recipe.activeSince <= 0">
+          {{'devices.fridge.recipe.step.clearRunning' | translate}}
+        </ion-button>
+      </ion-buttons>
+
+    </ion-card-content>
+  </ion-card>
+
+  <fridge-settings-config *ngIf="settingsmode === 'manual'" [(deviceSettings)]="deviceSettings" />
 
   <ion-card>
     <ion-card-header>
@@ -69,7 +188,7 @@
               <ion-icon name="help-circle-outline"></ion-icon>
             </ion-button>
             <ion-input type="number" [(ngModel)]="alarm.upperThreshold" class="ion-text-right" [disabled]="alarm.disabled"></ion-input>
-            <ion-popover trigger="upperThreshold-popover-{{alarm.alarmId}}" dismissOnSelect="true">
+            <ion-popover trigger="upperThreshold-popover-{{alarm.alarmId}}" [dismissOnSelect]="true">
               <ng-template>
                 <ion-content>
                   {{'settings.alarms.upperThresholdHint' | translate}}
@@ -84,7 +203,7 @@
               <ion-icon name="help-circle-outline"></ion-icon>
             </ion-button>
             <ion-input type="number" [(ngModel)]="alarm.lowerThreshold" class="ion-text-right" [disabled]="alarm.disabled"></ion-input>
-            <ion-popover trigger="lowerThreshold-popover-{{alarm.alarmId}}" dismissOnSelect="true">
+            <ion-popover trigger="lowerThreshold-popover-{{alarm.alarmId}}" [dismissOnSelect]="true">
               <ng-template>
                 <ion-content>
                   {{'settings.alarms.lowerThresholdHint' | translate}}
@@ -112,7 +231,7 @@
             <ion-input [type]="alarm.actionType === 'email' ? 'email' : alarm.actionType === 'webhook' ? 'url' : 'text'"
                        [required]="alarm.actionType !== 'info' && !alarm.disabled"
                        [(ngModel)]="alarm.actionTarget" class="ion-text-right" [disabled]="alarm.disabled"></ion-input>
-            <ion-popover trigger="actionTarget-popover-{{alarm.alarmId}}" dismissOnSelect="true">
+            <ion-popover trigger="actionTarget-popover-{{alarm.alarmId}}" [dismissOnSelect]="true">
               <ng-template>
                 <ion-content>
                   {{'settings.alarms.actionTargetHint' | translate}}
@@ -132,7 +251,7 @@
               <ion-icon name="help-circle-outline"></ion-icon>
             </ion-button>
             <ion-input type="number" [(ngModel)]="alarm.cooldownSeconds" class="ion-text-right" [disabled]="alarm.disabled"></ion-input>
-            <ion-popover trigger="cooldownSeconds-popover-{{alarm.alarmId}}" dismissOnSelect="true">
+            <ion-popover trigger="cooldownSeconds-popover-{{alarm.alarmId}}" [dismissOnSelect]="true">
               <ng-template>
                 <ion-content>
                   {{'settings.alarms.cooldownSecondsHint' | translate}}

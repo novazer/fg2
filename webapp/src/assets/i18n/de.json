@@ -10,7 +10,10 @@
     "close": "Schließen",
     "saving": "speichern...",
     "save": "Speichern",
-    "settings": "Einstellungen"
+    "settings": "Einstellungen",
+    "errorOccurred": "Fehler aufgetreten",
+    "unableToSaveSettings": "Einstellungen konnten nicht gespeichert werden",
+    "unableToLoadSettings": "Einstellungen konnten nicht geladen werden"
   },
 
   "settings": {
@@ -122,6 +125,39 @@
         "float-start": "Start des ersten Tags",
         "day_duration": "Gesamtdauer Tag/Nacht Zyklus",
         "light_duration": "Dauer der Beleuchtungsperiode"
+      },
+      "settingsmode": "Einstellungsmodus",
+      "settingsmode-manual": "Manuell",
+      "settingsmode-recipe": "Rezept",
+      "recipe": {
+        "notRunning": "Nicht gestartet",
+        "stepTimeRemaining": "Verbleibende Zeit",
+        "waitingForConfirmation": "Warten auf Bestätigung",
+        "confirmStep": "Schritt bestätigen",
+        "title": "Rezept",
+        "add": "Rezept hinzufügen",
+        "addStep": "Schritt hinzufügen",
+        "deleteStep": "Schritt löschen",
+        "steps": "Rezept Schritte",
+        "activeStep": "Aktiver Schritt",
+        "startTime": "Startzeit Schritt",
+        "step": {
+          "name": "Schrittname",
+          "waitForConfirmation": "Auf Bestätigung warten",
+          "duration": "Dauer",
+          "durationUnit": {
+            "hours": "Stunden",
+            "days": "Tage",
+            "weeks": "Wochen"
+          },
+          "closeSettings": "Einstellungen schließen",
+          "editSettings": "Einstellungen bearbeiten",
+          "moveUp": "Nach oben",
+          "moveDown": "Nach unten",
+          "confirmationMessage": "Bestätigungsnachricht",
+          "setRunning": "Rezept starten",
+          "clearRunning": "Rezept stoppen"
+        }
       }
     },
 
@@ -250,4 +286,3 @@
   "message-firmware-update-complete-title": "Firmware-Update abgeschlossen",
   "message-firmware-update-complete-text": "Die Firmware deines Geräts wurde erfolgreich aktualisiert."
 }
-

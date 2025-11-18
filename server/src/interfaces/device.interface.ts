@@ -18,6 +18,18 @@ export interface FirmwareSettings {
   autoUpdate: boolean;
 }
 
+export interface Recipe {
+  steps: Array<{
+    settings: any;
+    durationUnit: 'hours' | 'days' | 'weeks';
+    duration: number;
+    waitForConfirmation: boolean;
+    lastTimeApplied?: number;
+  }>;
+  activeStepIndex: number;
+  activeSince: number;
+}
+
 export interface Device {
   _id?: string;
   device_id: string;
@@ -36,6 +48,7 @@ export interface Device {
   alarms?: [Alarm];
   firmwareSettings?: FirmwareSettings;
   maintenance_mode_until?: number;
+  recipe?: Recipe;
 }
 
 export interface DeviceClass {
