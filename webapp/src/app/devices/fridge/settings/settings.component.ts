@@ -452,7 +452,7 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
   // Modal: save current recipe as new template
   async openSaveTemplateModal(isPublic: boolean) {
     const alert = await this.alertController.create({
-      header: 'Save template',
+      header: `Save ${isPublic ? 'public' : 'private'} template`,
       inputs: [
         { name: 'name', type: 'text', placeholder: 'Template name' },
       ],
