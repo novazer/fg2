@@ -59,6 +59,20 @@
         <ion-checkbox [(ngModel)]="recipe.loop"></ion-checkbox>
       </ion-item>
 
+      <ion-item lines="none">
+        <ion-label>{{ 'devices.fridge.recipe.emailNotifications' | translate}}</ion-label>
+        <ion-select [(ngModel)]="recipe.notifications" class="ion-text-right" style="width: 150px;">
+          <ion-select-option [value]="'off'">{{ 'devices.fridge.recipe.emailNotifications-none' | translate}}</ion-select-option>
+          <ion-select-option [value]="'onStep'">{{ 'devices.fridge.recipe.emailNotifications-onStep' | translate}}</ion-select-option>
+          <ion-select-option [value]="'onConfirmation'">{{ 'devices.fridge.recipe.emailNotifications-onConfirmation' | translate}}</ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <ion-item lines="none" *ngIf="recipe.emailNotifications !== 'off'">
+        <ion-label>{{ 'devices.fridge.recipe.emailAddress' | translate}}</ion-label>
+        <ion-input type="email" [(ngModel)]="recipe.email" class="ion-text-right"></ion-input>
+      </ion-item>
+
       <!-- Start time: show activeSince as disabled read-only datetime only when running -->
       <ion-item lines="none">
         <ion-label>{{'devices.fridge.recipe.startTime' | translate}}</ion-label>

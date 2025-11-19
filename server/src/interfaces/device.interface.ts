@@ -19,11 +19,14 @@ export interface FirmwareSettings {
 }
 
 export interface RecipeStep {
+  name?: string;
   settings: any;
   durationUnit: 'minutes' | 'hours' | 'days' | 'weeks';
   duration: number;
   waitForConfirmation: boolean;
+  confirmationMessage?: string;
   lastTimeApplied?: number;
+  notified?: boolean;
 }
 
 export interface Recipe {
@@ -31,6 +34,8 @@ export interface Recipe {
   activeStepIndex: number;
   activeSince: number;
   loop?: boolean;
+  notifications?: 'off' | 'onStep' | 'onConfirmation';
+  email?: string;
 }
 
 export interface Device {

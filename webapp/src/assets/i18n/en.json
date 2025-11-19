@@ -168,7 +168,12 @@
         },
         "loadTemplate": "Load template",
         "savePublicTemplate": "Save public template",
-        "savePrivateTemplate": "Save private template"
+        "savePrivateTemplate": "Save private template",
+        "emailNotifications": "Email notifications",
+        "emailNotifications-none": "Off",
+        "emailNotifications-onStep": "On step change",
+        "emailNotifications-onConfirmation": "On confirmation",
+        "emailAddress": "Email address"
       }
     },
 

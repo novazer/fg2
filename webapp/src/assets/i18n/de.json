@@ -162,7 +162,12 @@
         },
         "loadTemplate": "Vorlage laden",
         "savePublicTemplate": "Öffentliche Vorlage speichern",
-        "savePrivateTemplate": "Private Vorlage speichern"
+        "savePrivateTemplate": "Private Vorlage speichern",
+        "emailNotifications": "E-Mail Benachrichtigungen",
+        "emailNotifications-none": "Aus",
+        "emailNotifications-onStep": "Bei Schrittwechsel",
+        "emailNotifications-onConfirmation": "Bei Bestätigung",
+        "emailAddress": "E-Mail Adresse"
       }
     },
 

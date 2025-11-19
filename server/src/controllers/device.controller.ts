@@ -378,7 +378,10 @@ class DeviceController {
         return; // middleware already handled response if unauthorized
       }
 
-      recipePayload.steps?.forEach((step: any) => (step.lastTimeApplied = 0));
+      recipePayload.steps?.forEach((step: any) => {
+        step.lastTimeApplied = 0;
+        step.notified = false;
+      });
 
       const updated = await deviceModel.findOneAndUpdate({ device_id }, { $set: { recipe: recipePayload } }, { new: true, useFindAndModify: false });
 

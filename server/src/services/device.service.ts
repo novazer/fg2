@@ -9,9 +9,10 @@ import { AddDeviceDto, RegisterDeviceDto, TestDeviceDto } from '@/dtos/device.dt
 import { mqttclient } from '../databases/mqttclient';
 import { dataService } from './data.service';
 import { HttpException } from '@/exceptions/HttpException';
-import { ENABLE_SELF_REGISTRATION, SELF_REGISTRATION_PASSWORD } from '@/config';
+import { ENABLE_SELF_REGISTRATION, SELF_REGISTRATION_PASSWORD, SMTP_SENDER } from '@/config';
 import { alarmService } from '@services/alarm.service';
 import { isNumeric } from 'influx/lib/src/grammar';
+import { mailTransport } from '@services/auth.service';
 
 export type StatusMessage = {
   sensors: {
@@ -190,6 +191,8 @@ class DeviceService {
 
       let activeStep = device.recipe.steps[device.recipe.activeStepIndex];
       let hasChanges = false;
+      let emailSubject = null;
+      let emailBody = null;
 
       const elapsedMs = now - device.recipe.activeSince;
       const stepDurationMs =
@@ -205,29 +208,58 @@ class DeviceService {
           : 1);
       const remainingMs = stepDurationMs - elapsedMs;
       if (remainingMs <= 0 && !activeStep.waitForConfirmation) {
-        if (device.recipe.activeStepIndex < device.recipe.steps.length - 1) {
-          device.recipe.activeStepIndex += 1;
-          device.recipe.activeSince = now;
-          activeStep = device.recipe.steps[device.recipe.activeStepIndex];
-          activeStep.lastTimeApplied = 0;
+        if (activeStep.waitForConfirmation) {
+          if (device.recipe.notifications !== 'off' && !activeStep.notified) {
+            emailSubject = `[FG2] Recipe step #${device.recipe.activeStepIndex + 1} waiting for confirmation on device ${device.device_id}`;
+            emailBody = `Please confirm the completion of step #${device.recipe.activeStepIndex + 1} ${activeStep.name}: ${
+              activeStep.confirmationMessage || 'No additional information provided.'
+            }`;
 
-          console.log('Advancing to next recipe step ' + device.recipe.activeStepIndex + ' for device ' + device.device_id);
-        } else if (device.recipe.loop) {
-          device.recipe.activeStepIndex = 0;
-          device.recipe.activeSince = now;
-          activeStep = device.recipe.steps[device.recipe.activeStepIndex];
-          activeStep.lastTimeApplied = 0;
-
-          console.log('Looping recipe to step 0 for device ' + device.device_id);
+            activeStep.notified = true;
+            hasChanges = true;
+          }
         } else {
-          device.recipe.activeSince = 0;
-          device.recipe.activeStepIndex = 0;
-          activeStep = null;
+          if (device.recipe.activeStepIndex < device.recipe.steps.length - 1) {
+            device.recipe.activeStepIndex += 1;
+            device.recipe.activeSince = now;
+            activeStep = device.recipe.steps[device.recipe.activeStepIndex];
+            activeStep.lastTimeApplied = 0;
+            activeStep.notified = false;
 
-          console.log('Recipe completed for device ' + device.device_id);
+            console.log('Advancing to next recipe step ' + device.recipe.activeStepIndex + ' for device ' + device.device_id);
+
+            if (device.recipe.notifications === 'onStep') {
+              emailSubject = `[FG2] Recipe advanced to step #${device.recipe.activeStepIndex + 1} on device ${device.device_id}`;
+              emailBody = `The recipe has advanced to step #${device.recipe.activeStepIndex + 1} ${activeStep.name}`;
+            }
+          } else if (device.recipe.loop) {
+            device.recipe.activeStepIndex = 0;
+            device.recipe.activeSince = now;
+            activeStep = device.recipe.steps[device.recipe.activeStepIndex];
+            activeStep.lastTimeApplied = 0;
+            activeStep.notified = false;
+
+            console.log('Looping recipe to step 0 for device ' + device.device_id);
+
+            if (device.recipe.notifications === 'onStep') {
+              emailSubject = `[FG2] Recipe looped to step #1 on device ${device.device_id}`;
+              emailBody = `The recipe has looped back to step #1 ${activeStep.name}.`;
+            }
+          } else {
+            device.recipe.activeSince = 0;
+            device.recipe.activeStepIndex = 0;
+            activeStep = null;
+
+            console.log('Recipe completed for device ' + device.device_id);
+
+            if (device.recipe.notifications === 'onStep') {
+              emailSubject = `[FG2] Recipe completed on device ${device.device_id}`;
+              emailBody = `The recipe has completed all steps on device ${device.device_id}.`;
+            }
+          }
+
+          hasChanges = true;
         }
-
-        hasChanges = true;
       }
 
       if (activeStep && (!activeStep.lastTimeApplied || activeStep.lastTimeApplied < now - 3600 * 1000) && device.lastseen >= now - 60 * 1000) {
@@ -241,6 +273,19 @@ class DeviceService {
 
       if (hasChanges) {
         await deviceModel.findByIdAndUpdate(device._id, { recipe: device.recipe, configuration: device.configuration });
+      }
+
+      if (emailSubject && emailBody && device.recipe.email) {
+        try {
+          await mailTransport.sendMail({
+            from: SMTP_SENDER,
+            to: device.recipe.email,
+            subject: emailSubject,
+            text: emailBody,
+          });
+        } catch (e) {
+          console.log(`Failed to send recipe step notification email for device ${device.device_id}:`, e);
+        }
       }
     }
   }
