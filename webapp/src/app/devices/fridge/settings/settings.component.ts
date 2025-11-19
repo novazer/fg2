@@ -401,6 +401,7 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
                 this.recipe.steps = tpl.steps;
                 this.recipe.activeStepIndex = 0;
                 this.recipe.activeSince = 0;
+                this.recipe.loop = false;
                 const toast = await this.toastController.create({ message: 'Template loaded', duration: 2000 });
                 await toast.present();
               } catch (e) {
