@@ -25,7 +25,7 @@
     </div>
   </div>
 
-  <ion-card [hidden]="!device_id.startsWith('56f4ebb7-32f6-462d') && !device_id.startsWith('003549a8-b480-4239')">
+  <ion-card [hidden]="!device_id.startsWith('56f4ebb7-32f6-462d') && !device_id.startsWith('003549a8-b480-4239') && !device_id.startsWith('37713142-0baf-440c')">
     <ion-card-header>
       <ion-card-title>{{'devices.fridge.settingsmode' | translate}}</ion-card-title>
     </ion-card-header>
@@ -41,7 +41,7 @@
 
   <ion-card *ngIf="settingsmode === 'recipe'">
     <ion-card-header>
-      <ion-card-title> {{'devices.fridge.recipe.title' | translate}}</ion-card-title>
+      <ion-card-title> {{'devices.fridge.recipe.title' + (recipe.activeSince > 0 ? '-active' : '-inactive') | translate}}</ion-card-title>
     </ion-card-header>
     <ion-card-content>
       <!-- Active step and starting time -->
@@ -110,13 +110,13 @@
               </ion-select>
             </ion-item>
 
-            <ion-item>
-              <ion-button color="primary" [hidden]="!settingsOpened" (click)="closeSettings()">{{'devices.fridge.recipe.step.closeSettings' | translate}}</ion-button>
-              <ion-button color="secondary" [hidden]="settingsOpened" (click)="openSettings()">{{'devices.fridge.recipe.step.editSettings' | translate}}</ion-button>
-              <ion-button color="tertiary" (click)="moveRecipeStep(i, -1)" [disabled]="i === 0">{{'devices.fridge.recipe.step.moveUp' | translate}}</ion-button>
-              <ion-button color="tertiary" (click)="moveRecipeStep(i, 1)" [disabled]="i === recipe.steps.length - 1">{{'devices.fridge.recipe.step.moveDown' | translate}}</ion-button>
-              <ion-button color="danger" (click)="removeRecipeStep(step)" [disabled]="recipe.activeStepIndex === i && recipe.activeSince > 0">{{'devices.fridge.recipe.deleteStep' | translate}}</ion-button>
-            </ion-item>
+            <div>
+              <ion-button size="small" color="primary" [hidden]="!settingsOpened" (click)="closeSettings()">{{'devices.fridge.recipe.step.closeSettings' | translate}}</ion-button>
+              <ion-button size="small" color="secondary" [hidden]="settingsOpened" (click)="openSettings()">{{'devices.fridge.recipe.step.editSettings' | translate}}</ion-button>
+              <ion-button size="small" color="tertiary" (click)="moveRecipeStep(i, -1)" [disabled]="i === 0">{{'devices.fridge.recipe.step.moveUp' | translate}}</ion-button>
+              <ion-button size="small" color="tertiary" (click)="moveRecipeStep(i, 1)" [disabled]="i === recipe.steps.length - 1">{{'devices.fridge.recipe.step.moveDown' | translate}}</ion-button>
+              <ion-button size="small" color="danger" (click)="removeRecipeStep(step)" [disabled]="recipe.activeStepIndex === i && recipe.activeSince > 0">{{'devices.fridge.recipe.deleteStep' | translate}}</ion-button>
+            </div>
 
             <fridge-settings-config *ngIf="settingsOpened" [(deviceSettings)]="step.settings" />
 
@@ -126,20 +126,26 @@
       </ion-accordion-group>
 
       <!-- Add step + run controls -->
-      <ion-item [hidden]="settingsmode !== 'recipe' || settingsOpened">
-        <ion-button color="primary" (click)="addRecipeStep()">{{'devices.fridge.recipe.addStep' | translate}}</ion-button>
-        <ion-button color="success"
+      <div [hidden]="settingsmode !== 'recipe' || settingsOpened">
+        <ion-button size="small" color="primary" (click)="addRecipeStep()">{{'devices.fridge.recipe.addStep' | translate}}</ion-button>
+
+        <!-- New: Load / Save template buttons -->
+        <ion-button size="small" color="tertiary" (click)="openLoadTemplateModal()">{{'devices.fridge.recipe.loadTemplate' | translate}}</ion-button>
+        <ion-button size="small" color="secondary" (click)="openSaveTemplateModal(false)">{{'devices.fridge.recipe.savePrivateTemplate' | translate}}</ion-button>
+        <ion-button size="small" color="secondary" (click)="openSaveTemplateModal(true)">{{'devices.fridge.recipe.savePublicTemplate' | translate}}</ion-button>
+
+        <ion-button size="small" color="success"
                     (click)="setRunning(true)"
                     [hidden]="recipe.activeSince > 0"
                     [disabled]="recipe.steps.length === 0">
           {{'devices.fridge.recipe.step.setRunning' | translate}}
         </ion-button>
-        <ion-button color="danger"
+        <ion-button size="small" color="danger"
                     (click)="setRunning(false)"
                     [hidden]="recipe.activeSince <= 0">
           {{'devices.fridge.recipe.step.clearRunning' | translate}}
         </ion-button>
-      </ion-item>
+      </div>
 
     </ion-card-content>
   </ion-card>
@@ -267,20 +273,6 @@
       </ion-card>
     </ion-card-content>
   </ion-card>
-
-  <!-- <ion-card>
-    <ion-card-header>
-      <ion-card-title>{{'settings.control-mode' | translate}}</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
-      <ion-item>
-        <ion-select [(ngModel)]="settings.fridge_mode">
-          <ion-select-option value="1">{{'settings.control-mode-humidity' | translate}}</ion-select-option>
-          <ion-select-option value="2">{{'settings.control-mode-temperature' | translate}}</ion-select-option>
-        </ion-select>
-      </ion-item>
-    </ion-card-content>
-  </ion-card> -->
 
   <ion-card>
     <ion-card-content>

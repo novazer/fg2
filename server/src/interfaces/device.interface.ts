@@ -18,14 +18,16 @@ export interface FirmwareSettings {
   autoUpdate: boolean;
 }
 
+export interface RecipeStep {
+  settings: any;
+  durationUnit: 'hours' | 'days' | 'weeks';
+  duration: number;
+  waitForConfirmation: boolean;
+  lastTimeApplied?: number;
+}
+
 export interface Recipe {
-  steps: Array<{
-    settings: any;
-    durationUnit: 'hours' | 'days' | 'weeks';
-    duration: number;
-    waitForConfirmation: boolean;
-    lastTimeApplied?: number;
-  }>;
+  steps: RecipeStep[];
   activeStepIndex: number;
   activeSince: number;
 }

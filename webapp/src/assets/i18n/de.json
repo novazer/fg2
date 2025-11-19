@@ -134,7 +134,8 @@
         "stepTimeRemaining": "Verbleibende Zeit",
         "waitingForConfirmation": "Warten auf Bestätigung",
         "confirmStep": "Schritt bestätigen",
-        "title": "Rezept",
+        "title-active": "Rezept (Läuft)",
+        "title-inactive": "Rezept (Gestoppt)",
         "add": "Rezept hinzufügen",
         "addStep": "Schritt hinzufügen",
         "deleteStep": "Schritt löschen",
@@ -157,7 +158,10 @@
           "confirmationMessage": "Bestätigungsnachricht",
           "setRunning": "Rezept starten",
           "clearRunning": "Rezept stoppen"
-        }
+        },
+        "loadTemplate": "Vorlage laden",
+        "savePublicTemplate": "Öffentliche Vorlage speichern",
+        "savePrivateTemplate": "Private Vorlage speichern"
       }
     },
 

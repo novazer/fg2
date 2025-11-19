@@ -6,6 +6,7 @@ import { AddDeviceClassDto, TestDeviceDto } from '@dtos/device.dto';
 import { isUserDeviceMiddelware } from '@/middlewares/auth.middleware';
 import { version } from 'os';
 import deviceModel from '@models/device.model'; // added import
+import recipeModel from '@models/recipe.model'; // new import
 
 class DeviceController {
   public getDevices = async (req: Request, res: Response, next: NextFunction) => {
@@ -384,6 +385,112 @@ class DeviceController {
       }
 
       return res.status(200).json({ status: 'ok' });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  // List templates: returns public templates + templates owned by user
+  public listRecipes = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+    try {
+      const userId = req.user_id;
+      const recipes = await recipeModel
+        .find({ $or: [{ public: true }, { owner_id: userId }] })
+        .lean()
+        .exec();
+      res.status(200).json(recipes);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  // Create a new template
+  public createRecipeTemplate = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+    try {
+      const { name, steps, public: isPublic } = req.body;
+      if (!name || !steps) {
+        return res.status(400).json({ error: 'Missing name or steps' });
+      }
+      // unique by name
+      const exists = await recipeModel.findOne({ name }).lean().exec();
+      if (exists) {
+        return res.status(409).json({ error: 'Template name already exists' });
+      }
+      const doc = await recipeModel.create({
+        name,
+        owner_id: req.user_id,
+        public: !!isPublic,
+        steps,
+      });
+      res.status(201).json(doc);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  // Get single template
+  public getRecipeTemplate = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+    try {
+      const id = req.params.template_id;
+      const doc = await recipeModel.findById(id).lean().exec();
+      if (!doc) {
+        return res.status(404).json({ error: 'Not found' });
+      }
+      // allow if public or owner or admin
+      if (!doc.public && doc.owner_id !== req.user_id && !req.is_admin) {
+        return res.status(403).json({ error: 'Forbidden' });
+      }
+      res.status(200).json(doc);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  // Update template
+  public updateRecipeTemplate = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+    try {
+      const id = req.params.template_id;
+      const { name, steps, public: isPublic } = req.body;
+      const doc = await recipeModel.findById(id).exec();
+      if (!doc) {
+        return res.status(404).json({ error: 'Not found' });
+      }
+      if (doc.owner_id !== req.user_id && !req.is_admin) {
+        return res.status(403).json({ error: 'Forbidden' });
+      }
+      // if changing name, ensure unique
+      if (name && name !== doc.name) {
+        const exists = await recipeModel
+          .findOne({ name, _id: { $ne: id } })
+          .lean()
+          .exec();
+        if (exists) {
+          return res.status(409).json({ error: 'Template name already exists' });
+        }
+        doc.name = name;
+      }
+      if (steps && Array.isArray(steps)) doc.steps = steps;
+      if (typeof isPublic !== 'undefined') doc.public = !!isPublic;
+      await doc.save();
+      res.status(200).json(doc);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  // Delete template
+  public deleteRecipeTemplate = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+    try {
+      const id = req.params.template_id;
+      const doc = await recipeModel.findById(id).exec();
+      if (!doc) {
+        return res.status(404).json({ error: 'Not found' });
+      }
+      if (doc.owner_id !== req.user_id && !req.is_admin) {
+        return res.status(403).json({ error: 'Forbidden' });
+      }
+      await recipeModel.findByIdAndDelete(id).exec();
+      res.status(200).json({ status: 'ok' });
     } catch (error) {
       next(error);
     }

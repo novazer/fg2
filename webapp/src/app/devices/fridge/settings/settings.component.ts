@@ -2,7 +2,8 @@ import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {DataService} from 'src/app/services/data.service';
 import {DeviceService} from 'src/app/services/devices.service';
-import {ToastController} from "@ionic/angular";
+import {ToastController, AlertController, AlertInput} from "@ionic/angular";
+import { RecipeService } from 'src/app/services/recipe.service';
 
 @Component({
   selector: 'fridge-settings',
@@ -41,6 +42,8 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private _router: Router,
     private toastController: ToastController,
+    private alertController: AlertController,
+    private recipes: RecipeService,
   ) {
     this.offset = new Date().getTimezoneOffset()*60;
   }
@@ -317,5 +320,126 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
     }
 
     void this.showSavingReminderToast();
+  }
+
+  // Modal: list templates and allow load or delete
+  async openLoadTemplateModal() {
+    try {
+      const templates = await this.recipes.listTemplates();
+      if (!templates || templates.length === 0) {
+        const toast = await this.toastController.create({ message: 'No templates available', duration: 2000 });
+        await toast.present();
+        return;
+      }
+
+      const inputs: AlertInput[] = templates.map((t, idx) => ({
+        name: 'selectedTemplate',              // required/shared name for radio group
+        type: 'radio',
+        label: `${t.name}${t.public ? ' (public)' : ''}`,
+        value: t._id,
+        checked: idx === 0,                    // default selection for the first item
+      }));
+
+      const alert = await this.alertController.create({
+        header: 'Load template',
+        inputs,
+        buttons: [
+          {
+            text: 'Delete',
+            handler: async (selectedId: string) => {
+              if (!selectedId) return;
+              try {
+                await this.recipes.deleteTemplate(selectedId);
+                const toast = await this.toastController.create({ message: 'Template deleted', duration: 2000 });
+                await toast.present();
+              } catch (e) {
+                let message = 'Failed to delete template';
+                if ((e as any).status === 403) {
+                  message = 'You do not have permission to delete this template';
+                }
+                const toast = await this.toastController.create({ message, duration: 2000 });
+                await toast.present();
+              }
+            }
+          },
+          {
+            text: 'Load',
+            handler: async (selectedId: string) => {
+              if (!selectedId) return;
+              try {
+                // fetch template and apply locally, then send to device
+                const tpl: any = await this.recipes.getTemplate(selectedId);
+                // ensure step.settings are objects (they may be stored as JSON string)
+                tpl.steps = tpl.steps.map((s: any) => ({
+                  ...s,
+                  settings: typeof s.settings === 'string' ? JSON.parse(s.settings) : s.settings,
+                }));
+                this.recipe.steps = tpl.steps;
+                this.recipe.activeStepIndex = 0;
+                this.recipe.activeSince = 0;
+                const toast = await this.toastController.create({ message: 'Template loaded', duration: 2000 });
+                await toast.present();
+              } catch (e) {
+                console.log('Failed loading template', e);
+                const toast = await this.toastController.create({ message: 'Failed to load template', duration: 2000 });
+                await toast.present();
+              }
+            }
+          },
+          { text: 'Cancel', role: 'cancel' }
+        ]
+      });
+      await alert.present();
+    } catch (e) {
+      console.log('Failed to open templates', e);
+      const toast = await this.toastController.create({ message: 'Failed fetching templates', duration: 2000 });
+      await toast.present();
+    }
+  }
+
+  // Modal: save current recipe as new template
+  async openSaveTemplateModal(isPublic: boolean) {
+    const alert = await this.alertController.create({
+      header: 'Save template',
+      inputs: [
+        { name: 'name', type: 'text', placeholder: 'Template name' },
+      ],
+      buttons: [
+        { text: 'Cancel', role: 'cancel' },
+        {
+          text: 'Save',
+          handler: async (data) => {
+            const name = data.name;
+            if (!name) {
+              const toast = await this.toastController.create({ message: 'Name required', duration: 5000 });
+              await toast.present();
+              return false; // keep alert open
+            }
+            try {
+              const steps = this.recipe.steps.map((step: any) => ({
+                ...step,
+                settings: JSON.stringify(step.settings),
+              }));
+              await this.recipes.createTemplate(name, steps, isPublic);
+              const toast = await this.toastController.create({ message: 'Template saved', duration: 5000 });
+              await toast.present();
+              return true;
+            } catch (e: any) {
+              let message = 'Failed to save template';
+              if (e.status === 409) {
+                message = 'Template name already exists';
+              } else {
+                console.log(message, e);
+              }
+              const toast = await this.toastController.create({ message, duration: 5000 });
+              await toast.present();
+              return false; // close alert
+            }
+
+          }
+        }
+      ]
+    });
+    await alert.present();
   }
 }
