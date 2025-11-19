@@ -348,22 +348,30 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
         return;
       }
 
-      const inputs: AlertInput[] = templates.map((t, idx) => ({
-        name: 'selectedTemplate',              // required/shared name for radio group
-        type: 'radio',
-        label: `${t.name}${t.public ? ' (public)' : ''}`,
-        value: t._id,
-        checked: idx === 0,                    // default selection for the first item
-      }));
+      const inputs: AlertInput[] = templates
+        .sort((a: any, b: any) => `${a.public ? 'b' : 'a'}${a.name}`.localeCompare(`${b.public ? 'b' : 'a'}${b.name}`))
+        .map((t, idx) => ({
+          name: 'selectedTemplate',              // required/shared name for radio group
+          type: 'radio',
+          label: `${t.public ? '[public] ' : ''}${t.name}`,
+          value: t._id,
+          checked: idx === 0,                    // default selection for the first item
+        }));
 
       const alert = await this.alertController.create({
         header: 'Load template',
         inputs,
+        cssClass: 'fullwidth',
         buttons: [
           {
             text: 'Delete',
             handler: async (selectedId: string) => {
               if (!selectedId) return;
+
+              if (!confirm('Are you sure you want to delete this template?')) {
+                return;
+              }
+
               try {
                 await this.recipes.deleteTemplate(selectedId);
                 const toast = await this.toastController.create({ message: 'Template deleted', duration: 2000 });
