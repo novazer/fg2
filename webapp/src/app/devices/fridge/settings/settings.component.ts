@@ -51,6 +51,7 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
       this.firmwareSettings = await this.devices.getFirmwareSettings(this.device_id);
       this.deviceSettings = JSON.parse(await this.devices.getConfig(this.device_id));
       this.recipe = await this.devices.getRecipe(this.device_id);
+      this.recipe?.steps?.forEach((step: any) => step.settings = JSON.parse(step.settings));
 
       if (this.recipe.activeSince > 0) {
         this.startTimer();
@@ -128,8 +129,10 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
   }
 
   addRecipeStep() {
+    const lastStep = this.recipe.steps.length > 0 ? this.recipe.steps[this.recipe.steps.length - 1] : undefined;
+
     this.recipe.steps.push({
-      settings: JSON.parse(JSON.stringify(this.recipe.steps[0]?.settings ?? this.deviceSettings)),
+      settings: JSON.parse(JSON.stringify(lastStep?.settings ?? this.deviceSettings)),
       durationUnit: 'days',
       duration: 7,
       waitForConfirmation: false,

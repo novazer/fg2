@@ -184,6 +184,10 @@ class DeviceService {
     const now = Date.now();
 
     for (const device of devices) {
+      if (device.recipe.activeStepIndex < 0 || device.recipe.steps.length <= 0) {
+        continue;
+      }
+
       let activeStep = device.recipe.steps[device.recipe.activeStepIndex];
       let hasChanges = false;
 
