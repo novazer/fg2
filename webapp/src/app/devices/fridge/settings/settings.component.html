@@ -83,17 +83,21 @@
               [{{ calculateTimeRemaining(step) }}]
               {{ step.name }}
 
-              <ion-text style="font-size: 0.75em; float: right" *ngIf="step.settings">
-                ({{ 'devices.fridge.workmode-' + (step.settings?.workmode ?? 'off') | translate }}<span *ngIf="step.settings?.workmode === 'off'">)</span>&nbsp;
+              <ion-text style="font-size: 0.75em; float: right; white-space: normal; max-width: 100%" *ngIf="step.settings">
+                ({{ 'devices.fridge.workmode-' + (step.settings?.workmode ?? 'off') | translate }}<span *ngIf="step.settings?.workmode === 'off'">)</span>
 
                 <span *ngIf="step.settings?.workmode !== 'off'"> |
-                  <span *ngIf="parseWorkmode(step.settings?.workmode).hasDaycycle">{{ step.settings?.day?.temperature ?? 'n/a' }}/</span>{{ step.settings?.night?.temperature ?? 'n/a' }}&deg;C,
-                  <span *ngIf="parseWorkmode(step.settings?.workmode).hasHumidity">
-                    <span *ngIf="parseWorkmode(step.settings?.workmode).hasDaycycle">{{ step.settings?.day?.humidity ?? 'n/a' }}%/</span>{{ step.settings?.night?.humidity ?? 'n/a' }}% RLF,
+                  <span *ngIf="parseWorkmode(step.settings?.workmode).hasDaycycle">
+                    {{ secondsToTimeString(step.settings?.daynight?.day ?? 0) }} -
+                    {{ secondsToTimeString(step.settings?.daynight?.night ?? 0) }} |
                   </span>
-                  <span *ngIf="parseWorkmode(step.settings?.workmode).hasDaycycle">L: {{ step.settings?.lights.limit}}%, </span>
-                  <span *ngIf="parseWorkmode(step.settings?.workmode).hasCo2">{{ step.settings?.co2?.target }}PPM,</span>
-                  E: {{ step.settings?.fans?.external }}%, I: {{ step.settings?.fans?.internal }}%)
+                  <span *ngIf="parseWorkmode(step.settings?.workmode).hasDaycycle">{{ step.settings?.day?.temperature ?? 'n/a' }}/</span>{{ step.settings?.night?.temperature ?? 'n/a' }}&deg;C |
+                  <span *ngIf="parseWorkmode(step.settings?.workmode).hasHumidity">
+                    <span *ngIf="parseWorkmode(step.settings?.workmode).hasDaycycle">{{ step.settings?.day?.humidity ?? 'n/a' }}%/</span>{{ step.settings?.night?.humidity ?? 'n/a' }}% RLF |
+                  </span>
+                  <span *ngIf="parseWorkmode(step.settings?.workmode).hasDaycycle">Light: {{ step.settings?.lights.limit}}% | </span>
+                  <span *ngIf="parseWorkmode(step.settings?.workmode).hasCo2">{{ step.settings?.co2?.target }}PPM |</span>
+                  Ext. V.: {{ step.settings?.fans?.external }}%, Int. V.: {{ step.settings?.fans?.internal }}%)
                 </span>
               </ion-text>
             </ion-label>

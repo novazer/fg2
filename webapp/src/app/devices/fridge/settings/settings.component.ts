@@ -387,7 +387,29 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
             }
           },
           {
-            text: 'Load',
+            text: 'Load (append)',
+            handler: async (selectedId: string) => {
+              if (!selectedId) return;
+              try {
+                // fetch template and apply locally, then send to device
+                const tpl: any = await this.recipes.getTemplate(selectedId);
+                // ensure step.settings are objects (they may be stored as JSON string)
+                tpl.steps = tpl.steps.map((s: any) => ({
+                  ...s,
+                  settings: typeof s.settings === 'string' ? JSON.parse(s.settings) : s.settings,
+                }));
+                this.recipe.steps.push(...tpl.steps);
+                const toast = await this.toastController.create({ message: 'Template loaded', duration: 2000 });
+                await toast.present();
+              } catch (e) {
+                console.log('Failed loading template', e);
+                const toast = await this.toastController.create({ message: 'Failed to load template', duration: 2000 });
+                await toast.present();
+              }
+            }
+          },
+          {
+            text: 'Load (replace)',
             handler: async (selectedId: string) => {
               if (!selectedId) return;
               try {
@@ -466,5 +488,11 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
       ]
     });
     await alert.present();
+  }
+
+  secondsToTimeString(totalSeconds: number): string {
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
   }
 }
