@@ -30,6 +30,7 @@ export interface Recipe {
   steps: RecipeStep[];
   activeStepIndex: number;
   activeSince: number;
+  loop?: boolean;
 }
 
 export interface Device {

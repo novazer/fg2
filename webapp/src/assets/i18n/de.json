@@ -142,6 +142,7 @@
         "steps": "Rezept Schritte",
         "activeStep": "Aktiver Schritt",
         "startTime": "Startzeit Schritt",
+        "loop": "Endlosschleife",
         "step": {
           "name": "Schrittname",
           "waitForConfirmation": "Auf Bestätigung warten",

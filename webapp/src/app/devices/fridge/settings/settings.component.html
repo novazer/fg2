@@ -54,6 +54,11 @@
         </ion-select>
       </ion-item>
 
+      <ion-item lines="none">
+        <ion-label>{{ 'devices.fridge.recipe.loop' | translate}}</ion-label>
+        <ion-checkbox [(ngModel)]="recipe.loop"></ion-checkbox>
+      </ion-item>
+
       <!-- Start time: show activeSince as disabled read-only datetime only when running -->
       <ion-item lines="none">
         <ion-label>{{'devices.fridge.recipe.startTime' | translate}}</ion-label>

@@ -148,6 +148,7 @@
         "steps": "Recipe steps",
         "activeStep": "Active step",
         "startTime": "Step start time",
+        "loop": "Loop recipe",
         "step": {
           "name": "Step name",
           "waitForConfirmation": "Wait for confirmation",

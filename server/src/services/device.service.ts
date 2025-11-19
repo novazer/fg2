@@ -212,6 +212,13 @@ class DeviceService {
           activeStep.lastTimeApplied = 0;
 
           console.log('Advancing to next recipe step ' + device.recipe.activeStepIndex + ' for device ' + device.device_id);
+        } else if (device.recipe.loop) {
+          device.recipe.activeStepIndex = 0;
+          device.recipe.activeSince = now;
+          activeStep = device.recipe.steps[device.recipe.activeStepIndex];
+          activeStep.lastTimeApplied = 0;
+
+          console.log('Looping recipe to step 0 for device ' + device.device_id);
         } else {
           device.recipe.activeSince = 0;
           device.recipe.activeStepIndex = 0;

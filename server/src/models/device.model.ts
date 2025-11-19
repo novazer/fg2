@@ -108,7 +108,8 @@ const deviceSchema: Schema = new Schema({
         required: true,
       },
       activeStepIndex: { type: Number, required: true },
-      activeSince: { type: Number, required: true }, // epoch seconds
+      activeSince: { type: Number, required: true },
+      loop: { type: Boolean, required: false },
     },
     required: false,
   },
