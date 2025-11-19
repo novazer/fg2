@@ -91,7 +91,7 @@
                     {{ secondsToTimeString(step.settings?.daynight?.day ?? 0) }} -
                     {{ secondsToTimeString(step.settings?.daynight?.night ?? 0) }} |
                   </span>
-                  <span *ngIf="parseWorkmode(step.settings?.workmode).hasDaycycle">{{ step.settings?.day?.temperature ?? 'n/a' }}/</span>{{ step.settings?.night?.temperature ?? 'n/a' }}&deg;C |
+                  <span *ngIf="parseWorkmode(step.settings?.workmode).hasDaycycle">{{ step.settings?.day?.temperature ?? 'n/a' }}&deg;/</span>{{ step.settings?.night?.temperature ?? 'n/a' }}&deg;C |
                   <span *ngIf="parseWorkmode(step.settings?.workmode).hasHumidity">
                     <span *ngIf="parseWorkmode(step.settings?.workmode).hasDaycycle">{{ step.settings?.day?.humidity ?? 'n/a' }}%/</span>{{ step.settings?.night?.humidity ?? 'n/a' }}% RLF |
                   </span>
