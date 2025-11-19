@@ -207,7 +207,7 @@ class DeviceService {
           ? 60
           : 1);
       const remainingMs = stepDurationMs - elapsedMs;
-      if (remainingMs <= 0 && !activeStep.waitForConfirmation) {
+      if (remainingMs <= 0) {
         if (activeStep.waitForConfirmation) {
           if (device.recipe.notifications !== 'off' && !activeStep.notified) {
             emailSubject = `[FG2] Recipe step #${device.recipe.activeStepIndex + 1} waiting for confirmation on device ${device.device_id}`;
