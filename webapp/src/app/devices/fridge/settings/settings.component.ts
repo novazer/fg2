@@ -73,15 +73,15 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
     try {
       if (this.settingsmode === 'manual') {
         await this.devices.setSettings(this.device_id, JSON.stringify(this.deviceSettings));
-      } else if (this.settingsmode === 'recipe') {
-        await this.devices.setRecipe(this.device_id, {
-          ...this.recipe,
-          steps: this.recipe.steps.map((step: any) => ({
-            ...step,
-            settings: JSON.stringify(step.settings),
-          })),
-        });
       }
+      await this.devices.setRecipe(this.device_id, {
+        ...this.recipe,
+        activeSince: this.settingsmode === 'recipe' ? this.recipe.activeSince : 0,
+        steps: this.recipe.steps.map((step: any) => ({
+          ...step,
+          settings: JSON.stringify(step.settings),
+        })),
+      });
       await this.devices.setAlarms(this.device_id, this.alarms);
       await this.devices.setFirmwareSettings(this.device_id, this.firmwareSettings);
       this.saved = true;
