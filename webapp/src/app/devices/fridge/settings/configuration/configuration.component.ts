@@ -142,7 +142,7 @@ export class FridgeSettingsConfigurationComponent implements OnChanges {
       { value : "breed", name: this.translate.instant('devices.fridge.workmode-breed') },
       { value : "temp", name: this.translate.instant('devices.fridge.workmode-temp') },
       { value : "small", name: this.translate.instant('devices.fridge.workmode-small') },
-      { value : "full", name: this.translate.instant('devices.fridge.workmode-default') },
+      { value : "full", name: this.translate.instant('devices.fridge.workmode-full') },
       { value : "dry", name: this.translate.instant('devices.fridge.workmode-dry') },
       { value : "off", name: this.translate.instant('devices.fridge.workmode-off') }
     ]

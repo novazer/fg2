@@ -273,6 +273,23 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
     return stepDurationMs - elapsedMs;
   }
 
+  parseWorkmode(workmode: string): { hasDaycycle: boolean, hasHumidity: boolean, hasCo2: boolean } {
+    switch(workmode) {
+      case 'exp':
+      case 'full':
+      case 'small':
+        return { hasDaycycle: true, hasHumidity: true, hasCo2: true };
+      case 'temp':
+        return { hasDaycycle: true, hasHumidity: false, hasCo2: true };
+      case 'dry':
+        return { hasDaycycle: false, hasHumidity: true, hasCo2: false };
+      case 'breed':
+      case 'off':
+      default:
+        return { hasDaycycle: false, hasHumidity: false, hasCo2: false };
+    }
+  }
+
   stepWaitingForConfirmation(step: any): boolean {
     return this.recipe.steps.indexOf(step) === this.recipe.activeStepIndex
       && this.recipe.activeSince > 0
