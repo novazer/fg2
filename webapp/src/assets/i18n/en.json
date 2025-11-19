@@ -171,8 +171,8 @@
         "savePrivateTemplate": "Save private template",
         "emailNotifications": "Email notifications",
         "emailNotifications-none": "Off",
-        "emailNotifications-onStep": "On step change",
-        "emailNotifications-onConfirmation": "On confirmation",
+        "emailNotifications-onStep": "On every step change",
+        "emailNotifications-onConfirmation": "Only on confirmations",
         "emailAddress": "Email address"
       }
     },
