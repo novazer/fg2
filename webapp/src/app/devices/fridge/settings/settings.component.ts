@@ -20,9 +20,6 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
   public settingsmode: 'manual' | 'recipe' = 'manual';
   public recipe:any = { steps: [] };
 
-  // constants for conversion
-  private readonly HOURS_IN_DAY = 24;
-  private readonly HOURS_IN_WEEK = 24 * 7;
 
   // timer used to refresh remaining time every second
   private timerId: any = null;
@@ -263,13 +260,15 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
       elapsedMs = Date.now() - this.recipe.activeSince;
     }
 
-    const stepDurationMs = step.duration * (
+    const stepDurationMs = step.duration * 60 * 1000 * (
       step.durationUnit === 'weeks'
-        ? this.HOURS_IN_WEEK
+        ? 24 * 7 * 60
         : step.durationUnit === 'days'
-          ? this.HOURS_IN_DAY
-          : 1
-    ) * 3600 * 1000;
+          ? 24 * 60
+          : step.durationUnit === 'hours'
+            ? 60
+            : 1
+    );
 
     return stepDurationMs - elapsedMs;
   }

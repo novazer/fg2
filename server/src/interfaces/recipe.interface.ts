@@ -1,6 +1,6 @@
 import { RecipeStep } from '@interfaces/device.interface';
 
-export type DurationUnit = 'hours' | 'days' | 'weeks';
+export type DurationUnit = 'minutes' | 'hours' | 'days' | 'weeks';
 
 export type RecipeTemplateStep = Omit<RecipeStep, 'lastTimeApplied'>;
 

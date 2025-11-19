@@ -99,7 +99,7 @@ const deviceSchema: Schema = new Schema({
         type: [
           {
             settings: { type: Schema.Types.Mixed, required: true },
-            durationUnit: { type: String, enum: ['hours', 'days', 'weeks'], required: true },
+            durationUnit: { type: String, enum: ['minutes', 'hours', 'days', 'weeks'], required: true },
             duration: { type: Number, required: true },
             waitForConfirmation: { type: Boolean, required: true },
             lastTimeApplied: { type: Number, required: false },

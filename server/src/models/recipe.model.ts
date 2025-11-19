@@ -10,7 +10,7 @@ const recipeSchema: Schema = new Schema({
     type: [
       {
         settings: { type: Schema.Types.Mixed, required: true }, // store settings as mixed (string or object)
-        durationUnit: { type: String, enum: ['hours', 'days', 'weeks'], required: true },
+        durationUnit: { type: String, enum: ['minutes', 'hours', 'days', 'weeks'], required: true },
         duration: { type: Number, required: true },
         waitForConfirmation: { type: Boolean, required: true },
         name: { type: String, required: false },

@@ -63,7 +63,7 @@ class DeviceService {
     }, 10000);
     setInterval(async () => {
       await this.runRecipes();
-    }, 60000);
+    }, 20000);
     this.checkDeviceClasses();
   }
 
@@ -193,7 +193,16 @@ class DeviceService {
 
       const elapsedMs = now - device.recipe.activeSince;
       const stepDurationMs =
-        activeStep.duration * 3600 * 1000 * (activeStep.durationUnit === 'weeks' ? 24 * 7 : activeStep.durationUnit === 'days' ? 24 : 1);
+        activeStep.duration *
+        60 *
+        1000 *
+        (activeStep.durationUnit === 'weeks'
+          ? 24 * 7 * 60
+          : activeStep.durationUnit === 'days'
+          ? 24 * 60
+          : activeStep.durationUnit === 'hours'
+          ? 60
+          : 1);
       const remainingMs = stepDurationMs - elapsedMs;
       if (remainingMs <= 0 && !activeStep.waitForConfirmation) {
         if (device.recipe.activeStepIndex < device.recipe.steps.length - 1) {
@@ -214,7 +223,7 @@ class DeviceService {
         hasChanges = true;
       }
 
-      if (activeStep && (!activeStep.lastTimeApplied || activeStep.lastTimeApplied < now - 3600 * 1000)) {
+      if (activeStep && (!activeStep.lastTimeApplied || activeStep.lastTimeApplied < now - 3600 * 1000) && device.lastseen >= now - 60 * 1000) {
         mqttclient.publish('/devices/' + device.device_id + '/configuration', activeStep.settings);
         device.configuration = activeStep.settings;
         activeStep.lastTimeApplied = now;

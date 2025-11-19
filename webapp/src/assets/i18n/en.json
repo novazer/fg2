@@ -153,6 +153,7 @@
           "waitForConfirmation": "Wait for confirmation",
           "duration": "Duration",
           "durationUnit": {
+            "minutes": "minutes",
             "hours": "hours",
             "days": "days",
             "weeks": "weeks"

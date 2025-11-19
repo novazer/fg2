@@ -20,7 +20,7 @@ export interface FirmwareSettings {
 
 export interface RecipeStep {
   settings: any;
-  durationUnit: 'hours' | 'days' | 'weeks';
+  durationUnit: 'minutes' | 'hours' | 'days' | 'weeks';
   duration: number;
   waitForConfirmation: boolean;
   lastTimeApplied?: number;

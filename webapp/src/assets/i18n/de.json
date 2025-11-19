@@ -147,6 +147,7 @@
           "waitForConfirmation": "Auf Bestätigung warten",
           "duration": "Dauer",
           "durationUnit": {
+            "minutes": "Minuten",
             "hours": "Stunden",
             "days": "Tage",
             "weeks": "Wochen"

@@ -104,6 +104,7 @@
               <ion-label>{{'devices.fridge.recipe.step.duration' | translate}}</ion-label>
               <ion-input type="number" [(ngModel)]="step.duration" class="ion-text-right"></ion-input>
               <ion-select [(ngModel)]="step.durationUnit" class="ion-text-right" style="width: 100px; margin-left: 10px;">
+                <ion-select-option value="minutes">{{'devices.fridge.recipe.step.durationUnit.minutes' | translate}}</ion-select-option>
                 <ion-select-option value="hours">{{'devices.fridge.recipe.step.durationUnit.hours' | translate}}</ion-select-option>
                 <ion-select-option value="days">{{'devices.fridge.recipe.step.durationUnit.days' | translate}}</ion-select-option>
                 <ion-select-option value="weeks">{{'devices.fridge.recipe.step.durationUnit.weeks' | translate}}</ion-select-option>
