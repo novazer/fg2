@@ -82,8 +82,9 @@
       <ion-item *ngIf="stepWaitingForConfirmation(recipe.steps[recipe.activeStepIndex])" lines="none">
         <ion-label>{{'devices.fridge.recipe.waitingForConfirmation' | translate}}</ion-label>
         <ion-text color="warning" class="ion-text-right"> {{recipe.steps[recipe.activeStepIndex].confirmationMessage || 'Please confirm' }} </ion-text>
-        <ion-button color="primary" (click)="confirmCurrentStep()">{{'devices.fridge.recipe.confirmStep' | translate}}</ion-button>
       </ion-item>
+
+      <ion-button *ngIf="stepWaitingForConfirmation(recipe.steps[recipe.activeStepIndex])" expand="block" color="warning" (click)="confirmCurrentStep()">{{'devices.fridge.recipe.confirmStep' | translate}}</ion-button>
 
       <ion-item-divider>
         <ion-label>{{ 'devices.fridge.recipe.steps' | translate }}</ion-label>
