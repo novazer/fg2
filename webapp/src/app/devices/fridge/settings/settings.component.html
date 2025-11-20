@@ -112,8 +112,8 @@
           <ion-item slot="header" [color]="recipe.activeStepIndex === i ? recipe.activeSince > 0 ? 'success' : 'medium' : 'light'">
             <ion-label>
               #{{i + 1}}
-              [{{ calculateTimeRemaining(step) }}]
               {{ step.name }}
+              [{{ calculateTimeRemaining(step) }}]
 
               <ion-text style="font-size: 0.75em; float: right; white-space: normal; max-width: 100%" *ngIf="step.settings">
                 ({{ 'devices.fridge.workmode-' + (step.settings?.workmode ?? 'off') | translate }}<span *ngIf="step.settings?.workmode === 'off'">)</span>
