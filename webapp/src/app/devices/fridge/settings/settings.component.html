@@ -36,6 +36,13 @@
           <ion-select-option value="recipe">{{'devices.fridge.settingsmode-recipe' | translate}} (Beta)</ion-select-option>
         </ion-select>
       </ion-item>
+      <ion-item *ngIf="settingsmode === 'recipe'" lines="none">
+        <ion-text>
+          <br/>
+          <ion-icon name="warning" color="warning"></ion-icon>
+          {{'devices.fridge.recipe.warning' | translate}}
+        </ion-text>
+      </ion-item>
     </ion-card-content>
   </ion-card>
 

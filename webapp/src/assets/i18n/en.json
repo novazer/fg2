@@ -141,6 +141,7 @@
         "confirmStep": "Confirm step",
         "title-active": "Recipe (Running)",
         "title-inactive": "Recipe (Stopped)",
+        "warning": "Warning: Recipes rely on a steady internet connection. If the connection is lost, the recipe may not advance to the next step as expected.",
         "add": "Add Recipe",
         "addStep": "Add step",
         "deleteStep": "Delete step",

@@ -135,6 +135,7 @@
         "confirmStep": "Schritt bestätigen",
         "title-active": "Rezept (Läuft)",
         "title-inactive": "Rezept (Gestoppt)",
+        "warning": "Warnung: Rezepte sind auf eine stabile Internetverbindung angewiesen. Bei Verbindungsverlust kann es vorkommen, dass das Rezept nicht wie erwartet zum nächsten Schritt übergeht.",
         "add": "Rezept hinzufügen",
         "addStep": "Schritt hinzufügen",
         "deleteStep": "Schritt löschen",
