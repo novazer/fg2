@@ -168,6 +168,8 @@
 
       <!-- Add step + run controls -->
       <div [hidden]="settingsmode !== 'recipe' || settingsOpened">
+        <ion-item-divider />
+
         <ion-button size="small" color="primary" (click)="addRecipeStep()">{{'devices.fridge.recipe.addStep' | translate}}</ion-button>
 
         <!-- New: Load / Save template buttons -->
