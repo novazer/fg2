@@ -305,6 +305,8 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
   confirmCurrentStep() {
     if (this.recipe.activeStepIndex < this.recipe.steps.length - 1) {
       this.recipe.activeStepIndex += 1;
+    } else if (this.recipe.loop) {
+      this.recipe.activeStepIndex = 0;
     } else {
       this.setRunning(false);
     }
