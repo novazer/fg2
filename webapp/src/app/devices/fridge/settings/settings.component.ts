@@ -521,9 +521,9 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
     await alert.present();
   }
 
-  secondsToTimeString(totalSeconds: number): string {
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
+  secondsToTimeString(totalSeconds: number, withOffset: boolean): string {
+    const hours = Math.floor((totalSeconds + (withOffset ? -this.offset : 0)) / 3600);
+    const minutes = Math.floor(((totalSeconds + (withOffset ? -this.offset : 0)) % 3600) / 60);
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
   }
 }

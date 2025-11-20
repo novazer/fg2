@@ -121,12 +121,16 @@
                 <span *ngIf="step.settings?.workmode !== 'off'"> |
                   <span *ngIf="parseWorkmode(step.settings?.workmode).hasDaycycle">
                     <span *ngIf="step.settings?.daynight?.floating">
-                      {{ secondsToTimeString(step.settings?.daynight?.light_duration ?? 0) }}/{{ secondsToTimeString((step.settings?.daynight?.day_duration ?? 0) - (step.settings?.daynight?.light_duration ?? 0)) }}
+                      {{
+                        secondsToTimeString(step.settings?.daynight?.light_duration ?? 0, false)
+                      }}/{{
+                         secondsToTimeString((step.settings?.daynight?.day_duration ?? 0) - (step.settings?.daynight?.light_duration ?? 0), false)
+                      }}
                       (floating)
                     </span>
                     <span *ngIf="!step.settings?.daynight?.floating">
-                      {{ secondsToTimeString(step.settings?.daynight?.day ?? 0) }} -
-                      {{ secondsToTimeString(step.settings?.daynight?.night ?? 0) }}
+                      {{ secondsToTimeString(step.settings?.daynight?.day ?? 0, true) }} -
+                      {{ secondsToTimeString(step.settings?.daynight?.night ?? 0, true) }}
                     </span> |
                   </span>
                   <span *ngIf="parseWorkmode(step.settings?.workmode).hasDaycycle">{{ step.settings?.day?.temperature ?? 'n/a' }}&deg;/</span>{{ step.settings?.night?.temperature ?? 'n/a' }}&deg;C |
