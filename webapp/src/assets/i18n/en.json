@@ -148,6 +148,10 @@
         "steps": "Recipe steps",
         "activeStep": "Active step",
         "startTime": "Step start time",
+        "etaTime": "Recipe finished ETA",
+        "remainingTime": "Recipe finished after",
+        "stepEtaTime": "Step finished ETA",
+        "stepRemainingTime": "Step finished after",
         "loop": "Loop recipe",
         "step": {
           "name": "Step name",

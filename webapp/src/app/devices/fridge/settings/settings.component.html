@@ -86,6 +86,16 @@
         <div class="ion-text-right">{{ getActiveSinceISO() ? (getActiveSinceISO() | date:'dd.MM.YYY - HH:mm') : ('devices.fridge.recipe.notRunning' | translate) }}</div>
       </ion-item>
 
+      <ion-item lines="none" *ngIf="recipe.activeSince > 0">
+        <ion-label>{{'devices.fridge.recipe.etaTime' | translate}}</ion-label>
+        <div class="ion-text-right">{{ getRecipeEtaTimeIso() | date:'dd.MM.YYY - HH:mm' }}</div>
+      </ion-item>
+
+      <ion-item lines="none">
+        <ion-label>{{'devices.fridge.recipe.remainingTime' | translate}}</ion-label>
+        <div class="ion-text-right">{{ msToDuration(getRecipeRemainingTimeMs()) }}</div>
+      </ion-item>
+
       <ion-item *ngIf="stepWaitingForConfirmation(recipe.steps[recipe.activeStepIndex])" lines="none">
         <ion-label>{{'devices.fridge.recipe.waitingForConfirmation' | translate}}</ion-label>
         <ion-text color="warning" class="ion-text-right"> {{recipe.steps[recipe.activeStepIndex].confirmationMessage || 'Please confirm' }} </ion-text>
@@ -155,6 +165,16 @@
                 <ion-select-option value="days">{{'devices.fridge.recipe.step.durationUnit.days' | translate}}</ion-select-option>
                 <ion-select-option value="weeks">{{'devices.fridge.recipe.step.durationUnit.weeks' | translate}}</ion-select-option>
               </ion-select>
+            </ion-item>
+
+            <ion-item lines="none" *ngIf="recipe.activeSince > 0">
+              <ion-label>{{'devices.fridge.recipe.stepEtaTime' | translate}}</ion-label>
+              <div class="ion-text-right">{{ getRecipeEtaTimeIso(i) | date:'dd.MM.YYY - HH:mm' }}</div>
+            </ion-item>
+
+            <ion-item lines="none">
+              <ion-label>{{'devices.fridge.recipe.stepRemainingTime' | translate}}</ion-label>
+              <div class="ion-text-right">{{ msToDuration(getRecipeRemainingTimeMs(i)) }}</div>
             </ion-item>
 
             <div>

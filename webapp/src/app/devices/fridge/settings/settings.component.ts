@@ -302,6 +302,30 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
       && this.getStepRemainingMs(step) <= 0;
   }
 
+  getRecipeRemainingTimeMs(lastStepIndex?: number): number {
+    if (this.recipe.steps.length === 0) {
+      return 0;
+    }
+
+    let remainingMs = 0;
+
+    for (let i = this.recipe.activeStepIndex; i <= (lastStepIndex ?? this.recipe.steps.length - 1); i++) {
+      const step = this.recipe.steps[i];
+      remainingMs += this.getStepRemainingMs(step);
+    }
+
+    return remainingMs;
+  }
+
+  getRecipeEtaTimeIso(lastStepIndex?: number): string | null {
+    const remainingMs = this.getRecipeRemainingTimeMs(lastStepIndex);
+    if (remainingMs <= 0) {
+      return null;
+    }
+
+    return new Date(Date.now() + remainingMs).toISOString();
+  }
+
   confirmCurrentStep() {
     if (this.recipe.activeStepIndex < this.recipe.steps.length - 1) {
       this.recipe.activeStepIndex += 1;

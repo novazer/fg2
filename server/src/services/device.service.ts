@@ -440,15 +440,17 @@ class DeviceService {
     };
 
     try {
-      await deviceModel.deleteOne({ device_id: info.device_id, owner_id: '' }); // remove unclaimed device with same id
+      try {
+        await deviceModel.deleteOne({ device_id: info.device_id, owner_id: '' }); // remove unclaimed device with same id
+      } catch (err) {}
       await deviceModel.create(device);
+      console.log('Registered new device:', device);
+
+      return { fw: device_class.firmware_id };
     } catch (err) {
       console.log(err);
+      return false;
     }
-
-    console.log(device);
-
-    return { fw: device_class.firmware_id };
   }
 
   public async create(info: AddDeviceDto): Promise<Device> {
