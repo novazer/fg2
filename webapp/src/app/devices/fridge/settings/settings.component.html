@@ -86,7 +86,7 @@
         <div class="ion-text-right">{{ getActiveSinceISO() ? (getActiveSinceISO() | date:'dd.MM.YYY - HH:mm') : ('devices.fridge.recipe.notRunning' | translate) }}</div>
       </ion-item>
 
-      <ion-item lines="none" *ngIf="recipe.activeSince > 0">
+      <ion-item lines="none">
         <ion-label>{{'devices.fridge.recipe.etaTime' | translate}}</ion-label>
         <div class="ion-text-right">{{ getRecipeEtaTimeIso() | date:'dd.MM.YYY - HH:mm' }}</div>
       </ion-item>

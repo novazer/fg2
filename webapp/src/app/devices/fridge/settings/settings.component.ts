@@ -275,7 +275,7 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
             : 1
     );
 
-    return stepDurationMs - elapsedMs;
+    return Math.max(0, stepDurationMs - elapsedMs);
   }
 
   parseWorkmode(workmode: string): { hasDaycycle: boolean, hasHumidity: boolean, hasCo2: boolean } {
