@@ -103,7 +103,14 @@ class DeviceService {
               break;
             case 'fetch':
               await this.checkAndUpgrade(device);
-              await this.fetchMessage(device, JSON.parse(message.message));
+              let parsedMessage;
+              try {
+                parsedMessage = JSON.parse(message.message);
+              } catch (e) {
+                parsedMessage = message.message;
+              }
+
+              await this.fetchMessage(device, parsedMessage);
               break;
             case 'log':
               await this.logMessage(device.device_id, JSON.parse(message.message));
