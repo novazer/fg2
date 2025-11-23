@@ -300,9 +300,7 @@ class DeviceService {
   private async statusMessage(device: Device, message: StatusMessage) {
     if (device.owner_id) {
       await dataService.addData(device.device_id, device.owner_id, message);
-      if (!message.timestamp) {
-        await alarmService.onDataReceived(device.device_id, device.owner_id, message);
-      }
+      await alarmService.onDataReceived(device.device_id, message);
     }
   }
 

@@ -12,6 +12,7 @@ export interface Alarm {
   isTriggered?: boolean;
   lastTriggeredAt?: number;
   extremeValue?: number;
+  latestDataPointTime?: number;
 }
 
 export interface FirmwareSettings {

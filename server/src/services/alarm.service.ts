@@ -14,25 +14,29 @@ const MAINTENANCE_MODE_COOLDOWN_MINUTES = 10;
 class AlarmService {
   private alarmCache: Map<string, { device: Pick<Device, 'alarms' | 'maintenance_mode_until'>; expiresAt: number }> = new Map();
 
-  async onDataReceived(deviceId: string, ownerId: string, data: StatusMessage) {
+  async onDataReceived(deviceId: string, data: StatusMessage) {
     // Retrieve alarms from cache or database
     const device = await this.getDeviceAlarms(deviceId);
     if (!device?.alarms || device.alarms.length <= 0) {
       return;
     }
 
-    // Iterate through the alarms and check conditions
     const values = data.sensors;
     for (const alarm of device.alarms) {
       const sensorValue = values[alarm.sensorType];
-      if (sensorValue !== undefined && !alarm.disabled && (alarm.upperThreshold || alarm.lowerThreshold)) {
+      if (
+        sensorValue !== undefined &&
+        !alarm.disabled &&
+        (alarm.upperThreshold || alarm.lowerThreshold) &&
+        (alarm.latestDataPointTime ?? 0) < (data.timestamp ? data.timestamp * 1000 : Date.now())
+      ) {
         const thresholdExceeded =
           (alarm.upperThreshold && sensorValue > alarm.upperThreshold) || (alarm.lowerThreshold && sensorValue < alarm.lowerThreshold);
         const inMaintenanceMode = device.maintenance_mode_until && device.maintenance_mode_until > Date.now();
         if (thresholdExceeded !== alarm.isTriggered && !inMaintenanceMode) {
-          await this.handleAlarmAction(alarm, deviceId, ownerId, sensorValue);
+          await this.handleAlarmAction(alarm, deviceId, sensorValue, data.timestamp);
         } else if (alarm.isTriggered) {
-          await this.handleAlarmData(alarm, deviceId, ownerId, sensorValue);
+          await this.handleAlarmData(alarm, deviceId, sensorValue, data.timestamp);
         }
       }
     }
@@ -73,7 +77,7 @@ class AlarmService {
     return device as unknown;
   }
 
-  private async handleAlarmAction(alarm: Alarm, deviceId: string, ownerId: string, value: number) {
+  private async handleAlarmAction(alarm: Alarm, deviceId: string, value: number, timestamp?: number) {
     const now = Date.now();
     const inCooldownPeriod = now - (alarm.lastTriggeredAt || 0) < (alarm.cooldownSeconds || 0) * 1000;
 
@@ -84,6 +88,7 @@ class AlarmService {
           $set: {
             'alarms.$.isTriggered': false,
             'alarms.$.extremeValue': undefined,
+            'alarms.$.latestDataPointTime': Math.max(alarm.latestDataPointTime ?? 0, (timestamp ?? 0) * 1000),
           },
         },
       );
@@ -96,6 +101,7 @@ class AlarmService {
             'alarms.$.lastTriggeredAt': now,
             'alarms.$.isTriggered': true,
             'alarms.$.extremeValue': value,
+            'alarms.$.latestDataPointTime': Math.max(alarm.latestDataPointTime ?? 0, (timestamp ?? 0) * 1000),
           },
         },
       );
@@ -217,7 +223,7 @@ class AlarmService {
     });
   }
 
-  private async handleAlarmData(alarm: Alarm, deviceId: string, ownerId: string, value: number) {
+  private async handleAlarmData(alarm: Alarm, deviceId: string, value: number, timestamp?: number) {
     let newExtreme = alarm.extremeValue || value;
     if (alarm.upperThreshold && value > alarm.upperThreshold) {
       newExtreme = Math.max(newExtreme, value);
@@ -232,6 +238,7 @@ class AlarmService {
         {
           $set: {
             'alarms.$.extremeValue': newExtreme,
+            'alarms.$.latestDataPointTime': Math.max(alarm.latestDataPointTime ?? 0, (timestamp ?? 0) * 1000),
           },
         },
       );

@@ -79,6 +79,7 @@ const deviceSchema: Schema = new Schema({
         lastTriggeredAt: { type: Number, required: false },
         additionalInfo: { type: Boolean, required: false },
         extremeValue: { type: Number, required: false },
+        latestDataPointTime: { type: Number, required: false },
       },
     ],
     required: false,
