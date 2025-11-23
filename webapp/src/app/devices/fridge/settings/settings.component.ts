@@ -522,8 +522,30 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
   }
 
   secondsToTimeString(totalSeconds: number, withOffset: boolean): string {
-    const hours = Math.floor((totalSeconds + (withOffset ? -this.offset : 0)) / 3600);
-    const minutes = Math.floor(((totalSeconds + (withOffset ? -this.offset : 0)) % 3600) / 60);
+    if (withOffset) {
+      let date = new Date((totalSeconds - this.offset) * 1000)
+      return date.toISOString().substring(11,16);
+    }
+
+    const hours = Math.floor((totalSeconds) / 3600);
+    const minutes = Math.floor(((totalSeconds) % 3600) / 60);
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+  }
+
+  timeStringToSeconds(time:string) {
+    time = time.substring(0, 19)
+    // let date = parseISO(time);
+    let date = new Date(time)
+    let mins:number = date.getMinutes()
+    let hours:number = date.getHours()
+    let timestamp:number = mins * 60 + hours * 3600;
+
+    timestamp += this.offset;
+    if(timestamp<0){
+      timestamp += 24*3600;
+    } else if(timestamp >= 24*3600){
+      timestamp -= 24*3600;
+    }
+    return timestamp;
   }
 }
