@@ -301,7 +301,7 @@ class DeviceController {
 
   public getDeviceLogs = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
-      if (isUserDeviceMiddelware(req, res, req.params.device_id)) {
+      if (await isUserDeviceMiddelware(req, res, req.params.device_id)) {
         const logs = await deviceService.getDeviceLogs(req.params.device_id, req.user_id, req.is_admin);
         res.status(200).json(logs);
       }
