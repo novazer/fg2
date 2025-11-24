@@ -43,6 +43,13 @@
           {{'devices.fridge.recipe.warning' | translate}}
         </ion-text>
       </ion-item>
+      <ion-item *ngIf="settingsmode === 'manual'" lines="none">
+        <ion-text>
+          <br/>
+          <ion-icon name="warning" color="warning"></ion-icon>
+          {{'devices.fridge.manualModeOfflineWarning' | translate}}
+        </ion-text>
+      </ion-item>
     </ion-card-content>
   </ion-card>
 

@@ -134,6 +134,7 @@
       "settingsmode": "Settings mode",
       "settingsmode-manual": "Manual",
       "settingsmode-recipe": "Recipe",
+      "manualModeOfflineWarning": "If your device is offline, changes made in settings mode will not be applied until the device comes back online.",
       "recipe": {
         "notRunning": "Not running",
         "stepTimeRemaining": "Time remaining",
