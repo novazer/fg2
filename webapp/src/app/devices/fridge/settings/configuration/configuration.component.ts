@@ -24,8 +24,6 @@ export class FridgeSettingsConfigurationComponent implements OnChanges {
   @Input() deviceSettings: any = {};
   @Output() deviceSettingsChange = new EventEmitter<any>();
   public settings:any = null
-  public daybreak:any = null;
-  public nightfall:any = null;
   public offset:number;
 
   public has_daycycle:boolean = false;
@@ -43,6 +41,8 @@ export class FridgeSettingsConfigurationComponent implements OnChanges {
   public maxLightEditMode:boolean = false;
   public internalFanEditMode:boolean = false;
   public externalFanEditMode:boolean = false;
+  public nightfallEditMode:boolean = false;
+  public daybreakEditMode:boolean = false;
 
   public changeWorkmode() {
     switch(this.settings.workmode) {
@@ -109,12 +109,11 @@ export class FridgeSettingsConfigurationComponent implements OnChanges {
   }
 
   private loadSettings(device_settings: any) {
-    this.daybreak = this.secondsToTimeString(device_settings?.daynight?.day ?? 36000);
-    this.nightfall = this.secondsToTimeString(device_settings?.daynight?.night ?? 79200);
-
     this.settings = {
       "workmode" : device_settings?.workmode ?? 'off',
       "daynight": {
+        "day": this.timeSecondsToLocalSeconds(device_settings?.daynight?.day) ?? 36000,
+        "night": this.timeSecondsToLocalSeconds(device_settings?.daynight?.night) ?? 79200,
         "floating": device_settings?.daynight?.floating || false,
         "float_start": this.secondsToTimeString(device_settings?.daynight?.float_start || Math.floor((new Date()).getTime() / 3600000) * 3600),
         "day_duration": device_settings?.daynight?.day_duration / 3600 || 24,
@@ -155,8 +154,8 @@ export class FridgeSettingsConfigurationComponent implements OnChanges {
       workmode: this.settings.workmode,
 
       daynight: {
-        day: this.timeStringToSeconds(this.daybreak),
-        night: this.timeStringToSeconds(this.nightfall),
+        day: this.localSecondsToTimeSeconds(this.settings.daynight.day),
+        night: this.localSecondsToTimeSeconds(this.settings.daynight.night),
         floating: this.settings.daynight.floating,
         float_start: this.dateTimeStringToSeconds(this.settings.daynight.float_start),
         day_duration: this.settings.daynight.day_duration * 3600,
@@ -193,21 +192,28 @@ export class FridgeSettingsConfigurationComponent implements OnChanges {
     this.deviceSettingsChange.emit(device_settings);
   }
 
-  timeStringToSeconds(time:string) {
-    time = time.substring(0, 19)
-    // let date = parseISO(time);
-    let date = new Date(time)
-    let mins:number = date.getMinutes()
-    let hours:number = date.getHours()
-    let timestamp:number = mins * 60 + hours * 3600;
-
-    timestamp += this.offset;
-    if(timestamp<0){
-      timestamp += 24*3600;
-    } else if(timestamp >= 24*3600){
-      timestamp -= 24*3600;
+  localSecondsToTimeSeconds(time:number) {
+    time += this.offset;
+    if(time<0){
+      time += 24*3600;
+    } else if(time >= 24*3600){
+      time -= 24*3600;
     }
-    return timestamp;
+    return time;
+  }
+
+  timeSecondsToLocalSeconds(time:number|unknown) {
+    if (typeof time !== 'number') {
+      return time;
+    }
+
+    time -= this.offset;
+    if(time<0){
+      time += 24*3600;
+    } else if(time >= 24*3600){
+      time -= 24*3600;
+    }
+    return time;
   }
 
   dateTimeStringToSeconds(time:string) {
@@ -222,7 +228,7 @@ export class FridgeSettingsConfigurationComponent implements OnChanges {
   }
 
   secondsToTimeString(time:number) {
-    time -= this.offset
+    // time -= this.offset
     let date = new Date(time * 1000)
     return date.toISOString();
   }

@@ -63,26 +63,24 @@
     <ng-container *ngIf="!settings.daynight.floating">
       <ion-item>
         <ion-label>{{'settings.daybreak' | translate}}</ion-label>
-        <ion-datetime-button datetime="datetime"></ion-datetime-button>
-
-        <ion-modal [keepContentsMounted]="true">
-          <ng-template>
-            <ion-datetime id="datetime" presentation="time" hourCycle="h23" [(ngModel)]="daybreak" minuteValues="0,15,30,45" (ionChange)="onSettingsChanged()"></ion-datetime>
-          </ng-template>
-        </ion-modal>
-
+        <ion-item lines="none">{{secondsToTimeString(settings.daynight.day).substring(11, 16)}}</ion-item>
       </ion-item>
+      <ion-item lines="none" [hidden]="!daybreakEditMode">
+        <ion-button size="small" fill="clear" (click)="settings.daynight.day = settings.daynight.day - 900" [disabled]="settings.daynight.day <= 0"><ion-icon name="remove-circle"></ion-icon></ion-button>
+        <ion-range [(ngModel)]="settings.daynight.day" [min]="0" [max]="86400 - 900" [step]="900" (ionChange)="onSettingsChanged()"></ion-range>
+        <ion-button size="small" fill="clear" (click)="settings.daynight.day = settings.daynight.day + 900" [disabled]="settings.daynight.day >= 86400 - 900"><ion-icon name="add-circle"></ion-icon></ion-button>
+      </ion-item>
+      <ion-button size="small" fill="clear" [hidden]="daybreakEditMode" (click)="daybreakEditMode = true">{{'settings.edit-value' | translate}}</ion-button>
       <ion-item lines="none">
         <ion-label>{{'settings.nightfall' | translate}}</ion-label>
-        <ion-datetime-button datetime="datetime2"></ion-datetime-button>
-
-        <ion-modal [keepContentsMounted]="true">
-          <ng-template>
-            <ion-datetime id="datetime2" presentation="time" hourCycle="h23" [(ngModel)]="nightfall" minuteValues="0,15,30,45" (ionChange)="onSettingsChanged()"></ion-datetime>
-          </ng-template>
-        </ion-modal>
-
+        <ion-item lines="none">{{secondsToTimeString(settings.daynight.night).substring(11, 16)}}</ion-item>
       </ion-item>
+      <ion-item lines="none" [hidden]="!nightfallEditMode">
+        <ion-button size="small" fill="clear" (click)="settings.daynight.night = settings.daynight.night - 900" [disabled]="settings.daynight.night <= 0"><ion-icon name="remove-circle"></ion-icon></ion-button>
+        <ion-range [(ngModel)]="settings.daynight.night" [min]="0" [max]="86400 - 900" [step]="900" (ionChange)="onSettingsChanged()"></ion-range>
+        <ion-button size="small" fill="clear" (click)="settings.daynight.night = settings.daynight.night + 900" [disabled]="settings.daynight.night >= 86400 - 900"><ion-icon name="add-circle"></ion-icon></ion-button>
+      </ion-item>
+      <ion-button size="small" fill="clear" [hidden]="nightfallEditMode" (click)="nightfallEditMode = true">{{'settings.edit-value' | translate}}</ion-button>
     </ng-container>
 
   </ion-card-content>
