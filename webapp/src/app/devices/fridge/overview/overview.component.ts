@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, OnInit, Renderer2, ViewChild } from '@angular/core';
+import {Component, ElementRef, Input, OnDestroy, OnInit, Renderer2, ViewChild} from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { IonModal } from '@ionic/angular';
 import { combineLatest } from 'rxjs';
@@ -17,7 +17,7 @@ const timeAgo = new TimeAgo('en-US')
   templateUrl: './overview.component.html',
   styleUrls: ['./overview.component.scss'],
 })
-export class FridgeOverviewComponent implements OnInit {
+export class FridgeOverviewComponent implements OnInit, OnDestroy {
 
   public vpd:number = 0;
   @Input() device_id:string = "";
@@ -44,6 +44,7 @@ export class FridgeOverviewComponent implements OnInit {
   public co2Target:number = NaN;
   public is_day:boolean = false;
   public workmode:string = 'off';
+  private refreshLogsTimer: NodeJS.Timeout|undefined = undefined;
 
   constructor(private devices: DeviceService, public data: DataService, private route: ActivatedRoute, private renderer: Renderer2) { }
 
@@ -96,6 +97,12 @@ export class FridgeOverviewComponent implements OnInit {
     for(let log of this.logs) {
       log.time = timeAgo.format(new Date(log.time))
     }
+    this.refreshLogsTimer = setInterval(async() => {
+      this.logs = await this.devices.getLogs(this.device_id);
+      for(let log of this.logs) {
+        log.time = timeAgo.format(new Date(log.time))
+      }
+    }, 30000);
 
     // Load device configuration (settings page values)
     const rawConfig = await this.devices.getConfig(this.device_id);
@@ -117,6 +124,10 @@ export class FridgeOverviewComponent implements OnInit {
       this.has_logs = false;
     }
     this.severity = Math.max(...this.logs.map((o: { severity: number; }) => {return isNaN(o.severity) ? 0 : o.severity}))
+  }
+
+  ngOnDestroy() {
+    clearInterval(this.refreshLogsTimer);
   }
 
   unClaimDevice(id:string) {
