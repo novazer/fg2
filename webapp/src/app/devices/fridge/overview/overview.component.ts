@@ -102,6 +102,8 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
       for(let log of this.logs) {
         log.time = timeAgo.format(new Date(log.time))
       }
+      this.has_logs = this.logs.length > 0;
+      this.severity = Math.max(...this.logs.map((o: { severity: number; }) => {return isNaN(o.severity) ? 0 : o.severity}))
     }, 30000);
 
     // Load device configuration (settings page values)
