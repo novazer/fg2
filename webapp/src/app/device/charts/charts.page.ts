@@ -192,9 +192,13 @@ export class ChartsPage implements OnInit, OnDestroy {
     }
 
     let series = await Promise.all(this.filtered_measures.map(async (measure:any):Promise<Highcharts.SeriesOptionsType> => {
-      const data = (measure.enabled ? await this.data.getSeries(this.device_id, measure.name, span, interval) : [])
-        .filter((data: any) => data[1] !== null && data[1] !== undefined && data[0])
-        .sort((a: any, b: any) => a[0] - b[0]);
+      let data = measure.enabled ? await this.data.getSeries(this.device_id, measure.name, span, interval) : []
+
+      if (data.length > 0 && data[data.length - 1][1] === null) {
+        data.pop();
+      }
+
+      data = data.sort((a: any, b: any) => a[0] - b[0]);
 
       return {
         name: measure.title,
