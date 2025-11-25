@@ -77,7 +77,6 @@ export class ChartsPage implements OnInit, OnDestroy {
     { name: '1m', duration: '-30d', interval:'60m', enabled: false},
     { name: '3m', duration: '-90d', interval:'180m', enabled: false },
     { name: '6m', duration: '-180d', interval:'360m', enabled: false },
-    { name: '1y', duration: '-365d', interval:'720m', enabled: false },
   ]
 
   public measures = [
