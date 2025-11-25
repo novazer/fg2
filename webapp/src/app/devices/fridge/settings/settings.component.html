@@ -1,14 +1,5 @@
 <ng-container *ngIf="deviceSettings">
 
-  <ion-card *ngIf="errorSaving">
-    <ion-card-header>
-      <ion-card-title>{{'misc.errorOccurred' | translate}}</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
-      <p>{{'misc.unableToSaveSettings' | translate}}</p>
-    </ion-card-content>
-  </ion-card>
-
   <ion-card *ngIf="errorLoading">
     <ion-card-header>
       <ion-card-title>{{'misc.errorOccurred' | translate}}</ion-card-title>
@@ -18,10 +9,11 @@
     </ion-card-content>
   </ion-card>
 
-  <div class="save-overlay" *ngIf="saving">
+  <div class="save-overlay" *ngIf="saving || loading">
     <div class="inner">
       <p><ion-spinner color="light"></ion-spinner></p>
-      <p>{{'misc.saving' | translate}}</p>
+      <p *ngIf="saving">{{'misc.saving' | translate}}</p>
+      <p *ngIf="loading">{{'misc.loading' | translate}}</p>
     </div>
   </div>
 
@@ -351,6 +343,15 @@
 
         </ion-card-content>
       </ion-card>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card *ngIf="errorSaving">
+    <ion-card-header>
+      <ion-card-title>{{'misc.errorOccurred' | translate}}</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <p>{{'misc.unableToSaveSettings' | translate}}</p>
     </ion-card-content>
   </ion-card>
 

@@ -9,6 +9,7 @@
     "success": "Success",
     "close": "Close",
     "saving": "saving...",
+    "loading": "loading...",
     "save": "save",
     "settings": "Settings",
     "errorOccurred": "An error occurred",

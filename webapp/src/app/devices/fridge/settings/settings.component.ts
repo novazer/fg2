@@ -31,6 +31,7 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
   public settingsOpened:boolean = false;
 
   public saving = false;
+  public loading = true;
 
   public saved = false;
   constructor(
@@ -65,6 +66,8 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
     catch(error) {
       console.log("error getting current device settings:", error);
       this.errorLoading = true;
+    } finally {
+      this.loading = false;
     }
   }
 
