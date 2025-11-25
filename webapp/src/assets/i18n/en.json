@@ -169,6 +169,7 @@
           "editSettings": "Edit settings",
           "moveUp": "Move up",
           "moveDown": "Move down",
+          "duplicate": "Duplicate",
           "confirmationMessage": "Confirmation message",
           "setRunning": "Start recipe",
           "clearRunning": "Stop recipe"

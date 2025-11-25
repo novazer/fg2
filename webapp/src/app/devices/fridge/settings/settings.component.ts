@@ -176,6 +176,12 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
     }
   }
 
+  duplicateRecipeStep(index: number) {
+    const step = this.recipe.steps[index];
+    const newStep = JSON.parse(JSON.stringify(step));
+    this.recipe.steps.splice(index, 0, newStep);
+  }
+
   private async showSavingReminderToast() {
     const toast = await this.toastController.create({
       message: 'Remember to save your changes!',
