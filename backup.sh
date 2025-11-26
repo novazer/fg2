@@ -29,8 +29,8 @@ docker compose exec -T mongodb mongodump \
 docker cp "$MONGO_CONTAINER":/backup.mongodump "${BACKUP_FILENAME}.mongodump"
 docker compose exec -T mongodb rm -rf /backup.mongodump || true
 
-docker compose exec -T influxdb rm -rf /influxdb-backup* || true
+docker compose exec -T influxdb rm -rf /influxdb-backup.tar /influxdb-backup/ || true
 docker compose exec -T influxdb influx backup /influxdb-backup
 docker compose exec -T influxdb tar cf /influxdb-backup.tar /influxdb-backup
 docker cp "$INFLUX_CONTAINER":/influxdb-backup.tar "${BACKUP_FILENAME}.influxdump"
-docker compose exec -T influxdb rm -rf /influxdb-backup* || true
+docker compose exec -T influxdb rm -rf /influxdb-backup.tar /influxdb-backup/ || true
