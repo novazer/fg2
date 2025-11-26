@@ -185,7 +185,7 @@
               <ion-button size="small" color="secondary" [hidden]="settingsOpened" (click)="openSettings()">{{'devices.fridge.recipe.step.editSettings' | translate}}</ion-button>
               <ion-button size="small" color="tertiary" (click)="moveRecipeStep(i, -1)" [disabled]="i === 0">{{'devices.fridge.recipe.step.moveUp' | translate}}</ion-button>
               <ion-button size="small" color="tertiary" (click)="moveRecipeStep(i, 1)" [disabled]="i === recipe.steps.length - 1">{{'devices.fridge.recipe.step.moveDown' | translate}}</ion-button>
-              <ion-button size="small" color="tertiary" (click)="duplicateRecipeStep(i)" [hidden]="i === recipe.steps.length - 1">{{'devices.fridge.recipe.step.duplicate' | translate}}</ion-button>
+              <ion-button size="small" color="tertiary" (click)="duplicateRecipeStep(i)">{{'devices.fridge.recipe.step.duplicate' | translate}}</ion-button>
               <ion-button size="small" color="danger" (click)="removeRecipeStep(step)" [disabled]="recipe.activeStepIndex === i && recipe.activeSince > 0">{{'devices.fridge.recipe.deleteStep' | translate}}</ion-button>
             </div>
 
