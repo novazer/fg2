@@ -24,7 +24,7 @@ export class ListPage implements OnInit {
 
       if (devices.length <= 0 && !this.reloaded) {
         this.reloaded = true;
-        setTimeout(() => this.deviceService.refetchDevices(), 10);
+        setTimeout(() => this.deviceService.refetchDevices(), 2000);
       } else {
         this.reloaded = false;
       }
