@@ -139,8 +139,10 @@ class AlarmService {
     const emailBody =
       `An alarm has been ${event} for device ${deviceId}.\n\n` +
       `Sensor: ${alarm.sensorType}\n` +
-      `Threshold: ${alarm.upperThreshold !== undefined ? `Upper: ${alarm.upperThreshold}` : ''} ` +
-      `${alarm.lowerThreshold !== undefined ? `Lower: ${alarm.lowerThreshold}` : ''}\n` +
+      (alarm.sensorType !== 'dehumidifier' && alarm.sensorType !== 'co2_valve'
+        ? `Threshold: ${alarm.upperThreshold !== undefined ? `Upper: ${alarm.upperThreshold}` : ''} ` +
+          `${alarm.lowerThreshold !== undefined ? `Lower: ${alarm.lowerThreshold}` : ''}\n`
+        : '') +
       `Value: ${value}\n` +
       `Alarm Name: ${alarm.name || 'N/A'}\n` +
       `Alarm ID: ${alarm.alarmId}\n` +
@@ -166,8 +168,8 @@ class AlarmService {
       deviceId,
       sensorType: alarm.sensorType,
       value: value,
-      upperThreshold: alarm.upperThreshold,
-      lowerThreshold: alarm.lowerThreshold,
+      upperThreshold: alarm.sensorType !== 'dehumidifier' && alarm.sensorType !== 'co2_valve' ? alarm.upperThreshold : undefined,
+      lowerThreshold: alarm.sensorType !== 'dehumidifier' && alarm.sensorType !== 'co2_valve' ? alarm.lowerThreshold : undefined,
       timestamp: new Date().toISOString(),
       event: alarm.isTriggered ? 'resolved' : 'triggered',
       alarmName: alarm.name,
@@ -214,7 +216,9 @@ class AlarmService {
       title: `${name} ${event}`,
       message:
         `${name} ${event}: Sensor ${alarm.sensorType}, value: ${value}, ` +
-        `upper threshold=${alarm.upperThreshold || 'n/a'}, lower threshold=${alarm.lowerThreshold || 'n/a'}` +
+        (alarm.sensorType !== 'dehumidifier' && alarm.sensorType !== 'co2_valve'
+          ? `upper threshold=${alarm.upperThreshold || 'n/a'}, lower threshold=${alarm.lowerThreshold || 'n/a'}`
+          : '') +
         (alarm.isTriggered ? `, extreme value: ${alarm.extremeValue ?? 'n/a'}` : ''),
       severity: alarm.isTriggered ? 1 : 0,
       raw: true,
