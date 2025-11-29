@@ -21,17 +21,15 @@ class AlarmService {
       return;
     }
 
-    const values = data.sensors;
     for (const alarm of device.alarms) {
-      const sensorValue = values[alarm.sensorType];
+      const sensorValue = this.getSensorValue(alarm, data);
       if (
         sensorValue !== undefined &&
         !alarm.disabled &&
         (alarm.upperThreshold || alarm.lowerThreshold) &&
         (alarm.latestDataPointTime ?? 0) < (data.timestamp ? data.timestamp * 1000 : Date.now())
       ) {
-        const thresholdExceeded =
-          (alarm.upperThreshold && sensorValue > alarm.upperThreshold) || (alarm.lowerThreshold && sensorValue < alarm.lowerThreshold);
+        const thresholdExceeded = this.isThresholdExceeded(alarm, sensorValue);
         const inMaintenanceMode = device.maintenance_mode_until && device.maintenance_mode_until > Date.now();
         if (thresholdExceeded !== alarm.isTriggered && !inMaintenanceMode) {
           await this.handleAlarmAction(alarm, deviceId, sensorValue, data.timestamp);
@@ -244,6 +242,40 @@ class AlarmService {
       );
       this.invalidateAlarmCache(deviceId);
     }
+  }
+
+  private getSensorValue(alarm: Alarm, data: StatusMessage): number | undefined {
+    switch (alarm.sensorType) {
+      case 'temperature':
+        return data?.sensors?.temperature;
+      case 'humidity':
+        return data?.sensors?.humidity;
+      case 'co2':
+        return data?.sensors?.co2;
+      case 'co2_valve':
+        return data?.outputs?.co2;
+      case 'dehumidifier':
+        return data?.outputs?.dehumidifier;
+      case 'heater':
+        return data?.outputs?.heater;
+      case 'light':
+        return data?.outputs?.light;
+      default:
+        return undefined;
+    }
+  }
+
+  private isThresholdExceeded(alarm: Alarm, sensorValue: number): boolean {
+    switch (alarm.sensorType) {
+      case 'dehumidifier':
+      case 'co2_valve':
+        return sensorValue > 0;
+
+      case 'heater':
+        sensorValue *= 100;
+    }
+
+    return (alarm.upperThreshold && sensorValue > alarm.upperThreshold) || (alarm.lowerThreshold && sensorValue < alarm.lowerThreshold);
   }
 }
 

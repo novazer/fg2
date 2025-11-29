@@ -15,7 +15,7 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
   public deviceSettings: any = {};
   public alarms:any = [];
   public firmwareSettings:any = {};
-  public availableSensorTypes = ['temperature','humidity','co2'];
+  public availableSensorTypes = ['temperature', 'humidity', 'co2', 'co2_valve', 'light', 'dehumidifier', 'heater'];
   public offset:number;
   public settingsmode: 'manual' | 'recipe' = 'manual';
   public recipe:any = { steps: [] };

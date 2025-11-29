@@ -261,12 +261,15 @@
             </ion-select>
           </ion-item>
 
-          <ion-item lines="none">
+          <ion-item lines="none" *ngIf="alarm.sensorType !== 'co2_valve' && alarm.sensorType !== 'dehumidifier'">
             <ion-label>{{'settings.alarms.upperThreshold' | translate}}</ion-label>
             <ion-button fill="clear" id="upperThreshold-popover-{{alarm.alarmId}}">
               <ion-icon name="help-circle-outline"></ion-icon>
             </ion-button>
             <ion-input type="number" [(ngModel)]="alarm.upperThreshold" class="ion-text-right" [disabled]="alarm.disabled"></ion-input>
+            <ion-text *ngIf="alarm.sensorType === 'heater' || alarm.sensorType === 'light' || alarm.sensorType === 'humidity'" class="ion-text-right">%</ion-text>
+            <ion-text *ngIf="alarm.sensorType === 'co2'" class="ion-text-right">ppm</ion-text>
+            <ion-text *ngIf="alarm.sensorType === 'temperature'">&deg;C</ion-text>
             <ion-popover trigger="upperThreshold-popover-{{alarm.alarmId}}" [dismissOnSelect]="true">
               <ng-template>
                 <ion-content>
@@ -276,12 +279,15 @@
             </ion-popover>
           </ion-item>
 
-          <ion-item lines="none">
+          <ion-item lines="none" *ngIf="alarm.sensorType !== 'co2_valve' && alarm.sensorType !== 'dehumidifier'">
             <ion-label>{{'settings.alarms.lowerThreshold' | translate}}</ion-label>
             <ion-button fill="clear" id="lowerThreshold-popover-{{alarm.alarmId}}">
               <ion-icon name="help-circle-outline"></ion-icon>
             </ion-button>
             <ion-input type="number" [(ngModel)]="alarm.lowerThreshold" class="ion-text-right" [disabled]="alarm.disabled"></ion-input>
+            <ion-text *ngIf="alarm.sensorType === 'heater' || alarm.sensorType === 'light' || alarm.sensorType === 'humidity'" class="ion-text-right">%</ion-text>
+            <ion-text *ngIf="alarm.sensorType === 'co2'" class="ion-text-right">ppm</ion-text>
+            <ion-text *ngIf="alarm.sensorType === 'temperature'">&deg;C</ion-text>
             <ion-popover trigger="lowerThreshold-popover-{{alarm.alarmId}}" [dismissOnSelect]="true">
               <ng-template>
                 <ion-content>
