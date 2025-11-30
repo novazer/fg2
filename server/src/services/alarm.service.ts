@@ -23,12 +23,7 @@ class AlarmService {
 
     for (const alarm of device.alarms) {
       const sensorValue = this.getSensorValue(alarm, data);
-      if (
-        sensorValue !== undefined &&
-        !alarm.disabled &&
-        (alarm.upperThreshold || alarm.lowerThreshold) &&
-        (alarm.latestDataPointTime ?? 0) < (data.timestamp ? data.timestamp * 1000 : Date.now())
-      ) {
+      if (sensorValue !== undefined && !alarm.disabled && (alarm.latestDataPointTime ?? 0) < (data.timestamp ? data.timestamp * 1000 : Date.now())) {
         const thresholdExceeded = this.isThresholdExceeded(alarm, sensorValue);
         const inMaintenanceMode = device.maintenance_mode_until && device.maintenance_mode_until > Date.now();
         if (thresholdExceeded !== alarm.isTriggered && !inMaintenanceMode) {
@@ -80,6 +75,7 @@ class AlarmService {
     const inCooldownPeriod = now - (alarm.lastTriggeredAt || 0) < (alarm.cooldownSeconds || 0) * 1000;
 
     if (alarm.isTriggered) {
+      console.log('Resolving alarm', alarm.alarmId, 'for device', deviceId);
       await deviceModel.updateOne(
         { device_id: deviceId, 'alarms.alarmId': alarm.alarmId },
         {
@@ -92,6 +88,7 @@ class AlarmService {
       );
       this.invalidateAlarmCache(deviceId);
     } else if (!inCooldownPeriod) {
+      console.log('Triggering alarm', alarm.alarmId, 'for device', deviceId);
       await deviceModel.updateOne(
         { device_id: deviceId, 'alarms.alarmId': alarm.alarmId },
         {
@@ -249,6 +246,7 @@ class AlarmService {
   }
 
   private getSensorValue(alarm: Alarm, data: StatusMessage): number | undefined {
+    console.log('getSensorValue', alarm, data);
     switch (alarm.sensorType) {
       case 'temperature':
         return data?.sensors?.temperature;
@@ -270,6 +268,7 @@ class AlarmService {
   }
 
   private isThresholdExceeded(alarm: Alarm, sensorValue: number): boolean {
+    console.log('isThresholdExceeded', alarm, sensorValue);
     switch (alarm.sensorType) {
       case 'dehumidifier':
       case 'co2_valve':
