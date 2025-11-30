@@ -136,14 +136,14 @@ class AlarmService {
     const emailBody =
       `An alarm has been ${event} for device ${deviceId}.\n\n` +
       `Sensor: ${alarm.sensorType}\n` +
-      (alarm.sensorType !== 'dehumidifier' && alarm.sensorType !== 'co2_valve'
+      (this.hasThresholds(alarm)
         ? `Threshold: ${alarm.upperThreshold !== undefined ? `Upper: ${alarm.upperThreshold}` : ''} ` +
           `${alarm.lowerThreshold !== undefined ? `Lower: ${alarm.lowerThreshold}` : ''}\n`
         : '') +
       `Value: ${value}\n` +
       `Alarm Name: ${alarm.name || 'N/A'}\n` +
       `Alarm ID: ${alarm.alarmId}\n` +
-      (alarm.isTriggered ? `Extreme Value: ${alarm.extremeValue}\n` : '');
+      (alarm.isTriggered && this.hasThresholds(alarm) ? `Extreme Value: ${alarm.extremeValue}\n` : '');
 
     await mailTransport.sendMail({
       from: SMTP_SENDER,
@@ -165,14 +165,14 @@ class AlarmService {
       deviceId,
       sensorType: alarm.sensorType,
       value: value,
-      upperThreshold: alarm.sensorType !== 'dehumidifier' && alarm.sensorType !== 'co2_valve' ? alarm.upperThreshold : undefined,
-      lowerThreshold: alarm.sensorType !== 'dehumidifier' && alarm.sensorType !== 'co2_valve' ? alarm.lowerThreshold : undefined,
+      upperThreshold: this.hasThresholds(alarm) ? alarm.upperThreshold : undefined,
+      lowerThreshold: this.hasThresholds(alarm) ? alarm.lowerThreshold : undefined,
       timestamp: new Date().toISOString(),
       event: alarm.isTriggered ? 'resolved' : 'triggered',
       alarmName: alarm.name,
       alarmId: alarm.alarmId,
       lastTriggeredAt: alarm.lastTriggeredAt,
-      extremeValue: alarm.extremeValue,
+      extremeValue: alarm.isTriggered && this.hasThresholds(alarm) ? alarm.extremeValue : undefined,
     });
 
     const url = new URL(alarm.actionTarget);
@@ -212,11 +212,9 @@ class AlarmService {
     await deviceService.logMessage(deviceId, {
       title: `${name} ${event}`,
       message:
-        `${name} ${event}: Sensor ${alarm.sensorType}, value: ${value}, ` +
-        (alarm.sensorType !== 'dehumidifier' && alarm.sensorType !== 'co2_valve'
-          ? `upper threshold=${alarm.upperThreshold || 'n/a'}, lower threshold=${alarm.lowerThreshold || 'n/a'}`
-          : '') +
-        (alarm.isTriggered ? `, extreme value: ${alarm.extremeValue ?? 'n/a'}` : ''),
+        `${name} ${event}: Sensor ${alarm.sensorType}, value: ${value}` +
+        (this.hasThresholds(alarm) ? `, upper threshold=${alarm.upperThreshold || 'n/a'}, lower threshold=${alarm.lowerThreshold || 'n/a'}` : '') +
+        (alarm.isTriggered && this.hasThresholds(alarm) ? `, extreme value: ${alarm.extremeValue ?? 'n/a'}` : ''),
       severity: alarm.isTriggered ? 1 : 0,
       raw: true,
     });
@@ -279,6 +277,15 @@ class AlarmService {
     }
 
     return (alarm.upperThreshold && sensorValue > alarm.upperThreshold) || (alarm.lowerThreshold && sensorValue < alarm.lowerThreshold);
+  }
+
+  private hasThresholds(alarm: Alarm): boolean {
+    return (
+      alarm.upperThreshold !== undefined ||
+      alarm.lowerThreshold !== undefined ||
+      alarm.sensorType === 'dehumidifier' ||
+      alarm.sensorType === 'co2_valve'
+    );
   }
 }
 
