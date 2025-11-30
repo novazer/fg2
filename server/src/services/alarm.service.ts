@@ -273,7 +273,7 @@ class AlarmService {
     switch (alarm.sensorType) {
       case 'dehumidifier':
       case 'co2_valve':
-        return sensorValue > 0;
+        return sensorValue !== undefined && sensorValue > 0;
 
       case 'heater':
         sensorValue *= 100;
