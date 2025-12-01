@@ -264,7 +264,7 @@ class AlarmService {
   }
 
   private isThresholdExceeded(alarm: Alarm, sensorValue: number): boolean {
-    if (sensorValue === undefined || sensorValue === null) {
+    if (sensorValue === undefined || sensorValue === null || isNaN(sensorValue)) {
       return false;
     }
 
