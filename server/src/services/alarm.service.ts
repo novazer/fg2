@@ -26,6 +26,7 @@ class AlarmService {
       if (sensorValue !== undefined && !alarm.disabled && (alarm.latestDataPointTime ?? 0) < (data.timestamp ? data.timestamp * 1000 : Date.now())) {
         const thresholdExceeded = this.isThresholdExceeded(alarm, sensorValue);
         const inMaintenanceMode = device.maintenance_mode_until && device.maintenance_mode_until > Date.now();
+
         if (thresholdExceeded !== alarm.isTriggered && !inMaintenanceMode) {
           await this.handleAlarmAction(alarm, deviceId, sensorValue, data.timestamp);
         } else if (alarm.isTriggered) {
@@ -276,7 +277,10 @@ class AlarmService {
         sensorValue *= 100;
     }
 
-    return (alarm.upperThreshold && sensorValue > alarm.upperThreshold) || (alarm.lowerThreshold && sensorValue < alarm.lowerThreshold);
+    return (
+      (alarm.upperThreshold !== null && alarm.upperThreshold !== undefined && sensorValue > alarm.upperThreshold) ||
+      (alarm.lowerThreshold !== null && alarm.lowerThreshold !== undefined && sensorValue < alarm.lowerThreshold)
+    );
   }
 
   private hasThresholds(alarm: Alarm): boolean {

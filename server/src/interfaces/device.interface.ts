@@ -3,8 +3,8 @@ export interface Alarm {
   disabled?: boolean;
   alarmId: string;
   sensorType: string;
-  upperThreshold?: number;
-  lowerThreshold?: number;
+  upperThreshold?: number | null;
+  lowerThreshold?: number | null;
   actionType: 'email' | 'webhook' | 'info';
   additionalInfo?: boolean;
   actionTarget: string;
