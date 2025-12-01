@@ -263,10 +263,14 @@ class AlarmService {
   }
 
   private isThresholdExceeded(alarm: Alarm, sensorValue: number): boolean {
+    if (sensorValue === undefined || sensorValue === null) {
+      return false;
+    }
+
     switch (alarm.sensorType) {
       case 'dehumidifier':
       case 'co2_valve':
-        return sensorValue !== undefined && sensorValue > 0;
+        return sensorValue > 0;
 
       case 'heater':
         sensorValue *= 100;
