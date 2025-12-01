@@ -255,7 +255,7 @@ class AlarmService {
       case 'dehumidifier':
         return data?.outputs?.dehumidifier;
       case 'heater':
-        return data?.outputs?.heater;
+        return data?.outputs?.heater * 100;
       case 'light':
         return data?.outputs?.light;
       default:
@@ -272,9 +272,6 @@ class AlarmService {
       case 'dehumidifier':
       case 'co2_valve':
         return sensorValue > 0;
-
-      case 'heater':
-        sensorValue *= 100;
     }
 
     return (
