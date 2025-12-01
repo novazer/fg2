@@ -221,10 +221,10 @@ class AlarmService {
 
   private async handleAlarmData(alarm: Alarm, deviceId: string, value: number, timestamp?: number) {
     let newExtreme = alarm.extremeValue || value;
-    if (alarm.upperThreshold && value > alarm.upperThreshold) {
+    if (alarm.upperThreshold !== null && alarm.upperThreshold !== undefined && value > alarm.upperThreshold) {
       newExtreme = Math.max(newExtreme, value);
     }
-    if (alarm.lowerThreshold && value < alarm.lowerThreshold) {
+    if (alarm.lowerThreshold !== null && alarm.lowerThreshold !== undefined && value < alarm.lowerThreshold) {
       newExtreme = Math.min(newExtreme, value);
     }
 
@@ -288,7 +288,9 @@ class AlarmService {
       return false;
     }
 
-    return alarm.upperThreshold !== undefined || alarm.lowerThreshold !== undefined;
+    return (
+      (alarm.upperThreshold !== null && alarm.upperThreshold !== undefined) || (alarm.lowerThreshold !== null && alarm.lowerThreshold !== undefined)
+    );
   }
 }
 
