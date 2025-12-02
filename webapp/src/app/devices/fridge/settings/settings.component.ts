@@ -352,26 +352,7 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
   }
 
   msToDuration(milliSeconds: number): string {
-    const parts = [
-      { label: 'w', value: 604800 * 1000 }, // weeks
-      { label: 'd', value: 86400 * 1000 },  // days
-      { label: 'h', value: 3600 * 1000 },   // hours
-      { label: 'm', value: 60 * 1000 },     // minutes
-      { label: 's', value: 1000 }       // seconds
-    ];
-
-    const resultParts: string[] = [];
-
-    let remaining = milliSeconds;
-    for (const part of parts) {
-      const partValue = Math.floor(remaining / part.value);
-      if (partValue > 0) {
-        resultParts.push(`${partValue}${part.label}`);
-        remaining -= partValue * part.value;
-      }
-    }
-
-    return resultParts.join(' ');
+    return msToDuration(milliSeconds);
   }
 
   onActiveStepChanged() {
@@ -562,3 +543,26 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
     return timestamp;
   }
 }
+
+export const msToDuration = (milliSeconds: number): string => {
+  const parts = [
+    { label: 'w', value: 604800 * 1000 }, // weeks
+    { label: 'd', value: 86400 * 1000 },  // days
+    { label: 'h', value: 3600 * 1000 },   // hours
+    { label: 'm', value: 60 * 1000 },     // minutes
+    { label: 's', value: 1000 }       // seconds
+  ];
+
+  const resultParts: string[] = [];
+
+  let remaining = milliSeconds;
+  for (const part of parts) {
+    const partValue = Math.floor(remaining / part.value);
+    if (partValue > 0) {
+      resultParts.push(`${partValue}${part.label}`);
+      remaining -= partValue * part.value;
+    }
+  }
+
+  return resultParts.join(' ');
+};

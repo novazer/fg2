@@ -8,6 +8,7 @@ import TimeAgo from 'javascript-time-ago'
 
 // English.
 import en from 'javascript-time-ago/locale/en'
+import {msToDuration} from "../settings/settings.component";
 TimeAgo.addDefaultLocale(en)
 // Create formatter (English).
 const timeAgo = new TimeAgo('en-US')
@@ -44,7 +45,12 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
   public co2Target:number = NaN;
   public is_day:boolean = false;
   public workmode:string = 'off';
+  public recipe:any = null;
   private refreshLogsTimer: NodeJS.Timeout|undefined = undefined;
+
+  // timer used to refresh remaining time every second
+  private timerId: any = null;
+  private tick = 0;
 
   constructor(private devices: DeviceService, public data: DataService, private route: ActivatedRoute, private renderer: Renderer2) { }
 
@@ -92,6 +98,9 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
       }
     })
 
+    // Load recipe if any
+    this.recipe = await this.devices.getRecipe(this.device_id);
+
     // Load logs
     this.logs = await this.devices.getLogs(this.device_id);
     for(let log of this.logs) {
@@ -104,6 +113,8 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
       }
       this.has_logs = this.logs.length > 0;
       this.severity = Math.max(...this.logs.map((o: { severity: number; }) => {return isNaN(o.severity) ? 0 : o.severity}))
+
+      this.recipe = await this.devices.getRecipe(this.device_id);
     }, 30000);
 
     // Load device configuration (settings page values)
@@ -126,10 +137,17 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
       this.has_logs = false;
     }
     this.severity = Math.max(...this.logs.map((o: { severity: number; }) => {return isNaN(o.severity) ? 0 : o.severity}))
+
+    this.timerId = setInterval(() => {
+      if (this.recipe?.activeSince > 0) {
+        this.tick = Date.now(); // trigger change detection / getter recalculation
+      }
+    }, 1000);
   }
 
   ngOnDestroy() {
     clearInterval(this.refreshLogsTimer);
+    clearInterval(this.timerId);
   }
 
   unClaimDevice(id:string) {
@@ -220,5 +238,31 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
     } catch {
       return null;
     }
+  }
+
+  getRecipeStepRemainingDuration(step: any): string {
+    const elapsedMs = Date.now() - this.recipe.activeSince;
+
+    const stepDurationMs = step.duration * 60 * 1000 * (
+      step.durationUnit === 'weeks'
+        ? 24 * 7 * 60
+        : step.durationUnit === 'days'
+          ? 24 * 60
+          : step.durationUnit === 'hours'
+            ? 60
+            : 1
+    );
+
+    const remainingMs = stepDurationMs - elapsedMs;
+
+    if (remainingMs <= 0 && this.recipe.steps[this.recipe.activeStepIndex].waitForConfirmation) {
+      if (this.recipe.steps[this.recipe.activeStepIndex].confirmationMessage) {
+        return this.recipe.steps[this.recipe.activeStepIndex].confirmationMessage;
+      }
+
+      return "Waiting for confirmation...";
+    }
+
+    return msToDuration(Math.max(0, remainingMs));
   }
 }

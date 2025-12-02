@@ -61,6 +61,10 @@
   <h3>{{'devices.fridge.title' | translate}}</h3>
   <h3 style="text-align:center; margin-top: 4px; margin-bottom: 12px;">
     {{ 'devices.fridge.workmode-' + workmode | translate }}
+    <p *ngIf="recipe?.activeSince > 0">
+      #{{ recipe.activeStepIndex + 1 }} {{ recipe.steps?.[recipe.activeStepIndex]?.name }}
+      [{{ getRecipeStepRemainingDuration(recipe.steps?.[recipe.activeStepIndex])}}]
+    </p>
   </h3>
   <ion-row class="ion-justify-content-center">
     <ion-col size="6" size-sm="3" size-xl="2">
