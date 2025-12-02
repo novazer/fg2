@@ -180,6 +180,10 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
     const step = this.recipe.steps[index];
     const newStep = JSON.parse(JSON.stringify(step));
     this.recipe.steps.splice(index, 0, newStep);
+
+    if (this.recipe.activeStepIndex > index) {
+      this.recipe.activeStepIndex += 1;
+    }
   }
 
   private async showSavingReminderToast() {
