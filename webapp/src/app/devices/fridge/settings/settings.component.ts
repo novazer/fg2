@@ -93,7 +93,7 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
       await this.devices.setAlarms(this.device_id, this.alarms);
       await this.devices.setFirmwareSettings(this.device_id, this.firmwareSettings);
       this.saved = true;
-      await this._router.navigateByUrl('/list');
+      await this._router.navigateByUrl('/list', { replaceUrl: true });
     } catch(e) {
       console.log('Failed saving settings:', e);
       this.errorSaving = true;
