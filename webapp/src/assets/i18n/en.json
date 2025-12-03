@@ -66,6 +66,8 @@
       "actionTargetHint": "Email address or URL",
       "cooldownSeconds": "Cooldown",
       "cooldownSecondsHint": "How many seconds until the same alarm can be triggered again",
+      "retriggerSeconds": "Retrigger",
+      "retriggerSecondsHint": "Seconds until the current alarm state is retriggered. In case an alarm state is not transmitted successfully, this ensures that the alarm state will be sent again after this time. (Minimum: 60)",
       "name": "Alarm Name",
       "enable": "Enable Alarm",
       "disable": "Disable Alarm",

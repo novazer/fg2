@@ -80,6 +80,8 @@ const deviceSchema: Schema = new Schema({
         additionalInfo: { type: Boolean, required: false },
         extremeValue: { type: Number, required: false },
         latestDataPointTime: { type: Number, required: false },
+        retriggerSeconds: { type: Number, required: false },
+        lastResolvedAt: { type: Number, required: false },
       },
     ],
     required: false,

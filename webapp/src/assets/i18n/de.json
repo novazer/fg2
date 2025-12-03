@@ -66,6 +66,8 @@
       "actionTargetHint": "Email-Adresse oder URL",
       "cooldownSeconds": "Cooldown",
       "cooldownSecondsHint": "Sekunden bis der gleiche Alarm wieder ausgelöst werden kann",
+      "retriggerSeconds": "Erneutes Auslösen",
+      "retriggerSecondsHint": "Die Sekunden, nach denen der Alarm-Zustand erneut übertragen wird. Falls z.B. ein Schalt-Zustand nicht erfolgreich empfangen wurde, wird dieser nach dieser Zeit erneut gesendet. (Minimum: 60)",
       "name": "Alarm Name",
       "enable": "Alarm aktivieren",
       "disable": "Alarm deaktivieren",

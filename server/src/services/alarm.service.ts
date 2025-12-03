@@ -28,9 +28,22 @@ class AlarmService {
         const inMaintenanceMode = device.maintenance_mode_until && device.maintenance_mode_until > Date.now();
 
         if (thresholdExceeded !== alarm.isTriggered && !inMaintenanceMode) {
-          await this.handleAlarmAction(alarm, deviceId, sensorValue, data.timestamp);
-        } else if (alarm.isTriggered) {
-          await this.handleAlarmData(alarm, deviceId, sensorValue, data.timestamp);
+          await this.handleAlarm(alarm, deviceId, sensorValue, data.timestamp);
+        } else {
+          if (alarm.isTriggered) {
+            await this.handleAlarmData(alarm, deviceId, sensorValue, data.timestamp);
+          }
+
+          const lastAlarmAction = Math.max(alarm.lastTriggeredAt || 0, alarm.lastResolvedAt || 0);
+          if (
+            alarm.actionType !== 'email' &&
+            (alarm.sensorType === 'dehumidifier' || alarm.sensorType === 'co2_valve') &&
+            alarm.retriggerSeconds >= 60 &&
+            lastAlarmAction > 0 &&
+            lastAlarmAction + alarm.retriggerSeconds * 1000 < Date.now()
+          ) {
+            await this.handleAlarmRetrigger(alarm, deviceId, sensorValue, data.timestamp);
+          }
         }
       }
     }
@@ -71,7 +84,7 @@ class AlarmService {
     return device as unknown;
   }
 
-  private async handleAlarmAction(alarm: Alarm, deviceId: string, value: number, timestamp?: number) {
+  private async handleAlarm(alarm: Alarm, deviceId: string, value: number, timestamp?: number) {
     const now = Date.now();
     const inCooldownPeriod = now - (alarm.lastTriggeredAt || 0) < (alarm.cooldownSeconds || 0) * 1000;
 
@@ -82,11 +95,13 @@ class AlarmService {
           $set: {
             'alarms.$.isTriggered': false,
             'alarms.$.extremeValue': undefined,
+            'alarms.$.lastResolvedAt': now,
             'alarms.$.latestDataPointTime': Math.max(alarm.latestDataPointTime ?? 0, (timestamp ?? 0) * 1000),
           },
         },
       );
       this.invalidateAlarmCache(deviceId);
+      alarm.isTriggered = false;
     } else if (!inCooldownPeriod) {
       await deviceModel.updateOne(
         { device_id: deviceId, 'alarms.alarmId': alarm.alarmId },
@@ -100,11 +115,16 @@ class AlarmService {
         },
       );
       this.invalidateAlarmCache(deviceId);
+      alarm.isTriggered = true;
     } else {
       console.log(`Cooldown active for alarm ${alarm.alarmId} on device ${deviceId}. Skipping action.`);
       return;
     }
 
+    return this.handleAlarmAction(alarm, deviceId, value);
+  }
+
+  private async handleAlarmAction(alarm: Alarm, deviceId: string, value: number) {
     if (alarm.actionType === 'email') {
       try {
         await this.handleEmailAlarm(alarm, deviceId, value);
@@ -129,7 +149,7 @@ class AlarmService {
   }
 
   private async handleEmailAlarm(alarm: Alarm, deviceId: string, value: number) {
-    const event = alarm.isTriggered ? 'resolved' : 'triggered';
+    const event = alarm.isTriggered ? 'triggered' : 'resolved';
     const name = 'Alarm' + (alarm.name ? ' ' + alarm.name : '');
     const emailSubject = `[FG2] ${name} ${event} for Device ${deviceId}`;
     const emailBody =
@@ -142,7 +162,7 @@ class AlarmService {
       `Value: ${value}\n` +
       `Alarm Name: ${alarm.name || 'N/A'}\n` +
       `Alarm ID: ${alarm.alarmId}\n` +
-      (alarm.isTriggered && this.hasThresholds(alarm) ? `Extreme Value: ${alarm.extremeValue}\n` : '');
+      (!alarm.isTriggered && this.hasThresholds(alarm) ? `Extreme Value: ${alarm.extremeValue}\n` : '');
 
     await mailTransport.sendMail({
       from: SMTP_SENDER,
@@ -167,11 +187,11 @@ class AlarmService {
       upperThreshold: this.hasThresholds(alarm) ? alarm.upperThreshold : undefined,
       lowerThreshold: this.hasThresholds(alarm) ? alarm.lowerThreshold : undefined,
       timestamp: new Date().toISOString(),
-      event: alarm.isTriggered ? 'resolved' : 'triggered',
+      event: alarm.isTriggered ? 'triggered' : 'resolved',
       alarmName: alarm.name,
       alarmId: alarm.alarmId,
       lastTriggeredAt: alarm.lastTriggeredAt,
-      extremeValue: alarm.isTriggered && this.hasThresholds(alarm) ? alarm.extremeValue : undefined,
+      extremeValue: !alarm.isTriggered && this.hasThresholds(alarm) ? alarm.extremeValue : undefined,
     });
 
     const url = new URL(alarm.actionTarget);
@@ -207,13 +227,13 @@ class AlarmService {
 
   private async handleInfoAlarm(alarm: Alarm, deviceId: string, value: number) {
     const name = `Alarm ${alarm.name ?? alarm.alarmId}`;
-    const event = alarm.isTriggered ? 'resolved' : 'triggered';
+    const event = alarm.isTriggered ? 'triggered' : 'resolved';
     await deviceService.logMessage(deviceId, {
       title: `${name} ${event}`,
       message:
         `${name} ${event}: Sensor ${alarm.sensorType}, value: ${value}` +
         (this.hasThresholds(alarm) ? `, upper threshold=${alarm.upperThreshold || 'n/a'}, lower threshold=${alarm.lowerThreshold || 'n/a'}` : '') +
-        (alarm.isTriggered && this.hasThresholds(alarm) ? `, extreme value: ${alarm.extremeValue ?? 'n/a'}` : ''),
+        (!alarm.isTriggered && this.hasThresholds(alarm) ? `, extreme value: ${alarm.extremeValue ?? 'n/a'}` : ''),
       severity: alarm.isTriggered ? 1 : 0,
       raw: true,
     });
@@ -239,7 +259,23 @@ class AlarmService {
         },
       );
       this.invalidateAlarmCache(deviceId);
+      alarm.extremeValue = newExtreme;
     }
+  }
+
+  private async handleAlarmRetrigger(alarm: Alarm, deviceId: string, sensorValue: number, timestamp?: number) {
+    await deviceModel.updateOne(
+      { device_id: deviceId, 'alarms.alarmId': alarm.alarmId },
+      {
+        $set: {
+          'alarms.$.lastTriggeredAt': alarm.isTriggered ? Date.now() : alarm.lastTriggeredAt,
+          'alarms.$.lastResolvedAt': alarm.isTriggered ? alarm.lastResolvedAt : Date.now(),
+          'alarms.$.latestDataPointTime': Math.max(alarm.latestDataPointTime ?? 0, (timestamp ?? 0) * 1000),
+        },
+      },
+    );
+    this.invalidateAlarmCache(deviceId);
+    await this.handleAlarmAction(alarm, deviceId, sensorValue);
   }
 
   private getSensorValue(alarm: Alarm, data: StatusMessage): number | undefined {

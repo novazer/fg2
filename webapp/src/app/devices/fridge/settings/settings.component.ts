@@ -118,6 +118,7 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
       actionType: 'info', // Default action type
       actionTarget: '',
       cooldownSeconds: 600,
+      retriggerSeconds: 3600,
       name: 'My Alarm',
       additionalInfo: true,
     };

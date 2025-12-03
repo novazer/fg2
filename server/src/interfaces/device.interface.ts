@@ -11,6 +11,8 @@ export interface Alarm {
   cooldownSeconds?: number;
   isTriggered?: boolean;
   lastTriggeredAt?: number;
+  lastResolvedAt?: number;
+  retriggerSeconds?: number;
   extremeValue?: number;
   latestDataPointTime?: number;
 }

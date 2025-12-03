@@ -301,7 +301,7 @@
             <ion-label>{{'settings.alarms.actionType' | translate}}</ion-label>
             <ion-select [(ngModel)]="alarm.actionType" [disabled]="alarm.disabled">
               <ion-select-option value="info">{{'settings.alarms.actionTypeInfo' | translate}}</ion-select-option>
-              <ion-select-option value="email">{{'settings.alarms.actionTypeEmail' | translate}}</ion-select-option>
+              <ion-select-option value="email" *ngIf="alarm.sensorType !== 'dehumidifier' && alarm.sensorType !== 'co2_valve'">{{'settings.alarms.actionTypeEmail' | translate}}</ion-select-option>
               <ion-select-option value="webhook">{{'settings.alarms.actionTypeWebhook' | translate}}</ion-select-option>
             </ion-select>
           </ion-item>
@@ -340,6 +340,21 @@
               <ng-template>
                 <ion-content>
                   {{'settings.alarms.cooldownSecondsHint' | translate}}
+                </ion-content>
+              </ng-template>
+            </ion-popover>
+          </ion-item>
+
+          <ion-item lines="none" *ngIf="alarm.sensorType === 'dehumidifier' || alarm.sensorType === 'co2_valve'">
+            <ion-label>{{'settings.alarms.retriggerSeconds' | translate}}</ion-label>
+            <ion-button fill="clear" id="retriggerSeconds-popover-{{alarm.alarmId}}">
+              <ion-icon name="help-circle-outline"></ion-icon>
+            </ion-button>
+            <ion-input type="number" min="60" [(ngModel)]="alarm.retriggerSeconds" class="ion-text-right" [disabled]="alarm.disabled"></ion-input>
+            <ion-popover trigger="retriggerSeconds-popover-{{alarm.alarmId}}" [dismissOnSelect]="true">
+              <ng-template>
+                <ion-content>
+                  {{'settings.alarms.retriggerSecondsHint' | translate}}
                 </ion-content>
               </ng-template>
             </ion-popover>
