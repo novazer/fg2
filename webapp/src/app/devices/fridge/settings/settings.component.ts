@@ -2,8 +2,8 @@ import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {DataService} from 'src/app/services/data.service';
 import {DeviceService} from 'src/app/services/devices.service';
-import {ToastController, AlertController, AlertInput} from "@ionic/angular";
-import { RecipeService } from 'src/app/services/recipe.service';
+import {AlertController, AlertInput, ToastController} from "@ionic/angular";
+import {RecipeService} from 'src/app/services/recipe.service';
 
 @Component({
   selector: 'fridge-settings',
@@ -262,15 +262,7 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
   calculateTimeRemaining(step: any) {
     const remainingMs = this.getStepRemainingMs(step);
 
-    if (remainingMs <= 0) {
-      if (step.waitForConfirmation) {
-        return 'Waiting for confirmation';
-      }
-
-      return '0s';
-    }
-
-    return this.msToDuration(remainingMs);
+    return this.msToDuration(remainingMs) + (step.waitForConfirmation ? ' +confirm' : '');
   }
 
   getStepRemainingMs(step: any): number {
@@ -289,7 +281,7 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
             : 1
     );
 
-    return Math.max(0, stepDurationMs - elapsedMs);
+    return stepDurationMs - elapsedMs;
   }
 
   parseWorkmode(workmode: string): { hasDaycycle: boolean, hasHumidity: boolean, hasCo2: boolean } {
@@ -333,10 +325,6 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
 
   getRecipeEtaTimeIso(lastStepIndex?: number): string | null {
     const remainingMs = this.getRecipeRemainingTimeMs(lastStepIndex);
-    if (remainingMs <= 0) {
-      return null;
-    }
-
     return new Date(Date.now() + remainingMs).toISOString();
   }
 
@@ -556,7 +544,7 @@ export const msToDuration = (milliSeconds: number): string => {
 
   const resultParts: string[] = [];
 
-  let remaining = milliSeconds;
+  let remaining = Math.abs(milliSeconds);
   for (const part of parts) {
     const partValue = Math.floor(remaining / part.value);
     if (partValue > 0) {
@@ -565,5 +553,5 @@ export const msToDuration = (milliSeconds: number): string => {
     }
   }
 
-  return resultParts.join(' ');
+  return (milliSeconds < 0 ? '-' : '' ) + resultParts.join(' ');
 };

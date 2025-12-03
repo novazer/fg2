@@ -65,6 +65,12 @@
       #{{ recipe.activeStepIndex + 1 }} {{ recipe.steps?.[recipe.activeStepIndex]?.name }}
       [{{ getRecipeStepRemainingDuration(recipe.steps?.[recipe.activeStepIndex])}}]
     </p>
+    <p *ngIf="recipe?.activeSince > 0 && getRecipeConfirmationMessage(recipe.steps?.[recipe.activeStepIndex]) as confirmMsg">
+      <ion-text color="warning">
+        <ion-icon name="warning" color="warning"></ion-icon>
+        {{ confirmMsg }})
+      </ion-text>
+    </p>
   </h3>
   <ion-row class="ion-justify-content-center">
     <ion-col size="6" size-sm="3" size-xl="2">

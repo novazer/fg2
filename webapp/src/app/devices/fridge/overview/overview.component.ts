@@ -1,14 +1,15 @@
 import {Component, ElementRef, Input, OnDestroy, OnInit, Renderer2, ViewChild} from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import { IonModal } from '@ionic/angular';
-import { combineLatest } from 'rxjs';
-import { DataService } from 'src/app/services/data.service';
-import { Device, DeviceService } from 'src/app/services/devices.service';
+import {ActivatedRoute} from '@angular/router';
+import {IonModal} from '@ionic/angular';
+import {combineLatest} from 'rxjs';
+import {DataService} from 'src/app/services/data.service';
+import {DeviceService} from 'src/app/services/devices.service';
 import TimeAgo from 'javascript-time-ago'
 
 // English.
 import en from 'javascript-time-ago/locale/en'
 import {msToDuration} from "../settings/settings.component";
+
 TimeAgo.addDefaultLocale(en)
 // Create formatter (English).
 const timeAgo = new TimeAgo('en-US')
@@ -240,7 +241,7 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
     }
   }
 
-  getRecipeStepRemainingDuration(step: any): string {
+  getRecipeStepRemainingMs(step: any): number {
     const elapsedMs = Date.now() - this.recipe.activeSince;
 
     const stepDurationMs = step.duration * 60 * 1000 * (
@@ -253,9 +254,15 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
             : 1
     );
 
-    const remainingMs = stepDurationMs - elapsedMs;
+    return stepDurationMs - elapsedMs;
+  }
 
-    if (remainingMs <= 0 && this.recipe.steps[this.recipe.activeStepIndex].waitForConfirmation) {
+  getRecipeStepRemainingDuration(step: any): string {
+    return msToDuration(this.getRecipeStepRemainingMs(step)) + (step.waitForConfirmation ? ' +confirm' : '');
+  }
+
+  getRecipeConfirmationMessage(step: any): string | undefined {
+    if (this.getRecipeStepRemainingMs(step) <= 0 && this.recipe.steps[this.recipe.activeStepIndex].waitForConfirmation) {
       if (this.recipe.steps[this.recipe.activeStepIndex].confirmationMessage) {
         return this.recipe.steps[this.recipe.activeStepIndex].confirmationMessage;
       }
@@ -263,6 +270,6 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
       return "Waiting for confirmation...";
     }
 
-    return msToDuration(Math.max(0, remainingMs));
+    return undefined;
   }
 }
