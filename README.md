@@ -97,6 +97,19 @@ And before committing:
 1. `npm run lint:fix`
 2. `npm run build`
 
+### Firmware
+
+Make sure that the following environment variables are set in `.env`:
+```
+API_URL_EXTERNAL=https://fg2.novazer.com/api
+MQTT_HOST_EXTERNAL=fg2.novazer.com
+MQTT_PORT_EXTERNAL=4883
+```
+
+(Adjust them as needed if you want to host the server yourself.)
+
+Then try running `./provision-fw.sh fridge` to build a firmware for the fridge module and provision it via USB.
+
 ## Documentation
 - Webapp: [Webapp](webapp/README.md)
 - Server: [Server](server/README.md)

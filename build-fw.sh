@@ -17,8 +17,6 @@ docker exec -i fw-temp-container rm /firmware/src/wifi.cpp.tmpl
 docker rm -f fw-temp-container
 
 docker run -i --rm \
-  --privileged \
-  -v /dev/bus/usb:/dev/bus/usb \
   -v fg2_firmware:/firmware \
   -e FG_AUTOMATION_TOKEN=${AUTOMATION_TOKEN} \
   -e FG_AUTOMATION_URL=${API_URL_EXTERNAL} \
@@ -31,8 +29,6 @@ docker run -i --rm \
   plantalytix-buildcontainer sh -c "cd /firmware; ./dev-build.sh plug"
 
 docker run -i --rm \
-  --privileged \
-  -v /dev/bus/usb:/dev/bus/usb \
   -v fg2_firmware:/firmware \
   -e FG_AUTOMATION_TOKEN=${AUTOMATION_TOKEN} \
   -e FG_AUTOMATION_URL=${API_URL_EXTERNAL} \
@@ -45,8 +41,6 @@ docker run -i --rm \
   plantalytix-buildcontainer sh -c "cd /firmware; ./dev-build.sh fan"
 
 docker run -i --rm \
-  --privileged \
-  -v /dev/bus/usb:/dev/bus/usb \
   -v fg2_firmware:/firmware \
   -e FG_AUTOMATION_TOKEN=${AUTOMATION_TOKEN} \
   -e FG_AUTOMATION_URL=${API_URL_EXTERNAL} \
@@ -59,8 +53,6 @@ docker run -i --rm \
   plantalytix-buildcontainer sh -c "cd /firmware; ./dev-build.sh light"
 
 docker run -i --rm \
-  --privileged \
-  -v /dev/bus/usb:/dev/bus/usb \
   -v fg2_firmware:/firmware \
   -e FG_AUTOMATION_TOKEN=${AUTOMATION_TOKEN} \
   -e FG_AUTOMATION_URL=${API_URL_EXTERNAL} \
