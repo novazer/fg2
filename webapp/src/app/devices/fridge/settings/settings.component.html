@@ -349,7 +349,7 @@
             </ion-popover>
           </ion-item>
 
-          <ion-item lines="none" [hidden]="alarm.actionType !== 'webhook'" *ngFor="let header of alarm.webhookHeaders | keyvalue; let index = index; trackBy: trackByMethod">
+          <ion-item lines="none" [hidden]="alarm.actionType !== 'webhook'" *ngFor="let header of alarm.webhookHeaders | keyvalue; let index = index; trackBy: trackByMethod(alarm)">
             <ion-item slot="end">
               <ion-label style="font-family: monospace">{{ header.key }}:</ion-label>
               <ion-input [(ngModel)]="alarm.webhookHeaders[castToString(header.key)]" placeholder="Header value" [disabled]="alarm.disabled"></ion-input>

@@ -4,6 +4,7 @@ import {DataService} from 'src/app/services/data.service';
 import {DeviceService} from 'src/app/services/devices.service';
 import {AlertController, AlertInput, ToastController} from "@ionic/angular";
 import {RecipeService} from 'src/app/services/recipe.service';
+import {alarm} from "ionicons/icons";
 
 @Component({
   selector: 'fridge-settings',
@@ -550,8 +551,8 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
     return obj as string;
   }
 
-  trackByMethod(index: number, el: any): number {
-    return el.key;
+  trackByMethod(alarm: any) {
+    return (index: number, el: any): number => el.key + alarm.disabled;
   }
 }
 
