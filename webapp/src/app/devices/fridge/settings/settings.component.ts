@@ -49,6 +49,11 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
   async ngOnInit() {
     try {
       this.alarms = await this.devices.getAlarms(this.device_id);
+      this.alarms?.forEach((alarm: any) => {
+        alarm.webhookMethod ??= 'POST';
+        alarm.webhookHeaders ??= {};
+        alarm.newHeaderName = '';
+      });
       this.firmwareSettings = await this.devices.getFirmwareSettings(this.device_id);
       this.deviceSettings = JSON.parse(await this.devices.getConfig(this.device_id));
       this.recipe = await this.devices.getRecipe(this.device_id);
@@ -134,6 +139,15 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
 
   toggleAlarm(alarm: any) {
     alarm.disabled = !alarm.disabled;
+  }
+
+  addWebhookHeader(alarm: any) {
+    alarm.webhookHeaders[alarm.newHeaderName] = '';
+    alarm.newHeaderName = '';
+  }
+
+  deleteWebhookHeader(alarm: any, headerName: any) {
+    delete alarm.webhookHeaders[headerName];
   }
 
   addRecipeStep() {

@@ -15,6 +15,10 @@ export interface Alarm {
   retriggerSeconds?: number;
   extremeValue?: number;
   latestDataPointTime?: number;
+  webhookMethod?: 'GET' | 'POST' | 'PUT';
+  webhookHeaders?: { [key: string]: string };
+  webhookTriggeredPayload?: string;
+  webhookResolvedPayload?: string;
 }
 
 export interface FirmwareSettings {

@@ -180,7 +180,7 @@ class AlarmService {
       return;
     }
 
-    const webhookPayload = JSON.stringify({
+    const defaultPayload = JSON.stringify({
       deviceId,
       sensorType: alarm.sensorType,
       value: value,
@@ -194,6 +194,13 @@ class AlarmService {
       extremeValue: !alarm.isTriggered && this.hasThresholds(alarm) ? alarm.extremeValue : undefined,
     });
 
+    let webhookPayload;
+    if (alarm.isTriggered) {
+      webhookPayload = alarm.webhookTriggeredPayload || defaultPayload;
+    } else {
+      webhookPayload = alarm.webhookResolvedPayload || defaultPayload;
+    }
+
     const url = new URL(alarm.actionTarget);
     const isHttps = url.protocol?.startsWith('https');
     const requestFn = isHttps ? httpsRequest : httpRequest;
@@ -202,10 +209,11 @@ class AlarmService {
       hostname: url.hostname,
       port: url.port || (isHttps ? 443 : 80),
       path: url.pathname + url.search,
-      method: 'POST',
+      method: alarm.webhookMethod ?? 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Content-Length': Buffer.byteLength(webhookPayload),
+        ...(alarm.webhookHeaders ?? {}),
       },
     };
 
