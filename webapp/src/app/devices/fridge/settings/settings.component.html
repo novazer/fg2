@@ -327,6 +327,26 @@
             </ion-popover>
           </ion-item>
 
+          <ion-item lines="none" [hidden]="alarm.actionType === 'info'">
+            <ion-label [color]="(!alarm.actionTarget && alarm.actionType !== 'info' && !alarm.disabled) ? 'danger' : ''">
+              {{'settings.alarms.actionTarget' | translate}}
+            </ion-label>
+            <ion-button fill="clear" id="actionTarget-popover-{{alarm.alarmId}}">
+              <ion-icon name="help-circle-outline"></ion-icon>
+            </ion-button>
+            <ion-input [type]="alarm.actionType === 'email' ? 'email' : alarm.actionType === 'webhook' ? 'url' : 'text'"
+                       [required]="alarm.actionType !== 'info' && !alarm.disabled"
+                       [(ngModel)]="alarm.actionTarget" class="ion-text-right" [disabled]="alarm.disabled"
+                       [placeholder]="alarm.actionType === 'email' ? 'myemail@example.com' : 'http://example.com/my-api-endpoint'"></ion-input>
+            <ion-popover trigger="actionTarget-popover-{{alarm.alarmId}}" [dismissOnSelect]="true">
+              <ng-template>
+                <ion-content>
+                  {{'settings.alarms.actionTargetHint' | translate}}
+                </ion-content>
+              </ng-template>
+            </ion-popover>
+          </ion-item>
+
           <ion-item lines="none" [hidden]="alarm.actionType !== 'webhook'">
             <ion-label>
               {{ 'settings.alarms.webhookHeaders' | translate }}
@@ -357,26 +377,6 @@
                 <ion-icon name="trash"></ion-icon>
               </ion-button>
             </ion-item>
-          </ion-item>
-
-          <ion-item lines="none" [hidden]="alarm.actionType === 'info'">
-            <ion-label [color]="(!alarm.actionTarget && alarm.actionType !== 'info' && !alarm.disabled) ? 'danger' : ''">
-              {{'settings.alarms.actionTarget' | translate}}
-            </ion-label>
-            <ion-button fill="clear" id="actionTarget-popover-{{alarm.alarmId}}">
-              <ion-icon name="help-circle-outline"></ion-icon>
-            </ion-button>
-            <ion-input [type]="alarm.actionType === 'email' ? 'email' : alarm.actionType === 'webhook' ? 'url' : 'text'"
-                       [required]="alarm.actionType !== 'info' && !alarm.disabled"
-                       [(ngModel)]="alarm.actionTarget" class="ion-text-right" [disabled]="alarm.disabled"
-                       [placeholder]="alarm.actionType === 'email' ? 'myemail@example.com' : 'http://example.com/my-api-endpoint'"></ion-input>
-            <ion-popover trigger="actionTarget-popover-{{alarm.alarmId}}" [dismissOnSelect]="true">
-              <ng-template>
-                <ion-content>
-                  {{'settings.alarms.actionTargetHint' | translate}}
-                </ion-content>
-              </ng-template>
-            </ion-popover>
           </ion-item>
 
           <ion-item lines="none" [hidden]="alarm.actionType !== 'webhook' || alarm.webhookMethod === 'GET'">
