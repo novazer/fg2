@@ -551,7 +551,7 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
   }
 
   trackByMethod(index: number, el: any): number {
-    return index;
+    return el.key;
   }
 }
 
