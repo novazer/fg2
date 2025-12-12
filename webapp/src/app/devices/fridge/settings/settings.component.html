@@ -349,11 +349,11 @@
             </ion-popover>
           </ion-item>
 
-          <ion-item lines="none" [hidden]="alarm.actionType !== 'webhook'" *ngFor="let header of alarm.webhookHeaders | keyvalue">
+          <ion-item lines="none" [hidden]="alarm.actionType !== 'webhook'" *ngFor="let header of alarm.webhookHeaders | keyvalue; let index = index; trackBy: trackByMethod">
             <ion-item slot="end">
               <ion-label style="font-family: monospace">{{ header.key }}:</ion-label>
-              <ion-input [(ngModel)]="header.value" placeholder="Header value"></ion-input>
-              <ion-button fill="clear" color="danger" (click)="deleteWebhookHeader(alarm, header.key)">
+              <ion-input [(ngModel)]="alarm.webhookHeaders[castToString(header.key)]" placeholder="Header value" [disabled]="alarm.disabled"></ion-input>
+              <ion-button fill="clear" color="danger" (click)="deleteWebhookHeader(alarm, header.key)" [disabled]="alarm.disabled">
                 <ion-icon name="trash"></ion-icon>
               </ion-button>
             </ion-item>
@@ -368,7 +368,8 @@
             </ion-button>
             <ion-input [type]="alarm.actionType === 'email' ? 'email' : alarm.actionType === 'webhook' ? 'url' : 'text'"
                        [required]="alarm.actionType !== 'info' && !alarm.disabled"
-                       [(ngModel)]="alarm.actionTarget" class="ion-text-right" [disabled]="alarm.disabled"></ion-input>
+                       [(ngModel)]="alarm.actionTarget" class="ion-text-right" [disabled]="alarm.disabled"
+                       [placeholder]="alarm.actionType === 'email' ? 'myemail@example.com' : 'http://example.com/my-api-endpoint'"></ion-input>
             <ion-popover trigger="actionTarget-popover-{{alarm.alarmId}}" [dismissOnSelect]="true">
               <ng-template>
                 <ion-content>

@@ -545,6 +545,14 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
     }
     return timestamp;
   }
+
+  castToString(obj: any): string{
+    return obj as string;
+  }
+
+  trackByMethod(index: number, el: any): number {
+    return index;
+  }
 }
 
 export const msToDuration = (milliSeconds: number): string => {
