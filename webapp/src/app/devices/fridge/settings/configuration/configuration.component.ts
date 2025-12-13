@@ -43,6 +43,8 @@ export class FridgeSettingsConfigurationComponent implements OnChanges {
   public externalFanEditMode:boolean = false;
   public nightfallEditMode:boolean = false;
   public daybreakEditMode:boolean = false;
+  public floatingDayDurationEditMode:boolean = false;
+  public floatingLightDurationEditMode:boolean = false;
 
   public changeWorkmode() {
     switch(this.settings.workmode) {

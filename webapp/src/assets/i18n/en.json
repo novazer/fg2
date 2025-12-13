@@ -18,6 +18,7 @@
   },
 
   "settings": {
+    "title": "Settings",
     "daynight": "Day/Night cycle",
     "daybreak": "Daybreak",
     "nightfall": "Nightfall",
@@ -26,6 +27,10 @@
     "climate": "Climate",
     "temperature": "Temperature",
     "humidity": "Humidity",
+    "dayTemperature": "Day temperature",
+    "dayHumidity": "Day humidity",
+    "nightTemperature": "Night temperature",
+    "nightHumidity": "Night humidity",
     "co2": "CO2",
     "co2-day": "CO2 Daytime",
     "co2-night": "CO2 Nighttime",
