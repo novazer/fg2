@@ -79,9 +79,9 @@
       "webhookMethodHint": "Wähle die HTTP-Methode für Webhook-Anfragen.",
       "webhookHeaders": "Eigene Header",
       "webhookHeadersHint": "Füge benutzerdefinierte HTTP-Header hinzu, die mit der Webhook-Anfrage gesendet werden.",
-      "webhookTriggeredPayload": "Payload bei Auslösung",
+      "webhookTriggeredPayload": "Payload Auslösung",
       "webhookTriggeredPayloadHint": "Benutzerdefinierte Payload, die beim Auslösen des Alarms gesendet wird (für POST/PUT). Leer lassen, um die Standard-Payload zu verwenden.",
-      "webhookResolvedPayload": "Payload bei Behebung",
+      "webhookResolvedPayload": "Payload Behebung",
       "webhookResolvedPayloadHint": "Benutzerdefinierte Payload, die bei Behebung des Alarms gesendet wird (für POST/PUT). Leer lassen, um die Standard-Payload zu verwenden."
     },
     "firmwareUpdates": "Firmware Updates",
