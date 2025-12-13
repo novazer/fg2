@@ -143,7 +143,7 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
   }
 
   addWebhookHeader(alarm: any) {
-    alarm.webhookHeaders[alarm.newHeaderName] = '';
+    alarm.webhookHeaders[alarm.newHeaderName.trim()] = '';
     alarm.newHeaderName = '';
   }
 

@@ -309,22 +309,12 @@
           <ion-item lines="none" [hidden]="alarm.actionType !== 'webhook'">
             <ion-label>
               {{ 'settings.alarms.webhookMethod' | translate }}
-              <ion-button fill="clear" id="webhookMethod-popover-{{alarm.alarmId}}">
-                <ion-icon name="help-circle-outline"></ion-icon>
-              </ion-button>
             </ion-label>
             <ion-select [(ngModel)]="alarm.webhookMethod" [disabled]="alarm.disabled">
               <ion-select-option value="POST">{{ 'settings.alarms.webhookMethodPOST' | translate }}</ion-select-option>
               <ion-select-option value="GET">{{ 'settings.alarms.webhookMethodGET' | translate }}</ion-select-option>
               <ion-select-option value="PUT">{{ 'settings.alarms.webhookMethodPUT' | translate }}</ion-select-option>
             </ion-select>
-            <ion-popover trigger="webhookMethod-popover-{{alarm.alarmId}}" [dismissOnSelect]="true">
-              <ng-template>
-                <ion-content>
-                  {{'settings.alarms.webhookMethodHint' | translate}}
-                </ion-content>
-              </ng-template>
-            </ion-popover>
           </ion-item>
 
           <ion-item lines="none" [hidden]="alarm.actionType === 'info'">
@@ -350,9 +340,6 @@
           <ion-item lines="none" [hidden]="alarm.actionType !== 'webhook'">
             <ion-label>
               {{ 'settings.alarms.webhookHeaders' | translate }}
-              <ion-button fill="clear" id="webhookHeaders-popover-{{alarm.alarmId}}">
-                <ion-icon name="help-circle-outline"></ion-icon>
-              </ion-button>
             </ion-label>
             <ion-item slot="end">
               <ion-input [(ngModel)]="alarm.newHeaderName" placeholder="New custom header name" [disabled]="alarm.disabled"></ion-input>
@@ -360,13 +347,6 @@
                 <ion-icon name="add"></ion-icon>
               </ion-button>
             </ion-item>
-            <ion-popover trigger="webhookHeaders-popover-{{alarm.alarmId}}" [dismissOnSelect]="true">
-              <ng-template>
-                <ion-content>
-                  {{'settings.alarms.webhookHeadersHint' | translate}}
-                </ion-content>
-              </ng-template>
-            </ion-popover>
           </ion-item>
 
           <ion-item lines="none" [hidden]="alarm.actionType !== 'webhook'" *ngFor="let header of alarm.webhookHeaders | keyvalue; let index = index; trackBy: trackByMethod(alarm)">
@@ -382,13 +362,11 @@
           <ion-item lines="none" [hidden]="alarm.actionType !== 'webhook' || alarm.webhookMethod === 'GET'">
             <ion-label>
               {{'settings.alarms.webhookTriggeredPayload' | translate}}
-              <ion-button fill="clear" id="webhookTriggeredPayload-popover-{{alarm.alarmId}}">
-                <ion-icon name="help-circle-outline"></ion-icon>
-              </ion-button>
             </ion-label>
-            <ion-item fill="outline" slot="end">
-              <ion-textarea [(ngModel)]="alarm.webhookTriggeredPayload" placeholder="Custom webhook triggered payload" [rows]="2" [disabled]="alarm.disabled"></ion-textarea>
-            </ion-item>
+            <ion-button fill="clear" id="webhookTriggeredPayload-popover-{{alarm.alarmId}}">
+              <ion-icon name="help-circle-outline"></ion-icon>
+            </ion-button>
+            <ion-textarea [(ngModel)]="alarm.webhookTriggeredPayload" placeholder="Custom webhook triggered payload" [rows]="2" [disabled]="alarm.disabled" class="ion-text-right"></ion-textarea>
             <ion-popover trigger="webhookTriggeredPayload-popover-{{alarm.alarmId}}" [dismissOnSelect]="true">
               <ng-template>
                 <ion-content>
@@ -401,13 +379,11 @@
           <ion-item lines="none" [hidden]="alarm.actionType !== 'webhook' || alarm.webhookMethod === 'GET'">
             <ion-label>
               {{'settings.alarms.webhookResolvedPayload' | translate}}
-              <ion-button fill="clear" id="webhookResolvedPayload-popover-{{alarm.alarmId}}">
-                <ion-icon name="help-circle-outline"></ion-icon>
-              </ion-button>
             </ion-label>
-            <ion-item fill="outline" slot="end">
-              <ion-textarea [(ngModel)]="alarm.webhookResolvedPayload" placeholder="Custom webhook resolved payload" [rows]="2" [disabled]="alarm.disabled"></ion-textarea>
-            </ion-item>
+            <ion-button fill="clear" id="webhookResolvedPayload-popover-{{alarm.alarmId}}">
+              <ion-icon name="help-circle-outline"></ion-icon>
+            </ion-button>
+            <ion-textarea [(ngModel)]="alarm.webhookResolvedPayload" placeholder="Custom webhook resolved payload" [rows]="2" [disabled]="alarm.disabled" class="ion-text-right"></ion-textarea>
             <ion-popover trigger="webhookResolvedPayload-popover-{{alarm.alarmId}}" [dismissOnSelect]="true">
               <ng-template>
                 <ion-content>
