@@ -343,7 +343,7 @@
             </ion-label>
             <ion-item slot="end">
               <ion-input [(ngModel)]="alarm.newHeaderName" placeholder="New custom header name" [disabled]="alarm.disabled"></ion-input>
-              <ion-button fill="clear" color="primary" (click)="addWebhookHeader(alarm)" [disabled]="!alarm.newHeaderName || alarm.disabled || alarm.webhookHeaders[alarm.newHeaderName] !== undefined">
+              <ion-button fill="clear" color="primary" (click)="addWebhookHeader(alarm)" [disabled]="!alarm.newHeaderName || alarm.disabled || alarm.webhookHeaders[alarm.newHeaderName.trim()] !== undefined">
                 <ion-icon name="add"></ion-icon>
               </ion-button>
             </ion-item>
