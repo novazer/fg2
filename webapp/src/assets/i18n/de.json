@@ -68,7 +68,7 @@
       "actionTypeWebhook": "Webhook",
       "actionTypeInfo": "Log-Meldung",
       "actionTarget": "Ziel",
-      "actionTargetHint": "Email-Adresse oder URL",
+      "actionTargetHint": "Email Adresse oder Webhook URL - falls du unterschiedliche Ziele für Auslösung und Behebung von Alarme verwenden möchtest, trenne diese mit einem senkrechten Strich '|' Charakter. Z.B. \"http://example.com/turn-on|http://example.com/turn-off\"",
       "cooldownSeconds": "Cooldown",
       "cooldownSecondsHint": "Sekunden bis der gleiche Alarm wieder ausgelöst werden kann",
       "retriggerSeconds": "Erneutes Auslösen",

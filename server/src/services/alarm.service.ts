@@ -6,10 +6,11 @@ import { mailTransport } from '@services/auth.service';
 import { request as httpRequest } from 'http';
 import { request as httpsRequest } from 'https';
 import * as console from 'node:console';
-import { v4 as uuidv4 } from 'uuid';
 
 const CACHE_EXPIRATION_SECONDS = 600;
 const MAINTENANCE_MODE_COOLDOWN_MINUTES = 10;
+
+const ACTION_TARGET_SEPARATOR = '|';
 
 class AlarmService {
   private alarmCache: Map<string, { device: Pick<Device, 'alarms' | 'maintenance_mode_until'>; expiresAt: number }> = new Map();
@@ -164,18 +165,20 @@ class AlarmService {
       `Alarm ID: ${alarm.alarmId}\n` +
       (!alarm.isTriggered && this.hasThresholds(alarm) ? `Extreme Value: ${alarm.extremeValue}\n` : '');
 
+    const actionTarget = this.getActionTarget(alarm);
     await mailTransport.sendMail({
       from: SMTP_SENDER,
-      to: alarm.actionTarget,
+      to: actionTarget,
       subject: emailSubject,
       text: emailBody,
     });
 
-    console.log(`Alarm email sent to ${alarm.actionTarget} for device ${deviceId} and sensor ${alarm.sensorType}.`);
+    console.log(`Alarm email sent to ${actionTarget} for device ${deviceId} and sensor ${alarm.sensorType}.`);
   }
 
   private async handleWebhookAlarm(alarm: Alarm, deviceId: string, value: number) {
-    if (!alarm.actionTarget) {
+    const actionTarget = this.getActionTarget(alarm);
+    if (!actionTarget) {
       console.error(`No webhook URL provided for alarm on device ${deviceId}`);
       return;
     }
@@ -201,7 +204,7 @@ class AlarmService {
       webhookPayload = alarm.webhookResolvedPayload || defaultPayload;
     }
 
-    const url = new URL(alarm.actionTarget);
+    const url = new URL(actionTarget);
     const isHttps = url.protocol?.startsWith('https');
     const requestFn = isHttps ? httpsRequest : httpRequest;
 
@@ -332,6 +335,14 @@ class AlarmService {
     return (
       (alarm.upperThreshold !== null && alarm.upperThreshold !== undefined) || (alarm.lowerThreshold !== null && alarm.lowerThreshold !== undefined)
     );
+  }
+
+  private getActionTarget(alarm: Alarm): string {
+    if (alarm.actionTarget?.indexOf(ACTION_TARGET_SEPARATOR) >= 0) {
+      return alarm.actionTarget.split(ACTION_TARGET_SEPARATOR)[alarm.isTriggered ? 0 : 1].trim();
+    }
+
+    return alarm.actionTarget?.trim() ?? '';
   }
 }
 
