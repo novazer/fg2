@@ -898,6 +898,8 @@ namespace fg {
 
     auto menu = ui->push<SelectMenu>();
 
+    menu->addOption("Dashboard", ICON_DASHBOARD, [ui, this](){ ui->pop(); });
+
     menu->addOption("Maintenance mode", ICON_SETTINGS, [ui, this](){
       ui->push<FloatInput>("Pause fridge for", 30, "min", 0, 120, 5, 0, [ui, this](float value) {
         char buf[64];
@@ -919,8 +921,6 @@ namespace fg {
         });
       });
     });
-
-    menu->addOption("Dashboard", ICON_DASHBOARD, [ui, this](){ ui->pop(); });
 
     // if(!cloud.directMode()) {
 
