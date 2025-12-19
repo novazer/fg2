@@ -290,9 +290,9 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
     const alert = await this.alertController.create({
       header: `Maintenance mode`,
       inputs: [
-        { label: 'deactivate', type: 'radio', value: 0 },
+        { label: 'deactivate', type: 'radio', value: 0, checked: true },
         // @ts-ignore
-        ...[...Array(24).keys()].map(i => ({ label: `${(i + 1) * 5} minutes`, type: 'radio', value: (i + 1) * 5, checked: i === 3 })),
+        ...[...Array(24).keys()].map(i => ({ label: `${(i + 1) * 5} minutes`, type: 'radio', value: (i + 1) * 5 })),
       ],
       buttons: [
         { text: 'Cancel', role: 'cancel' },
