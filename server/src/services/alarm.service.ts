@@ -26,7 +26,7 @@ class AlarmService {
       const sensorValue = this.getSensorValue(alarm, data);
       if (sensorValue !== undefined && !alarm.disabled && (alarm.latestDataPointTime ?? 0) < (data.timestamp ? data.timestamp * 1000 : Date.now())) {
         const thresholdExceeded = this.isThresholdExceeded(alarm, sensorValue);
-        const inMaintenanceMode = device.maintenance_mode_until && (device.maintenance_mode_until + MAINTENANCE_MODE_COOLDOWN_MILLIS) > Date.now();
+        const inMaintenanceMode = device.maintenance_mode_until && device.maintenance_mode_until + MAINTENANCE_MODE_COOLDOWN_MILLIS > Date.now();
 
         if (thresholdExceeded !== alarm.isTriggered && !inMaintenanceMode) {
           await this.handleAlarm(alarm, deviceId, sensorValue, data.timestamp);
