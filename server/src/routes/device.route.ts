@@ -246,6 +246,7 @@ class DeviceRoute implements Routes {
      */
     this.router.delete(`${this.path}/logs/:device_id`, authMiddleware, this.deviceController.deleteDeviceLogs);
     this.router.get(`${this.path}/byserial`, authAdminMiddleware, this.deviceController.getDeviceBySerial);
+    this.router.post(`${this.path}/maintenancemode`, authMiddleware, this.deviceController.activateMaintenanceMode);
 
     this.router.get(`${this.path}/onlinedevices`, authAdminMiddleware, this.deviceController.getOnlineDevices);
     this.router.get(`${this.path}/firmwareversions`, authAdminMiddleware, this.deviceController.getFirmwareVersions);

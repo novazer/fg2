@@ -121,6 +121,7 @@
 
   "devices": {
     "button-settings": "Einstellungen",
+    "button-maintenance-mode": "Wartungsmodus",
     "page-settings": "Einstellungen",
     "button-charts": "Graphen",
     "button-delete": "Löschen",

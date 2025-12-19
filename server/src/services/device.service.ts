@@ -345,7 +345,7 @@ class DeviceService {
     });
 
     const [messageKey, value] = msg.message.split(':');
-    if (messageKey === 'message-maintenance-mode-activated' && isNumeric(value)) {
+    if (messageKey?.startsWith('message-maintenance-mode-activated') && isNumeric(value)) {
       await alarmService.maintenanceActivatedForDevice(deviceId, parseInt(value));
     }
   }
@@ -383,6 +383,20 @@ class DeviceService {
   public async getDeviceBySerial(serialnumber: Number): Promise<Device> {
     const device: Device = await deviceModel.findOne({ serialnumber: serialnumber });
     return device;
+  }
+
+  public async activateMaintenanceMode(device_id: string, durationMinutes: number): Promise<void> {
+    console.log('Activating maintenance mode for device ' + device_id + ' for ' + durationMinutes + ' minutes');
+
+    mqttclient.publish(
+      '/devices/' + device_id + '/command',
+      JSON.stringify({
+        action: 'maintenance',
+        durationMinutes,
+      }),
+    );
+
+    await alarmService.maintenanceActivatedForDevice(device_id, durationMinutes);
   }
 
   public async findUserDevices(user_id: string): Promise<Device[]> {

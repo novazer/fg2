@@ -65,6 +65,20 @@ class DeviceController {
     }
   };
 
+  public activateMaintenanceMode = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+    try {
+      if (req.is_admin || (await isUserDeviceMiddelware(req, res, req.body.device_id))) {
+        const durationMinutes = req.body.duration_minutes || 0;
+        await deviceService.activateMaintenanceMode(req.body.device_id, durationMinutes);
+        res.status(200).json({ status: 'ok' });
+      } else {
+        res.status(401);
+      }
+    } catch (error) {
+      next(error);
+    }
+  };
+
   public getClaimCode = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
       const code = await deviceService.getClaimCode(req.body.device_id);

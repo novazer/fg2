@@ -1,6 +1,6 @@
 import {Component, ElementRef, Input, OnDestroy, OnInit, Renderer2, ViewChild} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
-import {IonModal} from '@ionic/angular';
+import {AlertController, IonModal, ToastController} from '@ionic/angular';
 import {combineLatest} from 'rxjs';
 import {DataService} from 'src/app/services/data.service';
 import {DeviceService} from 'src/app/services/devices.service';
@@ -53,7 +53,7 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
   private timerId: any = null;
   private tick = 0;
 
-  constructor(private devices: DeviceService, public data: DataService, private route: ActivatedRoute, private renderer: Renderer2) { }
+  constructor(private devices: DeviceService, public data: DataService, private route: ActivatedRoute, private renderer: Renderer2, private alertController: AlertController, private toastController: ToastController) { }
 
   editName() {
     this.editingName = true;
@@ -271,5 +271,38 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
     }
 
     return undefined;
+  }
+
+  async maintenanceMode() {
+    const alert = await this.alertController.create({
+      header: `Maintenance mode`,
+      inputs: [
+        { label: 'deactivate', type: 'radio', value: 0 },
+        // @ts-ignore
+        ...[...Array(24).keys()].map(i => ({ label: `${(i + 1) * 5} minutes`, type: 'radio', value: (i + 1) * 5, checked: i === 3 })),
+      ],
+      buttons: [
+        { text: 'Cancel', role: 'cancel' },
+        {
+          text: 'Save',
+          handler: async (data) => {
+            try {
+              await this.devices.activateMaintenanceMode(this.device_id, data);
+              const toast = await this.toastController.create({ message: `Maintenance mode ${data <= 0 ? 'de' : ''}activated`, duration: 5000 });
+              await toast.present();
+              return true;
+            } catch (e: any) {
+              let message = 'Failed to activate maintenance mode: ' + e.message;
+              console.log(message, e);
+              const toast = await this.toastController.create({ message, duration: 5000 });
+              await toast.present();
+              return false; // close alert
+            }
+
+          }
+        }
+      ]
+    });
+    await alert.present();
   }
 }

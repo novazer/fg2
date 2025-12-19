@@ -202,4 +202,8 @@ export class DeviceService {
   public async getBySerial(serialnumber: string) : Promise<Device> {
     return await firstValueFrom(this.http.get<Device>(environment.API_URL + "/device/byserial", {params: {serialnumber: serialnumber}}));
   }
+
+  public async activateMaintenanceMode(device_id: string, durationMinutes: number) {
+    await firstValueFrom(this.http.post(environment.API_URL + "/device/maintenancemode", { device_id: device_id, duration_minutes: durationMinutes }));
+  }
 }
