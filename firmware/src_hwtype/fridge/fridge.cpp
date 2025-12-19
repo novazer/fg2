@@ -556,6 +556,12 @@ namespace fg {
       }
       else if(command["action"] && command["action"] == std::string("stoptest")) {
         testmode_duration = 0;
+      } else if(command["action"] && command["action"] == std::string("maintenance")) {
+        float durationMinutes = command["durationMinutes"].as<float>();
+        char buf[64];
+        pause_until_tick = xTaskGetTickCount() + configTICK_RATE_HZ * durationMinutes * 60;
+        snprintf(buf, sizeof(buf), "message-maintenance-mode-activated-remote:%d", (int)roundf(durationMinutes));
+        cloud.log(buf);
       }
     });
 
