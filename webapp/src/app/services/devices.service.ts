@@ -12,6 +12,7 @@ export interface Device {
   configuration: string;
   settings: any;
   name: string;
+  maintenance_mode_until?: number;
 }
 
 export interface DeviceClass {

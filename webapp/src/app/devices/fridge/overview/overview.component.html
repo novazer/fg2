@@ -153,6 +153,14 @@
       </div>
     </ion-col>
   </ion-row>
+  <ion-row class="ion-justify-content-center" *ngIf="getMaintenanceModeRemainingMs() > 0">
+    <ion-col size="12" size-sm="6" size-md="4" size-lg="3">
+      <div class="maintenance-mode ion-text-center">
+        <ion-icon name="construct-outline"></ion-icon>
+        Maintenance mode [{{ getMaintenanceModeRemainingDuration() }}]
+      </div>
+    </ion-col>
+  </ion-row>
   <ion-row>
     <ion-col size-md="2" size-sm="3" size="12" style="z-index: 1000">
       <ion-button expand="block" [routerLink]="['/device', device_id, 'charts']">{{'devices.button-charts' | translate}}</ion-button>

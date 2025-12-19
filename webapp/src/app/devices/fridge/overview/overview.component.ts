@@ -24,6 +24,7 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
   public vpd:number = 0;
   @Input() device_id:string = "";
   @Input() device_name:string = "";
+  @Input() maintenance_mode_until:number = 0;
   @ViewChild("nameedit", { read: ElementRef }) private nameInput: ElementRef | undefined;
 
   public logs:any;
@@ -259,6 +260,18 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
 
   getRecipeStepRemainingDuration(step: any): string {
     return msToDuration(this.getRecipeStepRemainingMs(step)) + (step.waitForConfirmation ? ' +confirm' : '');
+  }
+
+  getMaintenanceModeRemainingMs(): number {
+    if (!this.maintenance_mode_until || this.maintenance_mode_until <= 0) {
+      return 0;
+    }
+
+    return Date.now() - this.maintenance_mode_until;
+  }
+
+  getMaintenanceModeRemainingDuration(): string {
+    return msToDuration(this.getMaintenanceModeRemainingMs());
   }
 
   getRecipeConfirmationMessage(step: any): string | undefined {
