@@ -303,6 +303,7 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
               await this.devices.activateMaintenanceMode(this.device_id, data);
               const toast = await this.toastController.create({ message: `Maintenance mode ${data <= 0 ? 'de' : ''}activated`, duration: 5000 });
               await toast.present();
+              this.maintenance_mode_until = data <= 0 ? 0 : Date.now() + data * 60 * 1000;
               return true;
             } catch (e: any) {
               let message = 'Failed to activate maintenance mode: ' + e.message;
