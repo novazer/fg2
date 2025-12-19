@@ -8,7 +8,7 @@ import { request as httpsRequest } from 'https';
 import * as console from 'node:console';
 
 const CACHE_EXPIRATION_SECONDS = 600;
-const MAINTENANCE_MODE_COOLDOWN_MINUTES = 10;
+const MAINTENANCE_MODE_COOLDOWN_MILLIS = 10 * 60 * 1000;
 
 const ACTION_TARGET_SEPARATOR = '|';
 
@@ -26,7 +26,7 @@ class AlarmService {
       const sensorValue = this.getSensorValue(alarm, data);
       if (sensorValue !== undefined && !alarm.disabled && (alarm.latestDataPointTime ?? 0) < (data.timestamp ? data.timestamp * 1000 : Date.now())) {
         const thresholdExceeded = this.isThresholdExceeded(alarm, sensorValue);
-        const inMaintenanceMode = device.maintenance_mode_until && device.maintenance_mode_until > Date.now();
+        const inMaintenanceMode = device.maintenance_mode_until && (device.maintenance_mode_until + MAINTENANCE_MODE_COOLDOWN_MILLIS) > Date.now();
 
         if (thresholdExceeded !== alarm.isTriggered && !inMaintenanceMode) {
           await this.handleAlarm(alarm, deviceId, sensorValue, data.timestamp);
@@ -59,7 +59,7 @@ class AlarmService {
       { device_id: deviceId },
       {
         $set: {
-          maintenance_mode_until: Date.now() + (durationMinutes + MAINTENANCE_MODE_COOLDOWN_MINUTES) * 60 * 1000,
+          maintenance_mode_until: Date.now() + durationMinutes * 60 * 1000,
         },
       },
     );

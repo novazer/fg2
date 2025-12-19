@@ -267,7 +267,7 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
       return 0;
     }
 
-    return Date.now() - this.maintenance_mode_until;
+    return this.maintenance_mode_until - Date.now();
   }
 
   getMaintenanceModeRemainingDuration(): string {
