@@ -129,7 +129,7 @@
   "devices": {
     "button-settings": "Settings",
     "button-maintenance-mode": "Maintenance mode",
-    "page-settings",: "Settings",
+    "page-settings": "Settings",
     "button-charts": "Charts",
     "button-delete": "Delete",
     "device-offline": "device offline",
