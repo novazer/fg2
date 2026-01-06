@@ -117,7 +117,7 @@ export class FridgeSettingsConfigurationComponent implements OnChanges {
         "day": this.timeSecondsToLocalSeconds(device_settings?.daynight?.day) ?? 36000,
         "night": this.timeSecondsToLocalSeconds(device_settings?.daynight?.night) ?? 79200,
         "floating": device_settings?.daynight?.floating || false,
-        "float_start": this.secondsToTimeString(device_settings?.daynight?.float_start || Math.floor((new Date()).getTime() / 3600000) * 3600),
+        "float_start": this.secondsToTimeString(device_settings?.daynight?.float_start || Math.floor((new Date()).getTime() / 3600000) * 3600, true),
         "day_duration": device_settings?.daynight?.day_duration / 3600 || 24,
         "light_duration": device_settings?.daynight?.light_duration / 3600 || 12,
       },
@@ -229,8 +229,10 @@ export class FridgeSettingsConfigurationComponent implements OnChanges {
     return ''+a == ''+b;
   }
 
-  secondsToTimeString(time:number) {
-    // time -= this.offset
+  secondsToTimeString(time:number, withOffset = false) {
+    if (withOffset) {
+      time -= this.offset
+    }
     let date = new Date(time * 1000)
     return date.toISOString();
   }
