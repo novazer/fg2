@@ -117,7 +117,7 @@ class DeviceService {
                   from: SMTP_SENDER,
                   to: SMTP_SENDER,
                   subject: '[FG2] Unknown Firmware detected',
-                  text: parsedMessage2.firwmare_id + ' on device ' + device_id + '\n\n' + JSON.stringify(message.message),
+                  text: parsedMessage2.firwmare_id + ' on device ' + device_id + '\n\n' + JSON.stringify(message.message) + '\n\n' + message.message,
                 });
               }
             }
