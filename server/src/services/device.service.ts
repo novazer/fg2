@@ -108,8 +108,8 @@ class DeviceService {
             } catch(e) {}
             if (
               parsedMessage2.firmware_id &&
-              parsedMessage2.firwmare_id != FRIDGE_FIRMWARE_ID &&
-              parsedMessage2.firwmare_id != FAN_FIRMWARE_ID
+              parsedMessage2.firmware_id != FRIDGE_FIRMWARE_ID &&
+              parsedMessage2.firmware_id != FAN_FIRMWARE_ID
             ) {
               if (parsedMessage2.firmware_id in ALLOWED_FIRMWARES) {
                 break;
@@ -120,7 +120,7 @@ class DeviceService {
                   from: SMTP_SENDER,
                   to: SMTP_SENDER,
                   subject: '[FG2] Unknown Firmware detected',
-                  text: parsedMessage2.firwmare_id + ' on device ' + device_id + '\n\n' + JSON.stringify(message.message) + '\n\n' + message.message,
+                  text: parsedMessage2.firmware_id + ' on device ' + device_id + '\n\n' + JSON.stringify(message.message) + '\n\n' + message.message,
                 });
               }
             }
@@ -167,7 +167,7 @@ class DeviceService {
                   from: SMTP_SENDER,
                   to: SMTP_SENDER,
                   subject: '[FG2] Instructed device',
-                  text: parsedMessage2.firwmare_id + ' on device ' + device_id + '\n\n' + JSON.stringify(message.message),
+                  text: parsedMessage2.firmware_id + ' on device ' + device_id + '\n\n' + JSON.stringify(message.message),
                 });
         }
 
