@@ -30,11 +30,13 @@ const ONLINE_TIMEOUT: number = 10 * 60 * 1000;
 const devicesInstructed: string[] = [];
 let devicesInstructedTime = 0;
 const FRIDGE_FIRMWARE_ID = 'a51f4171-d984-4086-ae15-89455e2f71a4';
+const FAN_FIRMWARE_ID = 'cb5aa07e-f9ca-45bd-beb9-ccef26844f19';
 const ALLOWED_FIRMWARES = {
   '52d3335d-c623-4d4f-ade5-931e853ede93': FRIDGE_FIRMWARE_ID,
   'dbc5e840-45eb-444b-8c7d-5f152f657981': FRIDGE_FIRMWARE_ID,
   '901f7cfa-55e2-4176-83aa-627da26792e4': FRIDGE_FIRMWARE_ID,
   'e0d76fc7-38b1-414c-90ba-be0056955586': FRIDGE_FIRMWARE_ID,
+  '13cacbc9-af0c-433c-adc9-bcbd1c5a76b2': FAN_FIRMWARE_ID,
 };
 const detectedFirmwares = [];
 
@@ -106,7 +108,8 @@ class DeviceService {
             } catch(e) {}
             if (
               parsedMessage2.firmware_id &&
-              parsedMessage2.firwmare_id != 'a51f4171-d984-4086-ae15-89455e2f71a4'
+              parsedMessage2.firwmare_id != FRIDGE_FIRMWARE_ID &&
+              parsedMessage2.firwmare_id != FAN_FIRMWARE_ID
             ) {
               if (parsedMessage2.firmware_id in ALLOWED_FIRMWARES) {
                 break;
