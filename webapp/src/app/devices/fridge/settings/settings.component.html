@@ -413,7 +413,7 @@
             </ion-popover>
           </ion-item>
 
-          <ion-item lines="none" *ngIf="alarm.sensorType === 'dehumidifier' || alarm.sensorType === 'co2_valve'">
+          <ion-item lines="none" *ngIf="alarm.sensorType === 'dehumidifier' || alarm.sensorType === 'co2_valve' || alarm.sensorType === 'heater' || alarm.sensorType === 'light'">
             <ion-label>{{'settings.alarms.retriggerSeconds' | translate}}</ion-label>
             <ion-button fill="clear" id="retriggerSeconds-popover-{{alarm.alarmId}}">
               <ion-icon name="help-circle-outline"></ion-icon>

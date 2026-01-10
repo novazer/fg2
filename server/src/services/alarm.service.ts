@@ -38,7 +38,10 @@ class AlarmService {
           const lastAlarmAction = Math.max(alarm.lastTriggeredAt || 0, alarm.lastResolvedAt || 0);
           if (
             alarm.actionType !== 'email' &&
-            (alarm.sensorType === 'dehumidifier' || alarm.sensorType === 'co2_valve') &&
+            (alarm.sensorType === 'dehumidifier' ||
+              alarm.sensorType === 'co2_valve' ||
+              alarm.sensorType === 'heater' ||
+              alarm.sensorType === 'light') &&
             alarm.retriggerSeconds >= 60 &&
             lastAlarmAction > 0 &&
             lastAlarmAction + alarm.retriggerSeconds * 1000 < Date.now()
