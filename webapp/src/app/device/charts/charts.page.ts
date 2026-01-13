@@ -67,18 +67,18 @@ export class ChartsPage implements OnInit, OnDestroy {
   };
 
   public timespans = [
-    { name: '20m', duration: '-20m', interval:'10s', enabled: false },
-    { name: '1h', duration: '-1h', interval:'10s', enabled: false },
-    { name: '6h', duration: '-6h', interval:'10s', enabled: false },
-    { name: '12h', duration: '-12h', interval:'10s', enabled: false },
-    { name: '24h', duration: '-1d', interval:'20s', enabled: true },
-    { name: '3d', duration: '-3d', interval:'1m', enabled: false },
-    { name: '1w', duration: '-7d', interval:'10m', enabled: false },
-    { name: '1m', duration: '-30d', interval:'60m', enabled: false},
-    { name: '3m', duration: '-90d', interval:'180m', enabled: false },
-    { name: '6m', duration: '-180d', interval:'360m', enabled: false },
-    { name: '1y', duration: '-1y', interval:'720m', enabled: false },
-    { name: '3y', duration: '-3y', interval:'2160m', enabled: false },
+    { name: '20m', durationValue: 20, durationUnit: 'm', interval:'10s', enabled: false },
+    { name: '1h', durationValue: 1, durationUnit: 'h', interval:'10s', enabled: false },
+    { name: '6h', durationValue: 6, durationUnit: 'h', interval:'10s', enabled: false },
+    { name: '12h', durationValue: 12, durationUnit: 'h', interval:'10s', enabled: false },
+    { name: '24h', durationValue: 24, durationUnit: 'h', interval:'20s', enabled: true },
+    { name: '3d', durationValue: 3, durationUnit: 'd', interval:'1m', enabled: false },
+    { name: '1w', durationValue: 7, durationUnit: 'd', interval:'10m', enabled: false },
+    { name: '1m', durationValue: 30, durationUnit: 'd', interval:'60m', enabled: false},
+    { name: '3m', durationValue: 90, durationUnit: 'd', interval:'180m', enabled: false },
+    { name: '6m', durationValue: 180, durationUnit: 'd', interval:'360m', enabled: false },
+    { name: '1y', durationValue: 1, durationUnit: 'y', interval:'720m', enabled: false },
+    { name: '3y', durationValue: 3, durationUnit: 'y', interval:'2160m', enabled: false },
   ]
 
   public measures = [
@@ -110,6 +110,8 @@ export class ChartsPage implements OnInit, OnDestroy {
   public device_type:string = ""
 
   public autoUpdate:boolean = false;
+
+  public offset: number = 0;
 
   public chartInstance!: Highcharts.Chart;
 
@@ -149,11 +151,12 @@ export class ChartsPage implements OnInit, OnDestroy {
 
   private async loadData() {
 
-    let span:string, interval:string;
+    let from:string, interval:string, to: string;
 
     for(let ts of this.timespans) {
       if(ts.enabled) {
-        span = ts.duration;
+        from = String(-ts.durationValue + this.offset * ts.durationValue) + ts.durationUnit;
+        to = String(this.offset * ts.durationValue) + ts.durationUnit;
         interval = ts.interval;
         break;
       }
@@ -193,7 +196,7 @@ export class ChartsPage implements OnInit, OnDestroy {
     }
 
     let series = await Promise.all(this.filtered_measures.map(async (measure:any):Promise<Highcharts.SeriesOptionsType> => {
-      let data = measure.enabled ? await this.data.getSeries(this.device_id, measure.name, span, interval) : []
+      let data = measure.enabled ? await this.data.getSeries(this.device_id, measure.name, from, interval, to) : []
 
       if (data.length > 0 && data[data.length - 1][1] === null) {
         data.pop();
@@ -231,7 +234,18 @@ export class ChartsPage implements OnInit, OnDestroy {
   public setSpan(ts:any) {
     for(let tsp of this.timespans) {tsp.enabled = false}
     ts.enabled = true;
+    this.offset = 0;
 
+    this.loadData().then(() => this.chartInstance?.zoomOut());
+  }
+
+  public prevSpan() {
+    this.offset--;
+    this.loadData().then(() => this.chartInstance?.zoomOut());
+  }
+
+  public nextSpan() {
+    this.offset++;
     this.loadData().then(() => this.chartInstance?.zoomOut());
   }
 
