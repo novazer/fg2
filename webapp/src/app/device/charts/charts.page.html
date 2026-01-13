@@ -34,6 +34,20 @@
         <img class="icon-off" src="assets/icon/autoUpdate_off.png" style="opacity: 0.3" />
       </ion-col>
     </ng-container>
+    <ng-container>
+      <ion-col>
+        <ion-input
+          type="number"
+          style="width: 80px; text-align: center;"
+          [(ngModel)]="offset"
+          (ionChange)="spanChanged()"
+          (ionBlur)="offsetFocused = false"
+          (ionFocus)="offsetFocused = true"
+          [disabled]="autoUpdate"
+          [hidden]="offset >= 0 && !offsetFocused"
+        ></ion-input>
+      </ion-col>
+    </ng-container>
   </ion-row>
 
   <ion-button

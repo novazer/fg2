@@ -113,6 +113,8 @@ export class ChartsPage implements OnInit, OnDestroy {
 
   public offset: number = 0;
 
+  public offsetFocused: boolean = false;
+
   public chartInstance!: Highcharts.Chart;
 
   @ViewChild(BaseChartDirective) chart?: BaseChartDirective;
@@ -236,16 +238,20 @@ export class ChartsPage implements OnInit, OnDestroy {
     ts.enabled = true;
     this.offset = 0;
 
-    this.loadData().then(() => this.chartInstance?.zoomOut());
+    this.spanChanged();
   }
 
   public prevSpan() {
     this.offset--;
-    this.loadData().then(() => this.chartInstance?.zoomOut());
+    this.spanChanged();
   }
 
   public nextSpan() {
     this.offset++;
+    this.spanChanged();
+  }
+
+  public spanChanged() {
     this.loadData().then(() => this.chartInstance?.zoomOut());
   }
 
