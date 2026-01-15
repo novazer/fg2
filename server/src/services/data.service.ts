@@ -82,21 +82,34 @@ class DataService {
     const tempSeries = await this.getSeries(device_id, 'temperature', from, to, interval);
     const humiditySeries = await this.getSeries(device_id, 'humidity', from, to, interval);
     const lightSeries = await this.getSeries(device_id, 'out_light', from, to, interval);
+
+    const combinedSeries = new Map();
+    tempSeries.forEach(t => {
+      combinedSeries.set(t._time, { temp: t._value });
+    });
+    humiditySeries.forEach(h => {
+      if (combinedSeries.has(h._time)) {
+        combinedSeries.get(h._time).humidity = h._value;
+      }
+    });
+    lightSeries.forEach(l => {
+      if (combinedSeries.has(l._time)) {
+        combinedSeries.get(l._time).light = l._value;
+      }
+    });
+
     const cloudSettings = await deviceService.getDeviceCloudSettings(device_id);
 
     const dayOnly = measure.endsWith('_day');
     const nightOnly = measure.endsWith('_night');
 
     const result = [];
-    for (const time of tempSeries.map(t => t._time)) {
-      const temp = tempSeries.find(t => t._time === time)?._value;
-      const humidity = humiditySeries.find(h => h._time === time)?._value;
-      const light = lightSeries.find(l => l._time === time)?._value;
-      const isDay = (light ?? 0) > 0.5;
+    for (const [time, values] of combinedSeries.entries()) {
+      const isDay = (values.light ?? 0) > 0.5;
 
-      if (temp && humidity && ((dayOnly && isDay) || (nightOnly && !isDay) || (!dayOnly && !nightOnly))) {
+      if (values.temp && values.humidity && ((dayOnly && isDay) || (nightOnly && !isDay) || (!dayOnly && !nightOnly))) {
         const leafTempOffset = isDay ? cloudSettings?.vpdLeafTempOffsetDay : cloudSettings?.vpdLeafTempOffsetNight;
-        const vpd = calculateVpd(temp + leafTempOffset, humidity);
+        const vpd = calculateVpd(values.temp + leafTempOffset, values.humidity);
         result.push({ _time: time, _value: vpd });
       } else {
         result.push({ _time: time, _value: NaN });
