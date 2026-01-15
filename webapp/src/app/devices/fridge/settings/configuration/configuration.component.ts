@@ -1,9 +1,9 @@
-import {Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges} from '@angular/core';
+import {Component, EventEmitter, Input, OnChanges, Output, SimpleChanges} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
-import { TranslateService } from '@ngx-translate/core';
-import { combineLatest } from 'rxjs';
-import { DataService } from 'src/app/services/data.service';
-import { Device, DeviceService } from 'src/app/services/devices.service';
+import {TranslateService} from '@ngx-translate/core';
+import {DataService} from 'src/app/services/data.service';
+import {DeviceService} from 'src/app/services/devices.service';
+import {calculateVpd} from "../../../../util/calculateVpd";
 
 interface Preset {
   id: string;
@@ -22,6 +22,7 @@ interface Preset {
 export class FridgeSettingsConfigurationComponent implements OnChanges {
 
   @Input() deviceSettings: any = {};
+  @Input() cloudSettings: any = {};
   @Output() deviceSettingsChange = new EventEmitter<any>();
   public settings:any = null
   public offset:number;
@@ -235,6 +236,14 @@ export class FridgeSettingsConfigurationComponent implements OnChanges {
     }
     let date = new Date(time * 1000)
     return date.toISOString();
+  }
+
+  getDayVpd(): number {
+    return calculateVpd(this.settings?.day?.temperature + this.cloudSettings?.vpdLeafTempOffsetDay, this.settings?.day?.humidity);
+  }
+
+  getNightVpd(): number {
+    return calculateVpd(this.settings?.night?.temperature + this.cloudSettings?.vpdLeafTempOffsetNight, this.settings?.night?.humidity);
   }
 
 }

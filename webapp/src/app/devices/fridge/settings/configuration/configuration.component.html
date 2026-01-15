@@ -98,6 +98,11 @@
           <ion-range [(ngModel)]="settings.day.humidity" min="{{limits.humidity.min}}" max="{{limits.humidity.max}}" step="1" (ionChange)="onSettingsChanged()"></ion-range>
           <ion-button size="small" fill="clear" (click)="settings.day.humidity = settings.day.humidity + 1" [disabled]="settings.day.humidity >= limits.humidity.max"><ion-icon name="add-circle"></ion-icon></ion-button>
         </ion-item>
+
+        <ion-item>
+          <ion-label>{{ 'settings.dayVpd' | translate }}</ion-label>
+          <ion-text lines="none">{{ getDayVpd() }} kPa</ion-text>
+        </ion-item>
       </ng-container>
     </ng-container>
 
@@ -123,6 +128,11 @@
           <ion-button size="small" fill="clear" (click)="settings.night.humidity = settings.night.humidity - 1" [disabled]="settings.night.humidity <= limits.humidity.min"><ion-icon name="remove-circle"></ion-icon></ion-button>
           <ion-range [(ngModel)]="settings.night.humidity" min="{{limits.humidity.min}}" max="{{limits.humidity.max}}" step="1" (ionChange)="onSettingsChanged()"></ion-range>
           <ion-button size="small" fill="clear" (click)="settings.night.humidity = settings.night.humidity + 1" [disabled]="settings.night.humidity >= limits.humidity.max"><ion-icon name="add-circle"></ion-icon></ion-button>
+        </ion-item>
+
+        <ion-item>
+          <ion-label>{{ 'settings.nightVpd' | translate }}</ion-label>
+          <ion-text lines="none">{{ getNightVpd() }} kPa</ion-text>
         </ion-item>
       </ng-container>
     </ng-container>

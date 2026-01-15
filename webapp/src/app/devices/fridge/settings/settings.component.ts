@@ -5,6 +5,7 @@ import {DeviceService} from 'src/app/services/devices.service';
 import {AlertController, AlertInput, ToastController} from "@ionic/angular";
 import {RecipeService} from 'src/app/services/recipe.service';
 import {alarm} from "ionicons/icons";
+import {calculateVpd} from "../../../util/calculateVpd";
 
 @Component({
   selector: 'fridge-settings',
@@ -553,6 +554,10 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
 
   trackByMethod(alarm: any) {
     return (index: number, el: any): number => el.key + alarm.disabled;
+  }
+
+  getVpd(temperature: number, humidity: number): number {
+    return calculateVpd(temperature, humidity);
   }
 }
 

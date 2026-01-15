@@ -25,7 +25,7 @@
       <ion-item>
         <ion-select [(ngModel)]="settingsmode" [interfaceOptions]="{'cssClass': 'wider-popover'}" (ionChange)="onSettingsModeChange()">
           <ion-select-option value="manual">{{'devices.fridge.settingsmode-manual' | translate}}</ion-select-option>
-          <ion-select-option value="recipe">{{'devices.fridge.settingsmode-recipe' | translate}} (Beta)</ion-select-option>
+          <ion-select-option value="recipe">{{'devices.fridge.settingsmode-recipe' | translate}}</ion-select-option>
         </ion-select>
       </ion-item>
       <ion-item *ngIf="settingsmode === 'recipe'" lines="none">
@@ -135,6 +135,7 @@
                   <span *ngIf="parseWorkmode(step.settings?.workmode).hasDaycycle">{{ step.settings?.day?.temperature ?? 'n/a' }}&deg;/</span>{{ step.settings?.night?.temperature ?? 'n/a' }}&deg;C |
                   <span *ngIf="parseWorkmode(step.settings?.workmode).hasHumidity">
                     <span *ngIf="parseWorkmode(step.settings?.workmode).hasDaycycle">{{ step.settings?.day?.humidity ?? 'n/a' }}%/</span>{{ step.settings?.night?.humidity ?? 'n/a' }}% RLF |
+                    <span *ngIf="parseWorkmode(step.settings?.workmode).hasDaycycle">{{ getVpd(step?.settings?.day?.temperature + cloudSettings?.vpdLeafTempOffsetDay, step?.settings?.day?.humidity) }}kPa/</span>{{ getVpd(step?.settings?.night?.temperature + cloudSettings?.vpdLeafTempOffsetNight, step?.settings?.night?.humidity) }}kPa |
                   </span>
                   <span *ngIf="parseWorkmode(step.settings?.workmode).hasDaycycle">Light: {{ step.settings?.lights.limit}}% | </span>
                   <span *ngIf="parseWorkmode(step.settings?.workmode).hasCo2">{{ step.settings?.co2?.target }}PPM |</span>
@@ -189,7 +190,7 @@
               <ion-button size="small" color="danger" (click)="removeRecipeStep(step)" [disabled]="recipe.activeStepIndex === i && recipe.activeSince > 0">{{'devices.fridge.recipe.deleteStep' | translate}}</ion-button>
             </div>
 
-            <fridge-settings-config *ngIf="settingsOpened" [(deviceSettings)]="step.settings" />
+            <fridge-settings-config *ngIf="settingsOpened" [(deviceSettings)]="step.settings" [cloudSettings]="cloudSettings" />
 
             <ion-button color="primary" expand="block" [hidden]="!settingsOpened" (click)="settingsOpened = false">{{'devices.fridge.recipe.step.closeSettings' | translate}}</ion-button>
           </div>
@@ -223,7 +224,7 @@
     </ion-card-content>
   </ion-card>
 
-  <fridge-settings-config *ngIf="settingsmode === 'manual'" [(deviceSettings)]="deviceSettings" />
+  <fridge-settings-config *ngIf="settingsmode === 'manual'" [(deviceSettings)]="deviceSettings" [cloudSettings]="cloudSettings" />
 
   <ion-card>
     <ion-card-header>
