@@ -101,7 +101,7 @@
 
         <ion-item>
           <ion-label>{{ 'settings.dayVpd' | translate }}</ion-label>
-          <ion-text lines="none">{{ getDayVpd() }} kPa</ion-text>
+          <ion-text lines="none">{{ getDayVpd() }} - {{ getDayVpd(10) }} kPa</ion-text>
         </ion-item>
       </ng-container>
     </ng-container>
@@ -132,7 +132,7 @@
 
         <ion-item>
           <ion-label>{{ 'settings.nightVpd' | translate }}</ion-label>
-          <ion-text lines="none">{{ getNightVpd() }} kPa</ion-text>
+          <ion-text lines="none">{{ getNightVpd() }} - {{ getNightVpd(10) }} kPa</ion-text>
         </ion-item>
       </ng-container>
     </ng-container>

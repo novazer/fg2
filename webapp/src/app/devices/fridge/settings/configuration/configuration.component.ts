@@ -238,12 +238,18 @@ export class FridgeSettingsConfigurationComponent implements OnChanges {
     return date.toISOString();
   }
 
-  getDayVpd(): number {
-    return calculateVpd(this.settings?.day?.temperature + this.cloudSettings?.vpdLeafTempOffsetDay, this.settings?.day?.humidity);
+  getDayVpd(humidityOffset = 0): number {
+    return calculateVpd(
+      this.settings?.day?.temperature + this.cloudSettings?.vpdLeafTempOffsetDay,
+      Math.min(this.settings?.day?.humidity + humidityOffset, 90)
+    );
   }
 
-  getNightVpd(): number {
-    return calculateVpd(this.settings?.night?.temperature + this.cloudSettings?.vpdLeafTempOffsetNight, this.settings?.night?.humidity);
+  getNightVpd(humidityOffset = 0): number {
+    return calculateVpd(
+      this.settings?.night?.temperature + this.cloudSettings?.vpdLeafTempOffsetNight,
+      Math.min(this.settings?.night?.humidity + humidityOffset, 90)
+    );
   }
 
 }
