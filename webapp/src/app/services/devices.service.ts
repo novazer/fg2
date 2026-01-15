@@ -13,6 +13,11 @@ export interface Device {
   settings: any;
   name: string;
   maintenance_mode_until?: number;
+  cloudSettings?: {
+    autoFirmwareUpdate?: boolean;
+    vpdLeafTempOffsetDay?: number;
+    vpdLeafTempOffsetNight?: number;
+  }
 }
 
 export interface DeviceClass {
@@ -152,8 +157,8 @@ export class DeviceService {
     return await firstValueFrom( this.http.get<string>(environment.API_URL + '/device/alarms/' + device_id) )
   }
 
-  public async getFirmwareSettings(device_id:string) {
-    return await firstValueFrom( this.http.get<string>(environment.API_URL + '/device/firmwaresettings/' + device_id) )
+  public async getCloudSettings(device_id:string) {
+    return await firstValueFrom( this.http.get<string>(environment.API_URL + '/device/cloudsettings/' + device_id) )
   }
 
   public async getRecipe(device_id:string) {
@@ -184,8 +189,8 @@ export class DeviceService {
     await firstValueFrom( this.http.post(environment.API_URL + '/device/alarms', { device_id: device_id, alarms: alarms }) );
   }
 
-  public async setFirmwareSettings(device_id: string, firmwareSettings: any) {
-    await firstValueFrom( this.http.post(environment.API_URL + '/device/firmwaresettings', { device_id: device_id, firmware_settings: firmwareSettings }) );
+  public async setCloudSettings(device_id: string, cloudSettings: any) {
+    await firstValueFrom( this.http.post(environment.API_URL + '/device/cloudsettings', { device_id: device_id, cloud_settings: cloudSettings }) );
   }
 
   public async setName(device_id:string, name: string) {

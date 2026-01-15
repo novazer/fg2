@@ -131,16 +131,16 @@ class DeviceRoute implements Routes {
     this.router.post(`${this.path}/alarms`, authMiddleware, this.deviceController.setDeviceAlarms);
 
     /**
-     * @api {post} /device/firmwaresettings set device firmware settings
-     * @apiName set device firmware settings
+     * @api {post} /device/cloudsettings set device cloud settings
+     * @apiName set device cloud settings
      * @apiGroup device
      *
      * @apiUse authentication
      *
      * @apiBody {String} [device_id] device uuid
-     * @apiBody {FirmwareSettings} [firmwaresettings] device firmware settings
+     * @apiBody {CloudSettings} [cloud_settings] device cloud settings
      */
-    this.router.post(`${this.path}/firmwaresettings`, authMiddleware, this.deviceController.setDeviceFirmwareSettings);
+    this.router.post(`${this.path}/cloudsettings`, authMiddleware, this.deviceController.setDeviceCloudSettings);
 
     /**
      * @api {post} /device/setname set device name
@@ -175,7 +175,7 @@ class DeviceRoute implements Routes {
      */
     this.router.get(`${this.path}/config/:device_id`, authMiddleware, this.deviceController.getDeviceConfig);
     this.router.get(`${this.path}/alarms/:device_id`, authMiddleware, this.deviceController.getDeviceAlarms);
-    this.router.get(`${this.path}/firmwaresettings/:device_id`, authMiddleware, this.deviceController.getDeviceFirmwareSettings);
+    this.router.get(`${this.path}/cloudsettings/:device_id`, authMiddleware, this.deviceController.getDeviceCloudSettings);
 
     // Recipe endpoints
     this.router.get(`${this.path}/recipe/:device_id`, authMiddleware, this.deviceController.getRecipe);

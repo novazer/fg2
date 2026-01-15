@@ -34,6 +34,8 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
   public r_h:number = NaN;
   public co2_l:number = NaN;
   public co2_h:number = NaN;
+  public vpd_l:number = NaN;
+  public vpd_h:number = NaN;
   public config:any;
   public has_logs:boolean = false;
   public severity:number = 0;

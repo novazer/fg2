@@ -15,7 +15,7 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
   @Input() device_id:string = "";
   public deviceSettings: any = {};
   public alarms:any = [];
-  public firmwareSettings:any = {};
+  public cloudSettings:any = {};
   public availableSensorTypes = ['temperature', 'humidity', 'co2', 'co2_valve', 'light', 'dehumidifier', 'heater'];
   public offset:number;
   public settingsmode: 'manual' | 'recipe' = 'manual';
@@ -55,7 +55,7 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
         alarm.webhookHeaders ??= {};
         alarm.newHeaderName = '';
       });
-      this.firmwareSettings = await this.devices.getFirmwareSettings(this.device_id);
+      this.cloudSettings = await this.devices.getCloudSettings(this.device_id);
       this.deviceSettings = JSON.parse(await this.devices.getConfig(this.device_id));
       this.recipe = await this.devices.getRecipe(this.device_id);
       this.recipe?.steps?.forEach((step: any) => step.settings = JSON.parse(step.settings));
@@ -97,7 +97,7 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
         })),
       });
       await this.devices.setAlarms(this.device_id, this.alarms);
-      await this.devices.setFirmwareSettings(this.device_id, this.firmwareSettings);
+      await this.devices.setCloudSettings(this.device_id, this.cloudSettings);
       this.saved = true;
       await this._router.navigateByUrl('/list', { replaceUrl: true });
     } catch(e) {

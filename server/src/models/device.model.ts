@@ -96,6 +96,13 @@ const deviceSchema: Schema = new Schema({
     },
     required: false,
   },
+  cloudSettings: {
+    type: {
+      autoFirmwareUpdate: { type: Boolean, required: false },
+      vpdLeafTempOffset: { type: Number, required: false },
+    },
+    required: false,
+  },
   maintenance_mode_until: {
     type: Number,
     required: false,

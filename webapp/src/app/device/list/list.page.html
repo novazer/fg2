@@ -11,8 +11,16 @@
   <ion-card *ngFor="let device of all_devices">
     <ion-card-content [ngSwitch]="device.device_type">
       <fan-overview [device_id]="device.device_id" [device_name]="device.name" *ngSwitchCase="'fan'"></fan-overview>
-      <fridge-overview [device_id]="device.device_id" [device_name]="device.name" *ngSwitchCase="'fridge2'"></fridge-overview>
-      <fridge-overview [device_id]="device.device_id" [device_name]="device.name" [maintenance_mode_until]="device.maintenance_mode_until ?? 0" *ngSwitchCase="'fridge'"></fridge-overview>
+      <fridge-overview
+        [device_id]="device.device_id"
+        [device_name]="device.name"
+        [maintenance_mode_until]="device.maintenance_mode_until ?? 0"
+        *ngSwitchCase="'fridge2'"></fridge-overview>
+      <fridge-overview
+        [device_id]="device.device_id"
+        [device_name]="device.name"
+        [maintenance_mode_until]="device.maintenance_mode_until ?? 0"
+        *ngSwitchCase="'fridge'"></fridge-overview>
       <light-overview [device_id]="device.device_id" [device_name]="device.name" *ngSwitchCase="'light'"></light-overview>
       <plug-overview [device_id]="device.device_id" [device_name]="device.name" *ngSwitchCase="'plug'"></plug-overview>
       <dryer-overview [device_id]="device.device_id" [device_name]="device.name" *ngSwitchCase="'dryer'"></dryer-overview>

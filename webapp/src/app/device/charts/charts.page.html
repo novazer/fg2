@@ -36,6 +36,17 @@
     </ng-container>
     <ng-container>
       <ion-col>
+        <ion-select
+          [(ngModel)]="vpdMode"
+          (ionChange)="vpdModeChanged()"
+          [hidden]="!isMeasureEnabled('vpd')"
+        >
+          <ion-select-option value="all">{{'charts.vpd-mode.all' | translate}}</ion-select-option>
+          <ion-select-option value="day">{{'charts.vpd-mode.day' | translate}}</ion-select-option>
+          <ion-select-option value="night">{{'charts.vpd-mode.night' | translate}}</ion-select-option>
+        </ion-select>
+      </ion-col>
+      <ion-col>
         <ion-input
           type="number"
           style="width: 80px; text-align: center;"

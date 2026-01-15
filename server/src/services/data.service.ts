@@ -1,9 +1,7 @@
-import { InfluxDB, Point, HttpError } from '@influxdata/influxdb-client';
-import { INFLUXDB_HOST, INFLUXDB_TOKEN, INFLUXDB_ORG, INFLUXDB_BUCKET } from '@/config';
-import { NextFunction, Request, Response } from 'express';
-import { v4 as uuidv4 } from 'uuid';
-import * as fs from 'fs';
-import { StatusMessage } from '@services/device.service';
+import { InfluxDB, Point } from '@influxdata/influxdb-client';
+import { INFLUXDB_BUCKET, INFLUXDB_ORG, INFLUXDB_TOKEN } from '@/config';
+import { deviceService, StatusMessage } from '@services/device.service';
+import { calculateVpd } from '@utils/calculateVpd';
 
 const INFLUXDB_DB = 'devices';
 // You can generate a Token from the "Tokens Tab" in the UI
@@ -57,7 +55,11 @@ class DataService {
     }
   }
 
-  public async getSeries(device_id, measure, from, to, interval) {
+  public async getSeries(device_id, measure, from, to, interval): Promise<{ _time: string; _value: number }[]> {
+    if (measure.startsWith('vpd')) {
+      return this.getSeriesVpd(device_id, measure, from, to, interval);
+    }
+
     const queryApi = influxdb_client.getQueryApi(INFLUXDB_ORG);
     const query = `
       from(bucket: "${INFLUXDB_BUCKET}")
@@ -69,14 +71,46 @@ class DataService {
         |> yield(name: "mean")
         |> limit(n: 50000)
     `;
-    let rows = await queryApi.collectRows(query);
-    rows = rows.map((row: any) => {
+    const rows = await queryApi.collectRows(query);
+
+    return rows.map((row: any) => {
       return { _time: row._time, _value: row._value };
     });
-    return rows;
+  }
+
+  private async getSeriesVpd(device_id, measure: any, from, to, interval): Promise<{ _time: string; _value: number }[]> {
+    const tempSeries = await this.getSeries(device_id, 'temperature', from, to, interval);
+    const humiditySeries = await this.getSeries(device_id, 'humidity', from, to, interval);
+    const lightSeries = await this.getSeries(device_id, 'out_light', from, to, interval);
+    const cloudSettings = await deviceService.getDeviceCloudSettings(device_id);
+
+    const dayOnly = measure.endsWith('_day');
+    const nightOnly = measure.endsWith('_night');
+
+    const result = [];
+    for (const time of tempSeries.map(t => t._time)) {
+      const temp = tempSeries.find(t => t._time === time)?._value;
+      const humidity = humiditySeries.find(h => h._time === time)?._value;
+      const light = lightSeries.find(l => l._time === time)?._value;
+      const isDay = (light ?? 0) > 0.5;
+
+      if (temp && humidity && ((dayOnly && isDay) || (nightOnly && !isDay) || (!dayOnly && !nightOnly))) {
+        const leafTempOffset = isDay ? cloudSettings?.vpdLeafTempOffsetDay : cloudSettings?.vpdLeafTempOffsetNight;
+        const vpd = calculateVpd(temp + leafTempOffset, humidity);
+        result.push({ _time: time, _value: vpd });
+      } else {
+        result.push({ _time: time, _value: NaN });
+      }
+    }
+
+    return result;
   }
 
   public async getLatest(device_id, measure): Promise<number> {
+    if (measure === 'vpd') {
+      return this.getLatestVpd(device_id);
+    }
+
     const queryApi = influxdb_client.getQueryApi(INFLUXDB_ORG);
     const query = `
       from(bucket: "${INFLUXDB_BUCKET}")
@@ -95,6 +129,21 @@ class DataService {
     } else {
       return NaN;
     }
+  }
+
+  private async getLatestVpd(device_id): Promise<number> {
+    const temp = await this.getLatest(device_id, 'temperature');
+    const humidity = await this.getLatest(device_id, 'humidity');
+    const light = await this.getLatest(device_id, 'out_light');
+    const cloudSettings = await deviceService.getDeviceCloudSettings(device_id);
+
+    if (temp && humidity) {
+      const isDay = (light ?? 0) > 0.5;
+      const leafTempOffset = isDay ? cloudSettings?.vpdLeafTempOffsetDay : cloudSettings?.vpdLeafTempOffsetNight;
+      return calculateVpd(temp + leafTempOffset, humidity);
+    }
+
+    return NaN;
   }
 }
 export const dataService = new DataService();

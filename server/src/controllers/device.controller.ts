@@ -131,10 +131,10 @@ class DeviceController {
     }
   };
 
-  public setDeviceFirmwareSettings = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+  public setDeviceCloudSettings = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
       if (await isUserDeviceMiddelware(req, res, req.body.device_id)) {
-        await deviceService.setDeviceFirmwareSettings(req.body.device_id, req.user_id, req.body.firmware_settings);
+        await deviceService.setDeviceCloudSettings(req.body.device_id, req.user_id, req.body.cloud_settings);
         res.status(200).json({ status: 'ok' });
       }
     } catch (error) {
@@ -175,10 +175,10 @@ class DeviceController {
     }
   };
 
-  public getDeviceFirmwareSettings = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+  public getDeviceCloudSettings = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
       if (await isUserDeviceMiddelware(req, res, req.params.device_id)) {
-        const settings = await deviceService.getDeviceFirmwareSettings(req.params.device_id, req.user_id);
+        const settings = await deviceService.getDeviceCloudSettings(req.params.device_id);
         res.status(200).json(settings);
       }
     } catch (error) {

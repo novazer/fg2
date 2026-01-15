@@ -90,8 +90,10 @@
       "webhookResolvedPayloadHint": "Custom payload sent when the alarm is resolved (for POST/PUT). Leave empty to send the default payload."
     },
     "edit-value": "Edit Value",
-    "firmwareUpdates": "Firmware Updates",
-    "autoFirmwareUpdates": "Automatic Firmware Updates"
+    "cloudSettings": "Cloud settings",
+    "vpdLeafTempOffsetDay": "Day VPD leaf temp. offset",
+    "vpdLeafTempOffsetNight": "Night VPD leaf temp. offset",
+    "autoFirmwareUpdate": "Automatic Firmware Updates"
   },
 
   "menu": {
@@ -119,7 +121,12 @@
     "claim-button": "Claim"
   },
   "charts": {
-    "title": "Charts"
+    "title": "Charts",
+    "vpd-mode": {
+      "all": "VPD Mode: all",
+      "day": "VPD Mode: day only",
+      "night": "VPD Mode: night only"
+    }
   },
   "diagnostics": {
     "serialnumber": "Device serial number",

@@ -22,7 +22,14 @@ export interface Alarm {
 }
 
 export interface FirmwareSettings {
-  autoUpdate: boolean;
+  /** @deprecated */
+  autoUpdate?: boolean;
+}
+
+export interface CloudSettings {
+  autoFirmwareUpdate?: boolean;
+  vpdLeafTempOffsetDay?: number;
+  vpdLeafTempOffsetNight?: number;
 }
 
 export interface RecipeStep {
@@ -62,6 +69,7 @@ export interface Device {
   fwupdate_end: number;
   alarms?: [Alarm];
   firmwareSettings?: FirmwareSettings;
+  cloudSettings?: CloudSettings;
   maintenance_mode_until?: number;
   recipe?: Recipe;
 }

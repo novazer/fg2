@@ -89,8 +89,10 @@
       "webhookResolvedPayload": "Payload Behebung",
       "webhookResolvedPayloadHint": "Benutzerdefinierte Payload, die bei Behebung des Alarms gesendet wird (für POST/PUT). Leer lassen, um die Standard-Payload zu verwenden."
     },
-    "firmwareUpdates": "Firmware Updates",
-    "autoFirmwareUpdates": "Automatische Firmware Updates"
+    "cloudSettings": "Cloud Einstellungen",
+    "vpdLeafTempOffsetDay": "Tages VPD Blatt Temp. Offset",
+    "vpdLeafTempOffsetNight": "Nacht VPD Blatt Temp. Offset",
+    "autoFirmwareUpdate": "Automatische Firmware Updates"
   },
 
   "menu": {
@@ -116,7 +118,12 @@
     "claim-button": "Hinzufügen"
   },
   "charts": {
-    "title": "Graphen"
+    "title": "Graphen",
+    "vpd-mode": {
+      "all": "VPD Modus: alles",
+      "day": "VPD Modus: nur Tag",
+      "night": "VPD Modus: nur Nacht"
+    }
   },
 
   "devices": {

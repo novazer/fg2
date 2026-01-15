@@ -1,4 +1,4 @@
-import { Alarm, Device, DeviceClass, DeviceFirmware, DeviceFirmwareBinary, FirmwareSettings } from '@interfaces/device.interface';
+import { Alarm, Device, DeviceClass, DeviceFirmware, DeviceFirmwareBinary, CloudSettings } from '@interfaces/device.interface';
 import deviceModel from '@models/device.model';
 import deviceLogModel from '@models/devicelog.model';
 import deviceClassModel from '@/models/deviceclass.model';
@@ -170,7 +170,7 @@ class DeviceService {
             lastseen: { $gte: Date.now() - ONLINE_TIMEOUT },
             class_id: device_class.class_id,
             pending_firmware: { $ne: device_class.firmware_id },
-            firmwareSettings: { autoUpdate: true },
+            $or: [{ 'firmwareSettings.autoUpdate': true }, { 'cloudSettings.autoFirmwareUpdate': true }],
           })
           .limit(device_class.concurrent - currently_upgrading);
 
@@ -600,16 +600,16 @@ class DeviceService {
     alarmService.invalidateAlarmCache(device_id);
   }
 
-  public async setDeviceFirmwareSettings(device_id: string, user_id: string, settings: FirmwareSettings) {
+  public async setDeviceCloudSettings(device_id: string, user_id: string, settings: CloudSettings) {
     const device = await deviceModel.findOne({ device_id: device_id, owner_id: user_id });
 
     if (!device) {
       throw new HttpException(404, 'Device not found or access denied');
     }
 
-    device.firmwareSettings = settings;
+    device.cloudSettings = settings;
 
-    await deviceModel.updateOne({ device_id: device_id }, { firmwareSettings: settings });
+    await deviceModel.updateOne({ device_id: device_id }, { cloudSettings: settings, firmwareSettings: {} });
   }
 
   public async setDeviceName(device_id: string, user_id: string, name: string) {
@@ -631,9 +631,21 @@ class DeviceService {
     return device.alarms ?? [];
   }
 
-  public async getDeviceFirmwareSettings(device_id: string, user_id: string) {
-    const device = await deviceModel.findOne({ device_id: device_id, owner_id: user_id }, { firmwareSettings: 1 });
-    return device.firmwareSettings ?? {};
+  public async getDeviceCloudSettings(device_id: string) {
+    const device = await deviceModel.findOne({ device_id: device_id }, { firmwareSettings: 1, cloudSettings: 1 });
+    if (!device.cloudSettings) {
+      device.cloudSettings = { autoFirmwareUpdate: device.firmwareSettings?.autoUpdate ?? false };
+    }
+
+    if (!device?.cloudSettings.vpdLeafTempOffsetDay) {
+      device.cloudSettings.vpdLeafTempOffsetDay = -2;
+    }
+
+    if (!device?.cloudSettings.vpdLeafTempOffsetNight) {
+      device.cloudSettings.vpdLeafTempOffsetNight = 0;
+    }
+
+    return device.cloudSettings;
   }
 
   public async listClasses(): Promise<DeviceClass[]> {

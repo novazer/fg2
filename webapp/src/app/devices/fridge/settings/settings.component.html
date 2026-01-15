@@ -227,12 +227,22 @@
 
   <ion-card>
     <ion-card-header>
-      <ion-card-title> {{'settings.firmwareUpdates' | translate}}</ion-card-title>
+      <ion-card-title> {{'settings.cloudSettings' | translate}}</ion-card-title>
     </ion-card-header>
     <ion-card-content>
       <ion-item lines="none">
-        <ion-label>{{'settings.autoFirmwareUpdates' | translate}}</ion-label>
-        <ion-checkbox [(ngModel)]="firmwareSettings.autoUpdate"></ion-checkbox>
+        <ion-label>{{ 'settings.vpdLeafTempOffsetDay' | translate}}</ion-label>
+        <ion-input type="number" [(ngModel)]="cloudSettings.vpdLeafTempOffsetDay" class="ion-text-right"></ion-input>
+        <ion-text>&deg;C</ion-text>
+      </ion-item>
+      <ion-item lines="none">
+        <ion-label>{{ 'settings.vpdLeafTempOffsetNight' | translate}}</ion-label>
+        <ion-input type="number" [(ngModel)]="cloudSettings.vpdLeafTempOffsetNight" class="ion-text-right"></ion-input>
+        <ion-text>&deg;C</ion-text>
+      </ion-item>
+      <ion-item lines="none">
+        <ion-label>{{'settings.autoFirmwareUpdate' | translate}}</ion-label>
+        <ion-checkbox [(ngModel)]="cloudSettings.autoFirmwareUpdate"></ion-checkbox>
       </ion-item>
     </ion-card-content>
   </ion-card>

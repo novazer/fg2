@@ -105,6 +105,18 @@
   <ion-row> -->
     <ion-col size="6" size-sm="3" size-xl="2">
       <value-display
+        name="VPD"
+        icon="vpd_neutral"
+        unit="kPa"
+        [value]="data.measure(device_id, 'vpd') | async | nofract"
+        scale-min="0"
+        scale-max="2"
+        [limit-min]="vpd_l"
+        [limit-max]="vpd_h"
+      ></value-display>
+    </ion-col>
+    <ion-col size="6" size-sm="3" size-xl="2">
+      <value-display
         name="CO2"
         icon="co2_neutral"
         unit="PPM"

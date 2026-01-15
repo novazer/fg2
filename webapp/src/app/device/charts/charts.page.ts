@@ -85,6 +85,7 @@ export class ChartsPage implements OnInit, OnDestroy {
     { title: 'Temperature', icon: 'temperature', color: '#f00', name: 'temperature', txt: 'T', unit: '°C', enabled: true, right: false, nav: false, types: ['fridge', 'fridge2', 'fan', 'light', 'plug', 'dryer']},
     // { title: 'AVG', icon: 'temperature', color: '#f00', name: 'avg', txt: 'avg', unit: '°C', enabled: true, right: false, nav: false, types: ['fridge']},
     { title: 'Humidity', icon: 'humidity', color: '#00f', name: 'humidity', txt: 'H', unit: '%', enabled: false, right: false, nav: false, types: ['fridge', 'fridge2', 'fan', 'light', 'plug', 'dryer']},
+    { title: 'VPD', icon: 'vpd', color: '#0f0', name: 'vpd', txt: 'V', unit: 'kPa', enabled: false, right: false, nav: false, types: ['fridge', 'fridge2']},
     { title: 'CO2', icon: 'co2', color: '#000', name: 'co2', txt: 'CO2', unit: 'ppm', enabled: false, right: false, nav: false, types: ['fridge', 'fridge2', 'plug']},
     { title: 'Heater', icon: 'heating', color: '#f00', name: 'out_heater', txt: 'T', unit: '', enabled: false, right: false, nav: false, types: ['fridge', 'fridge2', 'dryer']},
     // { title: 'P', icon: 'heating', color: '#f00', name: 'p', txt: 'P', unit: '', enabled: false, right: false, nav: false, types: ['fridge', 'foo']},
@@ -113,6 +114,8 @@ export class ChartsPage implements OnInit, OnDestroy {
 
   public offset: number = 0;
 
+  public vpdMode: 'all' | 'day' | 'night' = 'all';
+
   public offsetFocused: boolean = false;
 
   public chartInstance!: Highcharts.Chart;
@@ -137,7 +140,7 @@ export class ChartsPage implements OnInit, OnDestroy {
 
         setTimeout(() => this.loadData(), 10)
         this.interval = setInterval(() => {
-          if (this.autoUpdate) {
+          if (this.autoUpdate && !this.offsetFocused && this.offset >= 0) {
             void this.loadData();
           }
         }, 10000)
@@ -198,7 +201,8 @@ export class ChartsPage implements OnInit, OnDestroy {
     }
 
     let series = await Promise.all(this.filtered_measures.map(async (measure:any):Promise<Highcharts.SeriesOptionsType> => {
-      let data = measure.enabled ? await this.data.getSeries(this.device_id, measure.name, from, interval, to) : []
+      const requestedMeasure = measure.name + (measure.name === 'vpd' && this.vpdMode !== 'all' ? `_${this.vpdMode}` : '');
+      let data = measure.enabled ? await this.data.getSeries(this.device_id, requestedMeasure, from, interval, to) : []
 
       if (data.length > 0 && data[data.length - 1][1] === null) {
         data.pop();
@@ -253,6 +257,14 @@ export class ChartsPage implements OnInit, OnDestroy {
 
   public spanChanged() {
     this.loadData().then(() => this.chartInstance?.zoomOut());
+  }
+
+  public vpdModeChanged() {
+    this.loadData();
+  }
+
+  public isMeasureEnabled(measure: string) {
+    return this.measures.find(m => m.name === measure)?.enabled;
   }
 
   public toggleMeasure(measure:any) {
