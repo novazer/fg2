@@ -27,6 +27,7 @@
     "climate": "Climate",
     "temperature": "Temperature",
     "humidity": "Humidity",
+    "vpd": "VPD",
     "dayTemperature": "Day temperature",
     "dayHumidity": "Day humidity",
     "dayVpd": "Day VPD",

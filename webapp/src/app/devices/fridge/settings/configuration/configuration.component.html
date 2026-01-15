@@ -134,7 +134,7 @@
         </ion-item>
 
         <ion-item>
-          <ion-label>{{ 'settings.nightVpd' | translate }}</ion-label>
+          <ion-label>{{(has_daycycle ? 'settings.nightVpd' : 'settings.vpd') | translate }}</ion-label>
           <ion-text lines="none">
             {{ 'settings.vpdPreview' | translate: {vpd: getNightVpd(), humidity: settings.night?.humidity} }}
             -
