@@ -119,11 +119,15 @@
   },
   "charts": {
     "title": "Graphen",
+    "vpd-mode-label": "VPD Modus",
     "vpd-mode": {
-      "all": "VPD Modus: alles",
-      "day": "VPD Modus: nur Tag",
-      "night": "VPD Modus: nur Nacht"
-    }
+      "all": "alles",
+      "day": "nur Tag",
+      "night": "nur Nacht"
+    },
+    "timespan": "Zeitraum",
+    "interval": "Intervall",
+    "offset": "Offset"
   },
 
   "devices": {

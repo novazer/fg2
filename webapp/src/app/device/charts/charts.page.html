@@ -34,55 +34,108 @@
         <img class="icon-off" src="assets/icon/autoUpdate_off.png" style="opacity: 0.3" />
       </ion-col>
     </ng-container>
+  </ion-row>
+
+  <ion-row [hidden]="!useCustom">
     <ng-container>
       <ion-col>
-        <ion-select
-          [(ngModel)]="vpdMode"
-          (ionChange)="vpdModeChanged()"
-          [hidden]="!isMeasureEnabled('vpd')"
-        >
-          <ion-select-option value="all">{{'charts.vpd-mode.all' | translate}}</ion-select-option>
-          <ion-select-option value="day">{{'charts.vpd-mode.day' | translate}}</ion-select-option>
-          <ion-select-option value="night">{{'charts.vpd-mode.night' | translate}}</ion-select-option>
-        </ion-select>
+        <ion-item lines="none">
+          <ion-label>{{'charts.timespan' | translate}}</ion-label>
+          <ion-select
+            [(ngModel)]="selectedTimespan"
+            (ionChange)="timespanChanged()"
+            style="width: 4.7em"
+          >
+            <ion-select-option *ngFor="let ts of timespans" [value]="ts">
+              {{ts.name}}
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
       </ion-col>
+
       <ion-col>
-        <ion-input
-          type="number"
-          style="width: 80px; text-align: center;"
-          [(ngModel)]="offset"
-          (ionChange)="spanChanged()"
-          (ionBlur)="offsetFocused = false"
-          (ionFocus)="offsetFocused = true"
+        <ion-item lines="none">
+          <ion-label>{{'charts.interval' | translate}}</ion-label>
+          <ion-select
+            [(ngModel)]="selectedInterval"
+            (ionChange)="intervalChanged()"
+            style="width: 4.7em"
+          >
+            <ion-select-option *ngFor="let interval of intervals" [value]="interval">
+              {{interval}}
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+      </ion-col>
+
+      <ion-col [hidden]="offset >= 0 && !offsetFocused">
+        <ion-item lines="none">
+          <ion-label>{{'charts.offset' | translate}}</ion-label>
+          <ion-input
+            type="number"
+            style="width: 4em; text-align: center;"
+            [(ngModel)]="offset"
+            (ionChange)="offsetChanged()"
+            (ionBlur)="offsetFocused = false"
+            (ionFocus)="offsetFocused = true"
+            [disabled]="autoUpdate"
+          ></ion-input>
+        </ion-item>
+      </ion-col>
+
+      <ion-col [hidden]="!isMeasureEnabled('vpd')">
+        <ion-item lines="none">
+          <ion-label>{{ 'charts.vpd-mode-label' | translate }}</ion-label>
+          <ion-select
+            [(ngModel)]="vpdMode"
+            (ionChange)="vpdModeChanged()"
+            style="width: 6.5em"
+          >
+            <ion-select-option value="all">{{'charts.vpd-mode.all' | translate}}</ion-select-option>
+            <ion-select-option value="day">{{'charts.vpd-mode.day' | translate}}</ion-select-option>
+            <ion-select-option value="night">{{'charts.vpd-mode.night' | translate}}</ion-select-option>
+          </ion-select>
+        </ion-item>
+      </ion-col>
+
+      <ion-col>
+        <ion-button
+          color="light"
+          (click)="prevOffset()"
           [disabled]="autoUpdate"
-          [hidden]="offset >= 0 && !offsetFocused"
-        ></ion-input>
+        >
+          &#8592;
+        </ion-button>
+        <ion-button
+          color="light"
+          (click)="nextOffset()"
+          [disabled]="offset >= 0 || autoUpdate"
+        >
+          &#8594;
+        </ion-button>
       </ion-col>
     </ng-container>
   </ion-row>
 
-  <ion-button
-    *ngFor="let tf of timespans"
-    [color]="tf.enabled ? 'secondary' : 'light'"
-    (click)="setSpan(tf)"
-  >
-    {{tf.name}}
-  </ion-button>
-  <ion-button
-    color="light"
-    (click)="prevSpan()"
-    [disabled]="autoUpdate"
-  >
-    &#8592;
-  </ion-button>
-  <ion-button
-    color="light"
-    (click)="nextSpan()"
-    [hidden]="offset >= 0"
-    [disabled]="autoUpdate"
-  >
-    &#8594;
-  </ion-button>
+  <ion-row [hidden]="useCustom">
+    <ion-col>
+      <ion-button
+        *ngFor="let tf of timespans"
+        [hidden]="!tf.highlight"
+        [color]="selectedTimespan === tf ? 'secondary' : 'light'"
+        (click)="selectedTimespan = tf; timespanChanged()"
+      >
+        {{tf.name}}
+      </ion-button>
+      <ion-button
+        color="light"
+        (click)="useCustom = true"
+      >
+        ...
+      </ion-button>
+    </ion-col>
+  </ion-row>
+
 
   <div #spacer style="padding: 5px, width: 100%"></div>
 

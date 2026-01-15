@@ -122,11 +122,15 @@
   },
   "charts": {
     "title": "Charts",
+    "vpd-mode-label": "VPD Mode",
     "vpd-mode": {
-      "all": "VPD Mode: all",
-      "day": "VPD Mode: day only",
-      "night": "VPD Mode: night only"
-    }
+      "all": "all",
+      "day": "day only",
+      "night": "night only"
+    },
+    "timespan": "Time span",
+    "interval": "Interval",
+    "offset": "Offset"
   },
   "diagnostics": {
     "serialnumber": "Device serial number",

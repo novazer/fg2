@@ -67,19 +67,25 @@ export class ChartsPage implements OnInit, OnDestroy {
   };
 
   public timespans = [
-    { name: '20m', durationValue: 20, durationUnit: 'm', interval:'10s', enabled: false },
-    { name: '1h', durationValue: 1, durationUnit: 'h', interval:'10s', enabled: false },
-    { name: '6h', durationValue: 6, durationUnit: 'h', interval:'10s', enabled: false },
-    { name: '12h', durationValue: 12, durationUnit: 'h', interval:'10s', enabled: false },
-    { name: '24h', durationValue: 24, durationUnit: 'h', interval:'20s', enabled: true },
-    { name: '3d', durationValue: 3, durationUnit: 'd', interval:'1m', enabled: false },
-    { name: '1w', durationValue: 7, durationUnit: 'd', interval:'10m', enabled: false },
-    { name: '1m', durationValue: 30, durationUnit: 'd', interval:'60m', enabled: false},
-    { name: '3m', durationValue: 90, durationUnit: 'd', interval:'180m', enabled: false },
-    { name: '6m', durationValue: 180, durationUnit: 'd', interval:'360m', enabled: false },
-    { name: '1y', durationValue: 1, durationUnit: 'y', interval:'720m', enabled: false },
-    { name: '3y', durationValue: 3, durationUnit: 'y', interval:'2160m', enabled: false },
-  ]
+    { name: '20m', durationValue: 20, durationUnit: 'm', defaultInterval:'10s' },
+    { name: '1h', durationValue: 1, durationUnit: 'h', defaultInterval:'10s', highlight: true },
+    { name: '6h', durationValue: 6, durationUnit: 'h', defaultInterval:'10s' },
+    { name: '12h', durationValue: 12, durationUnit: 'h', defaultInterval:'10s' },
+    { name: '1d', durationValue: 24, durationUnit: 'h', defaultInterval:'20s', highlight: true },
+    { name: '3d', durationValue: 3, durationUnit: 'd', defaultInterval:'1m', highlight: true },
+    { name: '1w', durationValue: 7, durationUnit: 'd', defaultInterval:'15m', highlight: true },
+    { name: '1m', durationValue: 30, durationUnit: 'd', defaultInterval:'1h', highlight: true },
+    { name: '3m', durationValue: 90, durationUnit: 'd', defaultInterval:'4h' },
+    { name: '6m', durationValue: 180, durationUnit: 'd', defaultInterval:'1d' },
+    { name: '1y', durationValue: 1, durationUnit: 'y', defaultInterval:'1w' },
+    { name: '3y', durationValue: 3, durationUnit: 'y', defaultInterval:'1w' },
+  ];
+
+  public intervals = ['5s', '10s', '20s', '1m', '5m', '15m', '30m', '1h', '4h', '1d', '1w'];
+
+  public selectedTimespan = this.timespans.find(ts => ts.name === '1d')!;
+
+  public selectedInterval = this.selectedTimespan.defaultInterval;
 
   public measures = [
     { title: 'Temperature', icon: 'temperature', color: '#f00', name: 'temperature', txt: 'T', unit: '°C', enabled: true, right: false, nav: false, types: ['fridge', 'fridge2', 'fan', 'light', 'plug', 'dryer']},
@@ -117,6 +123,8 @@ export class ChartsPage implements OnInit, OnDestroy {
   public vpdMode: 'all' | 'day' | 'night' = 'all';
 
   public offsetFocused: boolean = false;
+
+  public useCustom = false;
 
   public chartInstance!: Highcharts.Chart;
 
@@ -156,16 +164,8 @@ export class ChartsPage implements OnInit, OnDestroy {
 
   private async loadData() {
 
-    let from:string, interval:string, to: string;
-
-    for(let ts of this.timespans) {
-      if(ts.enabled) {
-        from = String(-ts.durationValue + this.offset * ts.durationValue) + ts.durationUnit;
-        to = String(this.offset * ts.durationValue) + ts.durationUnit;
-        interval = ts.interval;
-        break;
-      }
-    }
+    const from = String(-this.selectedTimespan.durationValue + this.offset * this.selectedTimespan.durationValue) + this.selectedTimespan.durationUnit;
+    const to = String(this.offset * this.selectedTimespan.durationValue) + this.selectedTimespan.durationUnit;
 
     let active = 0;
     for(let m of this.measures) {
@@ -202,7 +202,7 @@ export class ChartsPage implements OnInit, OnDestroy {
 
     let series = await Promise.all(this.filtered_measures.map(async (measure:any):Promise<Highcharts.SeriesOptionsType> => {
       const requestedMeasure = measure.name + (measure.name === 'vpd' && this.vpdMode !== 'all' ? `_${this.vpdMode}` : '');
-      let data = measure.enabled ? await this.data.getSeries(this.device_id, requestedMeasure, from, interval, to) : []
+      let data = measure.enabled ? await this.data.getSeries(this.device_id, requestedMeasure, from, this.selectedInterval, to) : []
 
       if (data.length > 0 && data[data.length - 1][1] === null) {
         data.pop();
@@ -237,25 +237,27 @@ export class ChartsPage implements OnInit, OnDestroy {
     // this.chart?.update();
   }
 
-  public setSpan(ts:any) {
-    for(let tsp of this.timespans) {tsp.enabled = false}
-    ts.enabled = true;
-    this.offset = 0;
-
-    this.spanChanged();
-  }
-
-  public prevSpan() {
+  public prevOffset() {
     this.offset--;
-    this.spanChanged();
+    this.offsetChanged();
   }
 
-  public nextSpan() {
+  public nextOffset() {
     this.offset++;
-    this.spanChanged();
+    this.offsetChanged();
   }
 
-  public spanChanged() {
+  public offsetChanged() {
+    this.loadData().then(() => this.chartInstance?.zoomOut());
+  }
+
+  public intervalChanged() {
+    this.loadData();
+  }
+
+  public timespanChanged() {
+    this.offset = 0;
+    this.selectedInterval = this.selectedTimespan.defaultInterval;
     this.loadData().then(() => this.chartInstance?.zoomOut());
   }
 
