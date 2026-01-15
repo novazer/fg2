@@ -109,6 +109,7 @@
         icon="vpd_neutral"
         unit="kPa"
         [value]="data.measure(device_id, 'vpd') | async | round: 2"
+        [average-value]="(data.measureAvg(device_id, 'vpd') | async | round: 2)"
         scale-min="0"
         scale-max="2"
         [limit-min]="vpd_l"
