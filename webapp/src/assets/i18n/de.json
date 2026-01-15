@@ -30,6 +30,7 @@
     "dayTemperature": "Tag Temperatur",
     "dayHumidity": "Tag Luftfeuchtigkeit",
     "dayVpd": "Tag VPD",
+    "vpdPreview": "{{vpd}}kPa (RLF {{humidity}}%)",
     "nightTemperature": "Nacht Temperatur",
     "nightHumidity": "Nacht Luftfeuchtigkeit",
     "nightVpd": "Nacht VPD",

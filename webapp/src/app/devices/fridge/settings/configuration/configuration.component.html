@@ -101,7 +101,10 @@
 
         <ion-item>
           <ion-label>{{ 'settings.dayVpd' | translate }}</ion-label>
-          <ion-text lines="none">{{ getDayVpd() }} - {{ getDayVpd(10) }} kPa</ion-text>
+          <ion-text lines="none">
+            {{ 'settings.vpdPreview' | translate: {vpd: getDayVpd(), humidity: settings.day?.humidity} }}
+            -
+            {{ 'settings.vpdPreview' | translate: {vpd: getDayVpd(10), humidity: settings.day?.humidity + 10 > 90 ? 90 : settings.day?.humidity + 10} }}</ion-text>
         </ion-item>
       </ng-container>
     </ng-container>
@@ -132,7 +135,10 @@
 
         <ion-item>
           <ion-label>{{ 'settings.nightVpd' | translate }}</ion-label>
-          <ion-text lines="none">{{ getNightVpd() }} - {{ getNightVpd(10) }} kPa</ion-text>
+          <ion-text lines="none">
+            {{ 'settings.vpdPreview' | translate: {vpd: getNightVpd(), humidity: settings.night?.humidity} }}
+            -
+            {{ 'settings.vpdPreview' | translate: {vpd: getNightVpd(10), humidity: settings.night?.humidity + 10 > 90 ? 90 : settings.night?.humidity + 10} }}</ion-text>
         </ion-item>
       </ng-container>
     </ng-container>

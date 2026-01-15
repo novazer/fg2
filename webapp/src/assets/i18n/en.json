@@ -30,6 +30,7 @@
     "dayTemperature": "Day temperature",
     "dayHumidity": "Day humidity",
     "dayVpd": "Day VPD",
+    "vpdPreview": "{{vpd}}kPa (RH {{humidity}}%)",
     "nightTemperature": "Night temperature",
     "nightHumidity": "Night humidity",
     "nightVpd": "Night VPD",
