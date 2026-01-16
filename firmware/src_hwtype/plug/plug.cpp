@@ -1,7 +1,7 @@
 #include "plug.h"
 #include "dashboard.h"
 #include "wifi.h"
-#include <MCP7940.h>
+//#include <MCP7940.h>
 #include <sstream>
 
 #include "time.h"
@@ -10,7 +10,7 @@
 #define SCD4X_I2C_ADDRESS 0x62
 
 const uint8_t  SPRINTF_BUFFER_SIZE{32};
-MCP7940_Class MCP7940;
+//MCP7940_Class MCP7940;
 char          inputBuffer[32];
 
 static double ntcToTemp(uint16_t adc_val) {
@@ -601,45 +601,45 @@ namespace fg {
     sntp_setservername(0, "pool.ntp.org");
     sntp_init();
 
-    while (!MCP7940.begin()) {  // Initialize RTC communications
-      Serial.println(F("Unable to find MCP7940N. Checking again in 3s."));  // Show error and wait
-      delay(3000);
-    }  // of loop until device is located
-    Serial.println(F("MCP7940N initialized."));
-    if (MCP7940.getPowerFail()) {  // Check for a power failure
-      Serial.println(F("Power failure mode detected!\n"));
-      Serial.print(F("Power failed at   "));
-      DateTime now = MCP7940.getPowerDown();                      // Read when the power failed
-      sprintf(inputBuffer, "....-%02d-%02d %02d:%02d:..",         // Use sprintf() to pretty print
-              now.month(), now.day(), now.hour(), now.minute());  // date/time with leading zeros
-      Serial.println(inputBuffer);
-      Serial.print(F("Power restored at "));
-      now = MCP7940.getPowerUp();                                 // Read when the power restored
-      sprintf(inputBuffer, "....-%02d-%02d %02d:%02d:..",         // Use sprintf() to pretty print
-              now.month(), now.day(), now.hour(), now.minute());  // date/time with leading zeros
-      Serial.println(inputBuffer);
-      MCP7940.clearPowerFail();  // Reset the power fail switch
+  //  while (!MCP7940.begin()) {  // Initialize RTC communications
+    //  Serial.println(F("Unable to find MCP7940N. Checking again in 3s."));  // Show error and wait
+    //  delay(3000);
+   // }  // of loop until device is located
+   // Serial.println(F("MCP7940N initialized."));
+   // if (MCP7940.getPowerFail()) {  // Check for a power failure
+   //   Serial.println(F("Power failure mode detected!\n"));
+   //   Serial.print(F("Power failed at   "));
+   //   DateTime now = MCP7940.getPowerDown();                      // Read when the power failed
+   //   sprintf(inputBuffer, "....-%02d-%02d %02d:%02d:..",         // Use sprintf() to pretty print
+    //          now.month(), now.day(), now.hour(), now.minute());  // date/time with leading zeros
+     // Serial.println(inputBuffer);
+     // Serial.print(F("Power restored at "));
+     // now = MCP7940.getPowerUp();                                 // Read when the power restored
+     // sprintf(inputBuffer, "....-%02d-%02d %02d:%02d:..",         // Use sprintf() to pretty print
+     //         now.month(), now.day(), now.hour(), now.minute());  // date/time with leading zeros
+     // Serial.println(inputBuffer);
+    //  MCP7940.clearPowerFail();  // Reset the power fail switch
+//
+  //  } else {
+    //  while (!MCP7940.deviceStatus()) {  // Turn oscillator on if necessary
+      //  Serial.println(F("Oscillator is off, turning it on."));
+       // bool deviceStatus = MCP7940.deviceStart();  // Start oscillator and return state
+       // if (!deviceStatus) {                        // If it didn't start
+         // Serial.println(F("Oscillator did not start, trying again."));  // Show error and
+        //  delay(1000);                                                   // wait for a second
+       // }                // of if-then oscillator didn't start
+     // }                  // of while the oscillator is off
+     // if (!MCP7940.getBattery()) {  // Check if successful
+      //  MCP7940.setBattery(true);     // enable battery backup mode
+    //  }                        // if-then battery mode couldn't be set
+   // }                          // of if-then-else we have detected a priorpower failure
 
-    } else {
-      while (!MCP7940.deviceStatus()) {  // Turn oscillator on if necessary
-        Serial.println(F("Oscillator is off, turning it on."));
-        bool deviceStatus = MCP7940.deviceStart();  // Start oscillator and return state
-        if (!deviceStatus) {                        // If it didn't start
-          Serial.println(F("Oscillator did not start, trying again."));  // Show error and
-          delay(1000);                                                   // wait for a second
-        }                // of if-then oscillator didn't start
-      }                  // of while the oscillator is off
-      if (!MCP7940.getBattery()) {  // Check if successful
-        MCP7940.setBattery(true);     // enable battery backup mode
-      }                        // if-then battery mode couldn't be set
-    }                          // of if-then-else we have detected a priorpower failure
-
-    DateTime now = MCP7940.now();
-    sprintf(inputBuffer, "....-%02d-%02d %02d:%02d:..",         // Use sprintf() to pretty print
-    now.month(), now.day(), now.hour(), now.minute());  // date/time with leading zeros
-    Serial.println(inputBuffer);
-    timeval epoch = {(time_t)now.unixtime(), 0};
-    settimeofday((const timeval*)&epoch, 0);
+  //  DateTime now = MCP7940.now();
+//    sprintf(inputBuffer, "....-%02d-%02d %02d:%02d:..",         // Use sprintf() to pretty print
+  //  now.month(), now.day(), now.hour(), now.minute());  // date/time with leading zeros
+   // Serial.println(inputBuffer);
+  //  timeval epoch = {(time_t)now.unixtime(), 0};
+  //  settimeofday((const timeval*)&epoch, 0);
 
     Wire.end();
     initSensor();
@@ -820,7 +820,7 @@ namespace fg {
       time_t now;
       struct tm timeinfo;
       time(&now);
-      MCP7940.adjust(now);
+    //  MCP7940.adjust(now);
     }
   }
 
@@ -890,8 +890,8 @@ namespace fg {
 
             int hours = value / 3600;
             int minutes = (value - hours * 3600) / 60;
-            DateTime now(2000, 1, 1, hours, minutes);
-            MCP7940.adjust(now);
+//            DateTime now(2000, 1, 1, hours, minutes);
+      //      MCP7940.adjust(now);
             ui->pop();
           });
         });
@@ -1197,8 +1197,8 @@ namespace fg {
 
             int hours = value / 3600;
             int minutes = (value - hours * 3600) / 60;
-            DateTime now(2000, 1, 1, hours, minutes);
-            MCP7940.adjust(now);
+  //          DateTime now(2000, 1, 1, hours, minutes);
+        //    MCP7940.adjust(now);
             ui->pop();
           });
         });

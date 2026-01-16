@@ -2,7 +2,6 @@
 
 #include "fridgecloud.h"
 #include <SensirionI2CScd4x.h>
-#include "SHTSensor.h"
 #include "output.h"
 #include "automation.h"
 
@@ -67,11 +66,6 @@ namespace fg {
     static constexpr uint8_t PIN_CO2 = 18;
     static constexpr uint8_t PIN_LIGHT = 21;
 
-    static constexpr uint8_t PIN_NTC1 = 36;
-    static constexpr uint8_t PIN_NTC2 = 39;
-    static constexpr uint8_t PIN_NTC3 = 34;
-    static constexpr uint8_t PIN_NTC4 = 35;
-
     static constexpr uint8_t PIN_SDA = 23;
     static constexpr uint8_t PIN_SCL = 22;
 
@@ -79,24 +73,13 @@ namespace fg {
     static constexpr uint8_t PIN_FAN_EXTERNAL = 5;
     static constexpr uint8_t PIN_FAN_BACKWALL = 2;
 
-    static constexpr uint8_t PIN_SENSOR_I2CSCL = 26;
-    static constexpr uint8_t PIN_SENSOR_I2CSDA = 15;
-    static constexpr uint32_t SENSOR_I2C_FRQ = 10000;
-
-
     static constexpr float LIGHT_TEMP_HYST = 1.0f;
     static constexpr float LIGHT_CONTROL_SPEED = 0.01f;
 
     static constexpr int CO2_SAMPLE_DELAY = 100;
     static constexpr int WARN_LEVEL_CO2_MIN = 100;
     static constexpr int MINIMAL_DEHUMIDIFIER_OFF_TIME = 240;
-
-    static constexpr double HEATER_MAX_TEMPERATURE = 80.0;
-    static constexpr double HEATER_PID_P = 0.5;
-    static constexpr double HEATER_PID_I = 0.001;
-    static constexpr double HEATER_PID_D = 100.0;
-    static constexpr double HEATER_FANRAMP_START_TEMP = 30.0;
-    static constexpr double HEATER_FANRAMP_END_TEMP = 60.0;
+    static constexpr int MINIMAL_HEATER_OFF_TIME = 240;
 
     static constexpr TickType_t CO2_INJECT_PERIOD = configTICK_RATE_HZ * 120.0;
     static constexpr TickType_t CO2_INJECT_DURATION = configTICK_RATE_HZ * 0.2;
@@ -117,7 +100,6 @@ namespace fg {
 
     Fridgecloud& cloud;
     SensirionI2CScd4x scd4x;
-    SHTSensor sht21;
 
     PinOutput out_heater;
     PinOutput out_dehumidifier;

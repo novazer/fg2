@@ -1,14 +1,12 @@
 #include "fridge.h"
 #include "dashboard.h"
 #include "wifi.h"
-#include <MCP7940.h>
 #include <sstream>
 
 #include "time.h"
 #include "esp_sntp.h"
 
 const uint8_t  SPRINTF_BUFFER_SIZE{32};
-MCP7940_Class MCP7940;
 char          inputBuffer[32];
 
 static double ntcToTemp(uint16_t adc_val) {
@@ -35,37 +33,14 @@ namespace fg {
 
   void FridgeController::updateSensors() {
 
-    float temperature_sht, humidity_sht, temperature_scd, humidity_scd;
+    float temperature_scd, humidity_scd;
     uint16_t co2 = 0;
     char errorString[200];
     uint8_t error;
 
-    bool sht_valid = false;
     bool scd_valid = false;
-    static unsigned sht_fails = 0;
     static unsigned co2_fails = 0;
     static TickType_t last_co2_sample;
-
-    Wire.flush();
-
-    uint8_t tries = 0;
-    for(; tries < 2; tries++) {
-      if (sht21.readSample()) {
-        temperature_sht = sht21.getTemperature();
-        humidity_sht = sht21.getHumidity();
-        humidity_sht = humidity_sht > 100.0 ? 100.0 : humidity_sht;
-        break;
-      }
-    }
-    if(tries >= 2) {
-      Serial.println("failed to read from temperature/humidity sensor!!!");
-      sht_fails++;
-    }
-    else {
-      sht_valid = true;
-      sht_fails = 0;
-    }
-
 
     Wire.flush();
 
@@ -90,6 +65,8 @@ namespace fg {
         } else {
             co2_avg.push(co2);
             state.co2 = co2_avg.avg();
+            state.temperature = temperature_scd;
+            state.humidity = humidity_scd;
             co2_fails = 0;
             last_co2_sample = xTaskGetTickCount();
             scd_valid = true;
@@ -101,24 +78,6 @@ namespace fg {
     if(xTaskGetTickCount() - last_co2_sample > 10000) {
       Serial.println("CO2 sensor timeout!");
       co2_fails++;
-    }
-
-    auto ntc1 = analogRead(PIN_NTC1);
-    auto ntc2 = analogRead(PIN_NTC2);
-    auto ntc3 = analogRead(PIN_NTC3);
-    auto ntc4 = analogRead(PIN_NTC4);
-
-    Serial.printf("NTCS: %2f %2f %2f %2f\n\r", ntcToTemp(ntc1), ntcToTemp(ntc2), ntcToTemp(ntc3), ntcToTemp(ntc4));
-    Serial.printf("RAW: %u %u %u %u\n\r", ntc1, ntc2, ntc3, ntc4);
-
-    heater_temp = ntcToTemp(ntc1);
-    heater_temp = ntcToTemp(ntc2) > heater_temp ? ntcToTemp(ntc2) : heater_temp;
-    heater_temp = ntcToTemp(ntc3) > heater_temp ? ntcToTemp(ntc3) : heater_temp;
-    heater_temp = ntcToTemp(ntc4) > heater_temp ? ntcToTemp(ntc4) : heater_temp;
-
-    if(sht_valid) {
-      state.humidity = humidity_sht;
-      state.temperature = temperature_sht;
     }
 
     if(scd_valid) {
@@ -133,14 +92,6 @@ namespace fg {
       else {
         sensor_deviation_logged = false;
       }
-    }
-
-    if(sht_fails >= 10 && !sensor_fail_logged) {
-      cloud.log("message-ext-sensor-fail");
-      sensor_fail_logged = true;
-    }
-    else {
-      sensor_fail_logged = false;
     }
 
     if(co2_fails < 10) {
@@ -201,7 +152,6 @@ namespace fg {
       co2_inject_end = xTaskGetTickCount();
       out_co2.set(0);
     }
-    //state.out_co2 = co2_inject_count;
     if(co2_avg.avg() > settings.co2.target + CO2_OVERSWING_ABORT) {
       out_co2.set(0);
     }
@@ -226,11 +176,9 @@ namespace fg {
       else
       {
           if((state.timeofday + SECONDS_PER_DAY) < (settings.daynight.day + SECONDS_PER_DAY + settings.lights.sunrise * 60)) {
-            //LOG("TON: %d\n", state.time - settings.daynight.day);
             max_out = static_cast<float>(state.timeofday - settings.daynight.day) / (settings.lights.sunrise * 60.0f);
           }
           if((state.timeofday + SECONDS_PER_DAY) > (settings.daynight.night + SECONDS_PER_DAY - settings.lights.sunset * 60)) {
-            //LOG("TOFF: %d\n", state.time - settings.daynight.night);
             max_out = static_cast<float>(settings.daynight.night - state.timeofday) / (settings.lights.sunset * 60.0f);
           }
       }
@@ -241,8 +189,6 @@ namespace fg {
       Serial.printf("OUT: %f\n\r", out);
 
       light_current = (1.0f - LIGHT_CONTROL_SPEED) * light_current + LIGHT_CONTROL_SPEED * out;
-
-      //LOG("LIGHT: %f, %f, %f\n", out, light_current, max_out);
 
       if(light_current > max_out) {
         light_current = max_out;
@@ -354,35 +300,31 @@ namespace fg {
 
   void FridgeController::controlHeater() {
 
-    if (xTaskGetTickCount() <= pause_until_tick) {
+    float target_temperature = state.is_day ? settings.day.temperature : settings.night.temperature;
+
+    static uint8_t heat = 0;
+    static uint32_t turn_off_time = 0;
+
+    if(state.temperature < target_temperature - 0.5) {
+      heat = 1;
+    }
+    if(state.temperature > target_temperature + 0.2) {
+      heat = 0;
+    }
+    if(xTaskGetTickCount() <= pause_until_tick) {
       state.out_heater = 0;
     }
-    else if(state.is_day) {
-      state.out_heater = heater_day_pid.tick(state.temperature, settings.day.temperature);
+    else if(heat) {
+      if(state.timeofday - turn_off_time > MINIMAL_HEATER_OFF_TIME) {
+        state.out_heater = 1;
+      }
     }
     else {
-      state.out_heater = heater_night_pid.tick(state.temperature, settings.night.temperature);
+      if(state.out_heater) {
+        turn_off_time = state.timeofday;
+      }
+      state.out_heater = 0;
     }
-
-    heater_turn_off = (float)xTaskGetTickCount() + (float)configTICK_RATE_HZ * state.out_heater;
-
-    if (xTaskGetTickCount() < pause_until_tick) {
-      out_heater.set(0);
-    }
-    else if(heater_temp < HEATER_MAX_TEMPERATURE) {
-      out_heater.set(1);
-    }
-    else {
-      out_heater.set(0);
-      Serial.println("HEATER THROTTLING!");
-    }
-
-    heater_avg.push(heater_temp);
-    auto fanramp = (heater_avg.avg() - HEATER_FANRAMP_START_TEMP) / (HEATER_FANRAMP_END_TEMP - HEATER_FANRAMP_START_TEMP);
-    fanramp = fanramp < 0 ? 0 : fanramp > 1.0 ? 1.0 : fanramp;
-    unsigned fanspeed = settings.fans.internal * 2.55 + fanramp * (255 - settings.fans.internal * 2.55);
-    Serial.printf("HEATER FANSPEED: %u\n\r", fanspeed);
-    out_fan_internal.set(fanspeed);
   }
 
   FridgeController::FridgeController(Fridgecloud& cloud) :
@@ -393,10 +335,7 @@ namespace fg {
     out_light(PIN_LIGHT, 0),
     out_fan_internal(PIN_FAN_INTERNAL, 1, 0, 30000),
     out_fan_external(PIN_FAN_EXTERNAL, 2, 0, 30000),
-    out_fan_backwall(PIN_FAN_BACKWALL, 3, 0, 30000),
-    heater_day_pid(HEATER_PID_P, HEATER_PID_I, HEATER_PID_D),
-    heater_night_pid(HEATER_PID_P, HEATER_PID_I, HEATER_PID_D),
-    sht21(SHTSensor::SHTSensorType::SHT4X)
+    out_fan_backwall(PIN_FAN_BACKWALL, 3, 0, 30000)
   {
 
   }
@@ -502,11 +441,6 @@ namespace fg {
     pinMode(13, INPUT);
     pinMode(15, INPUT);
     pinMode(26, INPUT);
-
-    pinMode(PIN_NTC1, INPUT);
-    pinMode(PIN_NTC2, INPUT);
-    pinMode(PIN_NTC3, INPUT);
-    pinMode(PIN_NTC4, INPUT);
 
     auto saved_settings = fg::settings().getStr("config");
     loadSettings(saved_settings.c_str());
@@ -619,81 +553,22 @@ namespace fg {
     sntp_setservername(0, "pool.ntp.org");
     sntp_init();
 
-    while (!MCP7940.begin()) {  // Initialize RTC communications
-      Serial.println(F("Unable to find MCP7940N. Checking again in 3s."));  // Show error and wait
-      delay(3000);
-    }  // of loop until device is located
-    Serial.println(F("MCP7940N initialized."));
-    if (MCP7940.getPowerFail()) {  // Check for a power failure
-      Serial.println(F("Power failure mode detected!\n"));
-      Serial.print(F("Power failed at   "));
-      DateTime now = MCP7940.getPowerDown();                      // Read when the power failed
-      sprintf(inputBuffer, "....-%02d-%02d %02d:%02d:..",         // Use sprintf() to pretty print
-              now.month(), now.day(), now.hour(), now.minute());  // date/time with leading zeros
-      Serial.println(inputBuffer);
-      Serial.print(F("Power restored at "));
-      now = MCP7940.getPowerUp();                                 // Read when the power restored
-      sprintf(inputBuffer, "....-%02d-%02d %02d:%02d:..",         // Use sprintf() to pretty print
-              now.month(), now.day(), now.hour(), now.minute());  // date/time with leading zeros
-      Serial.println(inputBuffer);
-      MCP7940.clearPowerFail();  // Reset the power fail switch
-
-    } else {
-      while (!MCP7940.deviceStatus()) {  // Turn oscillator on if necessary
-        Serial.println(F("Oscillator is off, turning it on."));
-        bool deviceStatus = MCP7940.deviceStart();  // Start oscillator and return state
-        if (!deviceStatus) {                        // If it didn't start
-          Serial.println(F("Oscillator did not start, trying again."));  // Show error and
-          delay(1000);                                                   // wait for a second
-        }                // of if-then oscillator didn't start
-      }                  // of while the oscillator is off
-      if (!MCP7940.getBattery()) {  // Check if successful
-        MCP7940.setBattery(true);     // enable battery backup mode
-      }                        // if-then battery mode couldn't be set
-    }                          // of if-then-else we have detected a priorpower failure
-
-    DateTime now = MCP7940.now();
-    sprintf(inputBuffer, "....-%02d-%02d %02d:%02d:..",         // Use sprintf() to pretty print
-    now.month(), now.day(), now.hour(), now.minute());  // date/time with leading zeros
-    Serial.println(inputBuffer);
-    timeval epoch = {(time_t)now.unixtime(), 0};
-    settimeofday((const timeval*)&epoch, 0);
-
-    Wire1.begin(PIN_SENSOR_I2CSDA, PIN_SENSOR_I2CSCL, SENSOR_I2C_FRQ);
-
-    if (sht21.init(Wire1)) {
-      Serial.print("init(): success\n");
-    } else {
-      if (sht21.init(Wire)) {
-        Serial.print("LEGACY INIT\n");
-      } else {
-        Serial.print("init(): failed\n");
-      }
-    }
-    sht21.setAccuracy(SHTSensor::SHT_ACCURACY_MEDIUM); // only supported by SHT3x
-
     scd4x.begin(Wire);
 
     unsigned  error = scd4x.stopPeriodicMeasurement();
     if (error) {
         Serial.print("Error trying to execute stopPeriodicMeasurement(): ");
-        // errorToString(error, errorMessage, 256);
-        // Serial.println(errorMessage);
     }
 
     error = scd4x.setAutomaticSelfCalibration(0);
     if (error) {
         Serial.print("Error trying to execute setAutomaticSelfCalibration(): ");
-        // errorToString(error, errorMessage, 256);
-        // Serial.println(errorMessage);
     }
 
     // Start Measurement
     error = scd4x.startPeriodicMeasurement();
     if (error) {
         Serial.print("Error trying to execute startPeriodicMeasurement(): ");
-        // errorToString(error, errorMessage, 256);
-        // Serial.println(errorMessage);
     }
 
     Serial.println("Waiting for first measurement... (5 sec)");
@@ -716,42 +591,8 @@ namespace fg {
     updateSensors();
     checkDayCycle();
 
-    if(testmode_duration > 0) {
-      testmode_duration--;
-      Serial.println("TESTMODE ACTIVE!");
-      if(heater_temp < HEATER_MAX_TEMPERATURE) {
-        heater_turn_off = (float)xTaskGetTickCount() + (float)configTICK_RATE_HZ * testmode_heater_power / 100.0;
-        out_heater.set(1);
-      }
-      else {
-        out_heater.set(0);
-        Serial.println("!!!!!!!!   HEATER THROTTLING !!!!!!!!!!");
-      }
-    }
-    else if(settings.mqttcontrol) {
-      Serial.println("Direct control mode active");;
-      if(heater_temp < HEATER_MAX_TEMPERATURE) {
-        heater_turn_off = (float)xTaskGetTickCount() + (float)configTICK_RATE_HZ * testmode_heater_power;
-        out_heater.set(1);
-      }
-      else {
-        out_heater.set(0);
-        Serial.println("!!!!!!!!   HEATER THROTTLING !!!!!!!!!!");
-      }
 
-      if(directmode_timer < xTaskGetTickCount()) {
-        Serial.println("DIRECTMODE TIMEOUT! REVERTING!");
-        auto saved_settings = fg::settings().getStr("config");
-        loadSettings(saved_settings.c_str());
-      }
-      heater_avg.push(heater_temp);
-      auto fanramp = (heater_avg.avg() - HEATER_FANRAMP_START_TEMP) / (HEATER_FANRAMP_END_TEMP - HEATER_FANRAMP_START_TEMP);
-      fanramp = fanramp < 0 ? 0 : fanramp > 1.0 ? 1.0 : fanramp;
-      unsigned fanspeed = directmode_fan_internal + fanramp * (255 - directmode_fan_internal);
-      Serial.printf("HEATER FANSPEED: %u\n\r", fanspeed);
-      out_fan_internal.set(fanspeed);
-    }
-    else if(sensors_valid == false) {
+    if(sensors_valid == false) {
       Serial.println("SENSOR ERROR!!! FAILSAVE MODE!!!");
 
       out_heater.set(0);
@@ -784,13 +625,6 @@ namespace fg {
         controlHeater();
         out_fan_external.set(settings.fans.external * 2.55);
       }
-      // else if(settings.workmode == FridgeControllerSettings::MODE_EXP) {
-      //   Serial.println("MODE EXPERIMENTAL");
-      //   controlCo2();
-      //   controlLight();
-      //   controlDehumidifierExperimental();
-      //   controlHeater();
-      // }
       else if(settings.workmode == FridgeControllerSettings::MODE_TEMP) {
         Serial.println("MODE TEMP");
         controlLight();
@@ -849,8 +683,6 @@ namespace fg {
       }
     }
 
-
-
     Serial.printf("%s T:%.2f°C H:%.0f%% CO2:%.0fppm H:%.2f D:%.0f L:%.0f C:%.0f\n\r",
       state.is_day ? "DAY" : "NIGHT", state.temperature, state.humidity, state.co2,
       state.out_heater, state.out_dehumidifier, state.out_light, state.out_co2);
@@ -886,7 +718,6 @@ namespace fg {
       time_t now;
       struct tm timeinfo;
       time(&now);
-      MCP7940.adjust(now);
     }
   }
 
@@ -928,8 +759,6 @@ namespace fg {
       });
     });
 
-    // if(!cloud.directMode()) {
-
       menu->addOption("System Time (UTC)", ICON_DAY, [ui, this](){
         ui->push<TimeEntry>("System Time (UTC)", state.timeofday, [ui, this](uint32_t value) {
           struct timeval time_now;
@@ -939,8 +768,6 @@ namespace fg {
 
           int hours = value / 3600;
           int minutes = (value - hours * 3600) / 60;
-          DateTime now(2000, 1, 1, hours, minutes);
-          MCP7940.adjust(now);
           ui->pop();
         });
       });
@@ -1058,9 +885,6 @@ namespace fg {
           });
         });
       }
-
-    // }
-
 
     menu->addOption("WiFi Connection", ICON_WIFI_FULL, [ui, this](){
       showWifiUi(ui, &cloud);
