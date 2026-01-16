@@ -68,21 +68,6 @@
         </ion-item>
       </ion-col>
 
-      <ion-col [hidden]="offset >= 0 && !offsetFocused">
-        <ion-item lines="none">
-          <ion-label>{{'charts.offset' | translate}}</ion-label>
-          <ion-input
-            type="number"
-            style="width: 4em; text-align: center;"
-            [(ngModel)]="offset"
-            (ionChange)="offsetChanged()"
-            (ionBlur)="offsetFocused = false"
-            (ionFocus)="offsetFocused = true"
-            [disabled]="autoUpdate"
-          ></ion-input>
-        </ion-item>
-      </ion-col>
-
       <ion-col [hidden]="!isMeasureEnabled('vpd')">
         <ion-item lines="none">
           <ion-label>{{ 'charts.vpd-mode-label' | translate }}</ion-label>
@@ -113,6 +98,21 @@
         >
           &#8594;
         </ion-button>
+      </ion-col>
+
+      <ion-col [hidden]="offset >= 0 && !offsetFocused">
+        <ion-item lines="none">
+          <ion-label>{{'charts.offset' | translate}}</ion-label>
+          <ion-input
+            type="number"
+            style="width: 4em; text-align: center;"
+            [(ngModel)]="offset"
+            (ionChange)="offsetChanged()"
+            (ionBlur)="offsetFocused = false"
+            (ionFocus)="offsetFocused = true"
+            [disabled]="autoUpdate"
+          ></ion-input>
+        </ion-item>
       </ion-col>
     </ng-container>
   </ion-row>
