@@ -420,6 +420,11 @@
             </ion-popover>
           </ion-item>
 
+          <ion-item lines="none" [hidden]="alarm.actionType !== 'webhook'">
+            <ion-label>{{'settings.alarms.reportWebhookErrors' | translate}}</ion-label>
+            <ion-checkbox [(ngModel)]="alarm.reportWebhookErrors" [disabled]="alarm.disabled"></ion-checkbox>
+          </ion-item>
+
           <ion-item lines="none" [hidden]="alarm.actionType === 'info'">
             <ion-label>{{'settings.alarms.additionalInfo' | translate}}</ion-label>
             <ion-checkbox [(ngModel)]="alarm.additionalInfo" [disabled]="alarm.disabled"></ion-checkbox>

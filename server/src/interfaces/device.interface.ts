@@ -20,6 +20,7 @@ export interface Alarm {
   webhookTriggeredPayload?: string;
   webhookResolvedPayload?: string;
   thresholdSeconds?: number;
+  reportWebhookErrors?: boolean;
 }
 
 export interface FirmwareSettings {
