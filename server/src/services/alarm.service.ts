@@ -14,7 +14,7 @@ const MAINTENANCE_MODE_COOLDOWN_MILLIS = 10 * 60 * 1000;
 const ACTION_TARGET_SEPARATOR = '|';
 
 class AlarmService {
-  private alarmCache: Map<string, { device: Pick<Device, 'alarms' | 'maintenance_mode_until'>; expiresAt: number }> = new Map();
+  private alarmCache: Map<string, { deviceJson: string; expiresAt: number }> = new Map();
   private lastTimeNotExceededCache: Map<string, number> = new Map();
 
   async onDataReceived(deviceId: string, data: StatusMessage) {
@@ -72,15 +72,16 @@ class AlarmService {
     const cached = this.alarmCache.get(deviceId);
 
     if (cached && cached.expiresAt > Date.now()) {
-      return cached.device;
+      return JSON.parse(cached.deviceJson);
     }
 
     // Fetch alarms from the database
     const device = await deviceModel.findOne({ device_id: deviceId }).select('alarms').select('maintenance_mode_until').lean();
+    const deviceJson = JSON.stringify(device);
 
     // Cache the alarms with a 5-minute expiration
     this.alarmCache.set(deviceId, {
-      device: device as unknown,
+      deviceJson: deviceJson,
       expiresAt: Date.now() + CACHE_EXPIRATION_SECONDS * 1000,
     });
 
