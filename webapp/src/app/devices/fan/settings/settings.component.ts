@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { combineLatest } from 'rxjs';
 import { DataService } from 'src/app/services/data.service';
@@ -23,6 +23,8 @@ export class FanSettingsComponent implements OnInit {
   @Input() device_id:string = "";
 
   public settings:any = null
+  public alarms:any = [];
+  public cloudSettings:any = {};
 
   public activePreset:any = null;
   public daybreak:any = null;
@@ -51,6 +53,7 @@ export class FanSettingsComponent implements OnInit {
     private devices: DeviceService,
     public data: DataService,
     private route: ActivatedRoute,
+    private _router: Router,
     private translate: TranslateService
   ) {
     this.offset = new Date().getTimezoneOffset()*60;
@@ -60,6 +63,12 @@ export class FanSettingsComponent implements OnInit {
     console.log(this.device_id);
     let device_settings;
     try {
+      this.alarms = await this.devices.getAlarms(this.device_id);
+      this.alarms?.forEach((alarm: any) => {
+        alarm.newHeaderName = '';
+      });
+      this.cloudSettings = await this.devices.getCloudSettings(this.device_id);
+
       device_settings = JSON.parse(await this.devices.getConfig(this.device_id));
       console.log(device_settings);
 
@@ -109,8 +118,11 @@ export class FanSettingsComponent implements OnInit {
     let device_settings = this.settings;
     device_settings.mode = parseInt(device_settings.mode_str)
 
-    await this.devices.setSettings(this.device_id, JSON.stringify(device_settings))
+    await this.devices.setSettings(this.device_id, JSON.stringify(device_settings));
+    await this.devices.setAlarms(this.device_id, this.alarms);
+    await this.devices.setCloudSettings(this.device_id, this.cloudSettings);
     this.saved = true;
+    await this._router.navigateByUrl('/list', { replaceUrl: true });
     setTimeout(() => {
       this.saving = false;
     }, 500)

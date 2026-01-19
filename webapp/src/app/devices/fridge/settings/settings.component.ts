@@ -51,8 +51,6 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
     try {
       this.alarms = await this.devices.getAlarms(this.device_id);
       this.alarms?.forEach((alarm: any) => {
-        alarm.webhookMethod ??= 'POST';
-        alarm.webhookHeaders ??= {};
         alarm.newHeaderName = '';
       });
       this.cloudSettings = await this.devices.getCloudSettings(this.device_id);
