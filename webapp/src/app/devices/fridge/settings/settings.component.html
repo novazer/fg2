@@ -328,7 +328,7 @@
             <ion-label>{{'settings.alarms.actionType' | translate}}</ion-label>
             <ion-select [(ngModel)]="alarm.actionType" [disabled]="alarm.disabled">
               <ion-select-option value="info">{{'settings.alarms.actionTypeInfo' | translate}}</ion-select-option>
-              <ion-select-option value="email" *ngIf="alarm.sensorType !== 'dehumidifier' && alarm.sensorType !== 'co2_valve'">{{'settings.alarms.actionTypeEmail' | translate}}</ion-select-option>
+              <ion-select-option value="email">{{'settings.alarms.actionTypeEmail' | translate}}</ion-select-option>
               <ion-select-option value="webhook">{{'settings.alarms.actionTypeWebhook' | translate}}</ion-select-option>
             </ion-select>
           </ion-item>
@@ -430,7 +430,12 @@
             <ion-button fill="clear" id="cooldownSeconds-popover-{{alarm.alarmId}}">
               <ion-icon name="help-circle-outline"></ion-icon>
             </ion-button>
-            <ion-input type="number" [(ngModel)]="alarm.cooldownSeconds" class="ion-text-right" [disabled]="alarm.disabled"></ion-input>
+            <ion-input
+              type="number"
+              [(ngModel)]="alarm.cooldownSeconds"
+              class="ion-text-right"
+              [disabled]="alarm.disabled"
+              [min]="alarm.actionType === 'email' ? 300 : 0"></ion-input>
             <ion-text class="ion-text-right">s</ion-text>
             <ion-popover trigger="cooldownSeconds-popover-{{alarm.alarmId}}" [dismissOnSelect]="true">
               <ng-template>
@@ -441,7 +446,7 @@
             </ion-popover>
           </ion-item>
 
-          <ion-item lines="none" *ngIf="alarm.sensorType === 'dehumidifier' || alarm.sensorType === 'co2_valve' || alarm.sensorType === 'heater' || alarm.sensorType === 'light'">
+          <ion-item lines="none" *ngIf="alarm.actionType !== 'email'">
             <ion-label>{{'settings.alarms.retriggerSeconds' | translate}}</ion-label>
             <ion-button fill="clear" id="retriggerSeconds-popover-{{alarm.alarmId}}">
               <ion-icon name="help-circle-outline"></ion-icon>

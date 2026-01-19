@@ -41,10 +41,6 @@ class AlarmService {
           const lastAlarmAction = Math.max(alarm.lastTriggeredAt || 0, alarm.lastResolvedAt || 0);
           if (
             alarm.actionType !== 'email' &&
-            (alarm.sensorType === 'dehumidifier' ||
-              alarm.sensorType === 'co2_valve' ||
-              alarm.sensorType === 'heater' ||
-              alarm.sensorType === 'light') &&
             alarm.retriggerSeconds >= 60 &&
             lastAlarmAction > 0 &&
             lastAlarmAction + alarm.retriggerSeconds * 1000 < Date.now()
@@ -93,7 +89,8 @@ class AlarmService {
 
   private async handleAlarm(alarm: Alarm, deviceId: string, value: number, timestamp: number) {
     const now = Date.now();
-    const inCooldownPeriod = now - (alarm.lastTriggeredAt || 0) < (alarm.cooldownSeconds || 0) * 1000;
+    const minCooldownSeconds = alarm.actionType === 'email' ? 300 : 0;
+    const inCooldownPeriod = now - (alarm.lastTriggeredAt || 0) < Math.max(alarm.cooldownSeconds || 0, minCooldownSeconds) * 1000;
 
     if (alarm.isTriggered) {
       await deviceModel.updateOne(

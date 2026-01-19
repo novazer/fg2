@@ -76,7 +76,7 @@
       "actionTarget": "Ziel",
       "actionTargetHint": "Email Adresse oder Webhook URL - falls du unterschiedliche Ziele für Auslösung und Behebung von Alarme verwenden möchtest, trenne diese mit einem senkrechten Strich '|' Charakter. Z.B. \"http://example.com/turn-on|http://example.com/turn-off\"",
       "cooldownSeconds": "Cooldown Sekunden",
-      "cooldownSecondsHint": "Sekunden bis der gleiche Alarm wieder ausgelöst werden kann",
+      "cooldownSecondsHint": "Sekunden bis der gleiche Alarm wieder ausgelöst werden kann. Für E-Mail Aktionen ist das Minimum 300.",
       "retriggerSeconds": "Erneutes Auslösen Sekunden",
       "retriggerSecondsHint": "Die Sekunden, nach denen der Alarm-Zustand erneut übertragen wird. Falls z.B. ein Schalt-Zustand nicht erfolgreich empfangen wurde, wird dieser nach dieser Zeit erneut gesendet. (Minimum: 60)",
       "name": "Alarm Name",

@@ -76,7 +76,7 @@
       "actionTarget": "Action Target",
       "actionTargetHint": "Email address or webhook URL - if you want to use different targets for triggered and resolved alarms, separate them with a pipe '|' character. E.g. \"http://example.com/turn-on|http://example.com/turn-off\"",
       "cooldownSeconds": "Cooldown",
-      "cooldownSecondsHint": "How many seconds until the same alarm can be triggered again",
+      "cooldownSecondsHint": "How many seconds until the same alarm can be triggered again. For E-Mail actions, the minimum is 300.",
       "retriggerSeconds": "Retrigger",
       "retriggerSecondsHint": "Seconds until the current alarm state is retriggered. In case an alarm state is not transmitted successfully, this ensures that the alarm state will be sent again after this time. (Minimum: 60)",
       "name": "Alarm Name",
