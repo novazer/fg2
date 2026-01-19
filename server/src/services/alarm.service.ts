@@ -121,7 +121,6 @@ class AlarmService {
       this.invalidateAlarmCache(deviceId);
       alarm.isTriggered = true;
     } else {
-      console.log(`Cooldown active for alarm ${alarm.alarmId} on device ${deviceId}. Skipping action.`);
       return;
     }
 
@@ -319,7 +318,6 @@ class AlarmService {
     if (alarm.thresholdSeconds > 4) {
       if (!exceeded) {
         this.lastTimeNotExceededCache.set(alarm.alarmId, timestamp);
-        console.log('Alarm', alarm.alarmId, 'threshold not exceeded, updating last time not exceeded to', new Date(timestamp).toISOString());
       } else {
         if (!this.lastTimeNotExceededCache.has(alarm.alarmId)) {
           let measure;
