@@ -312,6 +312,8 @@ class AlarmService {
         return data?.outputs?.co2;
       case 'dehumidifier':
         return data?.outputs?.dehumidifier;
+      case 'fan':
+        return data?.outputs?.fan;
       case 'heater':
         return data?.outputs?.heater * 100;
       case 'light':
@@ -338,6 +340,7 @@ class AlarmService {
             case 'dehumidifier':
             case 'heater':
             case 'light':
+            case 'fan':
               measure = 'out_' + alarm.sensorType;
               break;
 

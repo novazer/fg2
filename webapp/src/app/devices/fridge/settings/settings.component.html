@@ -228,7 +228,7 @@
 
   <cloud-settings [(cloudSettings)]="cloudSettings" />
 
-  <alarms [(alarms)]="alarms" />
+  <alarms [(alarms)]="alarms" [availableSensorTypes]="['temperature', 'humidity', 'co2', 'co2_valve', 'light', 'dehumidifier', 'heater']" />
 
   <ion-card *ngIf="errorSaving">
     <ion-card-header>

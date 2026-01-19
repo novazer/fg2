@@ -6,10 +6,9 @@ import {Component, EventEmitter, Input, OnDestroy, OnInit, Output} from "@angula
   styleUrls: ['./alarms.component.scss'],
 })
 export class AlarmsComponent {
+  @Input() availableSensorTypes: string[] = [];
   @Input() alarms: any;
   @Output() alarmsChange = new EventEmitter<any>();
-
-  public availableSensorTypes = ['temperature', 'humidity', 'co2', 'co2_valve', 'light', 'dehumidifier', 'heater'];
 
   addAlarm() {
     const newAlarm = {

@@ -92,7 +92,7 @@
 
   <cloud-settings [(cloudSettings)]="cloudSettings" />
 
-  <alarms [(alarms)]="alarms" />
+  <alarms [(alarms)]="alarms" [availableSensorTypes]="['temperature', 'humidity', 'light']" />
 
   <ion-card>
     <ion-card-content>
