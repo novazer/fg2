@@ -118,6 +118,7 @@ class DeviceService {
             case 'configuration':
               await this.settingsMessage(device, JSON.parse(message.message));
               break;
+            case 'command':
             case 'firmware':
               break;
             default:
