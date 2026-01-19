@@ -17,7 +17,6 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
   public deviceSettings: any = {};
   public alarms:any = [];
   public cloudSettings:any = {};
-  public availableSensorTypes = ['temperature', 'humidity', 'co2', 'co2_valve', 'light', 'dehumidifier', 'heater'];
   public offset:number;
   public settingsmode: 'manual' | 'recipe' = 'manual';
   public recipe:any = { steps: [] };
@@ -117,40 +116,7 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
     }
   }
 
-  addAlarm() {
-    const newAlarm = {
-      sensorType: this.availableSensorTypes[0], // Default to the first sensor type
-      upperThreshold: null,
-      lowerThreshold: null,
-      actionType: 'info', // Default action type
-      actionTarget: '',
-      cooldownSeconds: 600,
-      retriggerSeconds: 3600,
-      name: 'My Alarm',
-      additionalInfo: true,
-    };
-    this.alarms = [newAlarm, ...(this.alarms || [])];
-  }
 
-  removeAlarm(alarm: any) {
-    const index = this.alarms.indexOf(alarm);
-    if (index > -1) {
-      this.alarms.splice(index, 1);
-    }
-  }
-
-  toggleAlarm(alarm: any) {
-    alarm.disabled = !alarm.disabled;
-  }
-
-  addWebhookHeader(alarm: any) {
-    alarm.webhookHeaders[alarm.newHeaderName.trim()] = '';
-    alarm.newHeaderName = '';
-  }
-
-  deleteWebhookHeader(alarm: any, headerName: any) {
-    delete alarm.webhookHeaders[headerName];
-  }
 
   addRecipeStep() {
     const lastStep = this.recipe.steps.length > 0 ? this.recipe.steps[this.recipe.steps.length - 1] : undefined;
@@ -546,14 +512,6 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
       timestamp -= 24*3600;
     }
     return timestamp;
-  }
-
-  castToString(obj: any): string{
-    return obj as string;
-  }
-
-  trackByMethod(alarm: any) {
-    return (index: number, el: any): number => el.key + alarm.disabled;
   }
 
   getVpd(temperature: number, humidity: number): number {

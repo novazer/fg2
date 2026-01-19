@@ -1,0 +1,31 @@
+<ion-card>
+  <ion-card-header>
+    <ion-card-title> {{'settings.cloudSettings' | translate}}</ion-card-title>
+  </ion-card-header>
+  <ion-card-content>
+    <ion-item lines="none">
+      <ion-label>{{ 'settings.vpdLeafTempOffsetDay' | translate}}</ion-label>
+      <ion-input
+        type="number"
+        [(ngModel)]="cloudSettings.vpdLeafTempOffsetDay"
+        (ngModelChange)="cloudSettingsChange.emit(cloudSettings)"
+        class="ion-text-right"></ion-input>
+      <ion-text>&deg;C</ion-text>
+    </ion-item>
+    <ion-item lines="none">
+      <ion-label>{{ 'settings.vpdLeafTempOffsetNight' | translate}}</ion-label>
+      <ion-input type="number"
+                 [(ngModel)]="cloudSettings.vpdLeafTempOffsetNight"
+                  (ngModelChange)="cloudSettingsChange.emit(cloudSettings)"
+                 class="ion-text-right"></ion-input>
+      <ion-text>&deg;C</ion-text>
+    </ion-item>
+    <ion-item lines="none">
+      <ion-label>{{'settings.autoFirmwareUpdate' | translate}}</ion-label>
+      <ion-checkbox
+        [(ngModel)]="cloudSettings.autoFirmwareUpdate"
+        (ngModelChange)="cloudSettingsChange.emit(cloudSettings)"
+      ></ion-checkbox>
+    </ion-item>
+  </ion-card-content>
+</ion-card>

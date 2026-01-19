@@ -17,6 +17,8 @@ import { PlugSettingsComponent } from './plug/settings/settings.component';
 import { DryerOverviewComponent } from './dryer/overview/overview.component';
 import { DryerSettingComponent } from './dryer/settings/settings.component';
 import {FridgeSettingsConfigurationComponent} from "./fridge/settings/configuration/configuration.component";
+import {AlarmsModule} from "../device/alarms/alarms.module";
+import {CloudSettingsModule} from "../device/cloudsettings/cloud-settings.module";
 
 
 @NgModule({
@@ -55,6 +57,8 @@ import {FridgeSettingsConfigurationComponent} from "./fridge/settings/configurat
     ReactiveFormsModule,
     ComponentsModule,
     RouterModule,
+    AlarmsModule,
+    CloudSettingsModule,
     TranslateModule.forChild()
   ]
 })

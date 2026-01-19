@@ -1,0 +1,276 @@
+<ion-card *ngIf="alarms !== null">
+  <ion-card-header>
+    <ion-card-title> {{'settings.alarms.title' | translate}}</ion-card-title>
+  </ion-card-header>
+  <ion-card-content>
+    <ion-button color="primary" (click)="addAlarm()">{{'settings.alarms.add' | translate}}</ion-button>
+    <ion-card *ngFor="let alarm of alarms">
+
+      <ion-card-content>
+
+        <ion-item lines="none">
+          <ion-label>{{'settings.alarms.name' | translate}}</ion-label>
+          <ion-input
+            type="text"
+            [(ngModel)]="alarm.name"
+            (ngModelChange)="alarmsChange.emit(alarms)"
+            class="ion-text-right"
+            [disabled]="alarm.disabled"></ion-input>
+        </ion-item>
+
+        <ion-item lines="none">
+          <ion-label>{{'settings.alarms.sensorType' | translate}}</ion-label>
+          <ion-select [(ngModel)]="alarm.sensorType" (ngModelChange)="alarmsChange.emit(alarms)" [disabled]="alarm.disabled">
+            <ion-select-option *ngFor="let sensorType of availableSensorTypes" [value]="sensorType">
+              {{sensorType}}
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+
+        <ion-item lines="none" *ngIf="alarm.sensorType !== 'co2_valve' && alarm.sensorType !== 'dehumidifier'">
+          <ion-label>{{'settings.alarms.upperThreshold' | translate}}</ion-label>
+          <ion-button fill="clear" id="upperThreshold-popover-{{alarm.alarmId}}">
+            <ion-icon name="help-circle-outline"></ion-icon>
+          </ion-button>
+          <ion-input
+            type="number"
+            [(ngModel)]="alarm.upperThreshold"
+            (ngModelChange)="alarmsChange.emit(alarms)"
+            class="ion-text-right"
+            [disabled]="alarm.disabled"></ion-input>
+          <ion-text *ngIf="alarm.sensorType === 'heater' || alarm.sensorType === 'light' || alarm.sensorType === 'humidity'" class="ion-text-right">%</ion-text>
+          <ion-text *ngIf="alarm.sensorType === 'co2'" class="ion-text-right">ppm</ion-text>
+          <ion-text *ngIf="alarm.sensorType === 'temperature'">&deg;C</ion-text>
+          <ion-popover trigger="upperThreshold-popover-{{alarm.alarmId}}" [dismissOnSelect]="true">
+            <ng-template>
+              <ion-content>
+                {{'settings.alarms.upperThresholdHint' | translate}}
+              </ion-content>
+            </ng-template>
+          </ion-popover>
+        </ion-item>
+
+        <ion-item lines="none" *ngIf="alarm.sensorType !== 'co2_valve' && alarm.sensorType !== 'dehumidifier'">
+          <ion-label>{{'settings.alarms.lowerThreshold' | translate}}</ion-label>
+          <ion-button fill="clear" id="lowerThreshold-popover-{{alarm.alarmId}}">
+            <ion-icon name="help-circle-outline"></ion-icon>
+          </ion-button>
+          <ion-input
+            type="number"
+            [(ngModel)]="alarm.lowerThreshold"
+            (ngModelChange)="alarmsChange.emit(alarms)"
+            class="ion-text-right"
+            [disabled]="alarm.disabled"></ion-input>
+          <ion-text *ngIf="alarm.sensorType === 'heater' || alarm.sensorType === 'light' || alarm.sensorType === 'humidity'" class="ion-text-right">%</ion-text>
+          <ion-text *ngIf="alarm.sensorType === 'co2'" class="ion-text-right">ppm</ion-text>
+          <ion-text *ngIf="alarm.sensorType === 'temperature'">&deg;C</ion-text>
+          <ion-popover trigger="lowerThreshold-popover-{{alarm.alarmId}}" [dismissOnSelect]="true">
+            <ng-template>
+              <ion-content>
+                {{'settings.alarms.lowerThresholdHint' | translate}}
+              </ion-content>
+            </ng-template>
+          </ion-popover>
+        </ion-item>
+
+        <ion-item lines="none">
+          <ion-label>{{'settings.alarms.thresholdSeconds' | translate}}</ion-label>
+          <ion-button fill="clear" id="thresholdSeconds-popover-{{alarm.alarmId}}">
+            <ion-icon name="help-circle-outline"></ion-icon>
+          </ion-button>
+          <ion-input
+            type="number"
+            [(ngModel)]="alarm.thresholdSeconds"
+            (ngModelChange)="alarmsChange.emit(alarms)"
+            min="0" class="ion-text-right"
+            [disabled]="alarm.disabled"></ion-input>
+          <ion-text class="ion-text-right">s</ion-text>
+          <ion-popover trigger="thresholdSeconds-popover-{{alarm.alarmId}}" [dismissOnSelect]="true">
+            <ng-template>
+              <ion-content>
+                {{'settings.alarms.thresholdSecondsHint' | translate}}
+              </ion-content>
+            </ng-template>
+          </ion-popover>
+        </ion-item>
+
+        <ion-item lines="none">
+          <ion-label>{{'settings.alarms.actionType' | translate}}</ion-label>
+          <ion-select [(ngModel)]="alarm.actionType" (ngModelChange)="alarmsChange.emit(alarms)" [disabled]="alarm.disabled">
+            <ion-select-option value="info">{{'settings.alarms.actionTypeInfo' | translate}}</ion-select-option>
+            <ion-select-option value="email">{{'settings.alarms.actionTypeEmail' | translate}}</ion-select-option>
+            <ion-select-option value="webhook">{{'settings.alarms.actionTypeWebhook' | translate}}</ion-select-option>
+          </ion-select>
+        </ion-item>
+
+        <ion-item lines="none" [hidden]="alarm.actionType !== 'webhook'">
+          <ion-label>
+            {{ 'settings.alarms.webhookMethod' | translate }}
+          </ion-label>
+          <ion-select [(ngModel)]="alarm.webhookMethod" (ngModelChange)="alarmsChange.emit(alarms)" [disabled]="alarm.disabled">
+            <ion-select-option value="POST">{{ 'settings.alarms.webhookMethodPOST' | translate }}</ion-select-option>
+            <ion-select-option value="GET">{{ 'settings.alarms.webhookMethodGET' | translate }}</ion-select-option>
+            <ion-select-option value="PUT">{{ 'settings.alarms.webhookMethodPUT' | translate }}</ion-select-option>
+          </ion-select>
+        </ion-item>
+
+        <ion-item lines="none" [hidden]="alarm.actionType === 'info'">
+          <ion-label [color]="(!alarm.actionTarget && alarm.actionType !== 'info' && !alarm.disabled) ? 'danger' : ''">
+            {{'settings.alarms.actionTarget' | translate}}
+          </ion-label>
+          <ion-button fill="clear" id="actionTarget-popover-{{alarm.alarmId}}">
+            <ion-icon name="help-circle-outline"></ion-icon>
+          </ion-button>
+          <ion-input [type]="alarm.actionType === 'email' ? 'email' : alarm.actionType === 'webhook' ? 'url' : 'text'"
+                     [required]="alarm.actionType !== 'info' && !alarm.disabled"
+                     [(ngModel)]="alarm.actionTarget"
+                     (ngModelChange)="alarmsChange.emit(alarms)"
+                     class="ion-text-right"
+                     [disabled]="alarm.disabled"
+                     [placeholder]="alarm.actionType === 'email' ? 'myemail@example.com' : 'http://example.com/my-api-endpoint'"></ion-input>
+          <ion-popover trigger="actionTarget-popover-{{alarm.alarmId}}" [dismissOnSelect]="true">
+            <ng-template>
+              <ion-content>
+                {{'settings.alarms.actionTargetHint' | translate}}
+              </ion-content>
+            </ng-template>
+          </ion-popover>
+        </ion-item>
+
+        <ion-item lines="none" [hidden]="alarm.actionType !== 'webhook'">
+          <ion-label>
+            {{ 'settings.alarms.webhookHeaders' | translate }}
+          </ion-label>
+          <ion-item slot="end">
+            <ion-input
+              [(ngModel)]="alarm.newHeaderName"
+              (ngModelChange)="alarmsChange.emit(alarms)"
+              placeholder="New custom header name"
+              [disabled]="alarm.disabled"></ion-input>
+            <ion-button fill="clear" color="primary" (click)="addWebhookHeader(alarm)" [disabled]="!alarm.newHeaderName || alarm.disabled || alarm.webhookHeaders[alarm.newHeaderName.trim()] !== undefined">
+              <ion-icon name="add"></ion-icon>
+            </ion-button>
+          </ion-item>
+        </ion-item>
+
+        <ion-item lines="none" [hidden]="alarm.actionType !== 'webhook'" *ngFor="let header of alarm.webhookHeaders | keyvalue; let index = index; trackBy: trackByMethod(alarm)">
+          <ion-item slot="end">
+            <ion-label style="font-family: monospace">{{ header.key }}:</ion-label>
+            <ion-input
+              [(ngModel)]="alarm.webhookHeaders[castToString(header.key)]"
+              (ngModelChange)="alarmsChange.emit(alarms)"
+              placeholder="Header value"
+              [disabled]="alarm.disabled"></ion-input>
+            <ion-button fill="clear" color="danger" (click)="deleteWebhookHeader(alarm, header.key)" [disabled]="alarm.disabled">
+              <ion-icon name="trash"></ion-icon>
+            </ion-button>
+          </ion-item>
+        </ion-item>
+
+        <ion-item lines="none" [hidden]="alarm.actionType !== 'webhook' || alarm.webhookMethod === 'GET'">
+          <ion-label>
+            {{'settings.alarms.webhookTriggeredPayload' | translate}}
+          </ion-label>
+          <ion-button fill="clear" id="webhookTriggeredPayload-popover-{{alarm.alarmId}}">
+            <ion-icon name="help-circle-outline"></ion-icon>
+          </ion-button>
+          <ion-textarea
+            [(ngModel)]="alarm.webhookTriggeredPayload"
+            (ngModelChange)="alarmsChange.emit(alarms)"
+            placeholder="Custom webhook triggered payload"
+            [rows]="2"
+            [disabled]="alarm.disabled"
+            class="ion-text-right"></ion-textarea>
+          <ion-popover trigger="webhookTriggeredPayload-popover-{{alarm.alarmId}}" [dismissOnSelect]="true">
+            <ng-template>
+              <ion-content>
+                {{'settings.alarms.webhookTriggeredPayloadHint' | translate}}
+              </ion-content>
+            </ng-template>
+          </ion-popover>
+        </ion-item>
+
+        <ion-item lines="none" [hidden]="alarm.actionType !== 'webhook' || alarm.webhookMethod === 'GET'">
+          <ion-label>
+            {{'settings.alarms.webhookResolvedPayload' | translate}}
+          </ion-label>
+          <ion-button fill="clear" id="webhookResolvedPayload-popover-{{alarm.alarmId}}">
+            <ion-icon name="help-circle-outline"></ion-icon>
+          </ion-button>
+          <ion-textarea
+            [(ngModel)]="alarm.webhookResolvedPayload"
+            (ngModelChange)="alarmsChange.emit(alarms)"
+            placeholder="Custom webhook resolved payload"
+            [rows]="2"
+            [disabled]="alarm.disabled"
+            class="ion-text-right"></ion-textarea>
+          <ion-popover trigger="webhookResolvedPayload-popover-{{alarm.alarmId}}" [dismissOnSelect]="true">
+            <ng-template>
+              <ion-content>
+                {{'settings.alarms.webhookResolvedPayloadHint' | translate}}
+              </ion-content>
+            </ng-template>
+          </ion-popover>
+        </ion-item>
+
+        <ion-item lines="none" [hidden]="alarm.actionType !== 'webhook'">
+          <ion-label>{{'settings.alarms.reportWebhookErrors' | translate}}</ion-label>
+          <ion-checkbox [(ngModel)]="alarm.reportWebhookErrors" (ngModelChange)="alarmsChange.emit(alarms)" [disabled]="alarm.disabled"></ion-checkbox>
+        </ion-item>
+
+        <ion-item lines="none" [hidden]="alarm.actionType === 'info'">
+          <ion-label>{{'settings.alarms.additionalInfo' | translate}}</ion-label>
+          <ion-checkbox [(ngModel)]="alarm.additionalInfo" (ngModelChange)="alarmsChange.emit(alarms)" [disabled]="alarm.disabled"></ion-checkbox>
+        </ion-item>
+
+        <ion-item lines="none">
+          <ion-label>{{'settings.alarms.cooldownSeconds' | translate}}</ion-label>
+          <ion-button fill="clear" id="cooldownSeconds-popover-{{alarm.alarmId}}">
+            <ion-icon name="help-circle-outline"></ion-icon>
+          </ion-button>
+          <ion-input
+            type="number"
+            [(ngModel)]="alarm.cooldownSeconds"
+            (ngModelChange)="alarmsChange.emit(alarms)"
+            class="ion-text-right"
+            [disabled]="alarm.disabled"
+            [min]="alarm.actionType === 'email' ? 300 : 0"></ion-input>
+          <ion-text class="ion-text-right">s</ion-text>
+          <ion-popover trigger="cooldownSeconds-popover-{{alarm.alarmId}}" [dismissOnSelect]="true">
+            <ng-template>
+              <ion-content>
+                {{'settings.alarms.cooldownSecondsHint' | translate}}
+              </ion-content>
+            </ng-template>
+          </ion-popover>
+        </ion-item>
+
+        <ion-item lines="none" *ngIf="alarm.actionType !== 'email'">
+          <ion-label>{{'settings.alarms.retriggerSeconds' | translate}}</ion-label>
+          <ion-button fill="clear" id="retriggerSeconds-popover-{{alarm.alarmId}}">
+            <ion-icon name="help-circle-outline"></ion-icon>
+          </ion-button>
+          <ion-input
+            type="number"
+            min="60"
+            [(ngModel)]="alarm.retriggerSeconds"
+            (ngModelChange)="alarmsChange.emit(alarms)"
+            class="ion-text-right"
+            [disabled]="alarm.disabled"></ion-input>
+          <ion-text class="ion-text-right">s</ion-text>
+          <ion-popover trigger="retriggerSeconds-popover-{{alarm.alarmId}}" [dismissOnSelect]="true">
+            <ng-template>
+              <ion-content>
+                {{'settings.alarms.retriggerSecondsHint' | translate}}
+              </ion-content>
+            </ng-template>
+          </ion-popover>
+        </ion-item>
+
+        <ion-button color="danger" (click)="removeAlarm(alarm)">{{'settings.alarms.delete' | translate}}</ion-button>
+        <ion-button [color]="alarm.disabled ? 'primary' : 'light'" (click)="toggleAlarm(alarm)">{{'settings.alarms.' + (alarm.disabled ? 'enable' : 'disable') | translate}}</ion-button>
+
+      </ion-card-content>
+    </ion-card>
+  </ion-card-content>
+</ion-card>
