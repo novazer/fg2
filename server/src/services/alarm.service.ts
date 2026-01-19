@@ -31,10 +31,10 @@ class AlarmService {
         const thresholdExceeded = await this.isThresholdExceeded(deviceId, alarm, sensorValue, timestamp);
         const inMaintenanceMode = device.maintenance_mode_until && device.maintenance_mode_until + MAINTENANCE_MODE_COOLDOWN_MILLIS > Date.now();
 
-        if (thresholdExceeded !== alarm.isTriggered && !inMaintenanceMode) {
+        if (thresholdExceeded !== (alarm.isTriggered ?? false) && !inMaintenanceMode) {
           await this.handleAlarm(alarm, deviceId, sensorValue, timestamp);
         } else {
-          if (alarm.isTriggered) {
+          if (alarm.isTriggered && sensorValue !== null && !isNaN(sensorValue)) {
             await this.handleAlarmData(alarm, deviceId, sensorValue, timestamp);
           }
 
@@ -313,9 +313,13 @@ class AlarmService {
   }
 
   private async isThresholdExceeded(deviceId: string, alarm: Alarm, sensorValue: number, timestamp: number): Promise<boolean> {
+    if (sensorValue === undefined || sensorValue === null || isNaN(sensorValue)) {
+      return alarm.isTriggered ?? false;
+    }
+
     const exceeded = this.isThresholdValueExceeded(alarm, sensorValue);
 
-    if (alarm.thresholdSeconds > 4) {
+    if (alarm.thresholdSeconds && alarm.thresholdSeconds > 4) {
       if (!exceeded) {
         this.lastTimeNotExceededCache.set(alarm.alarmId, timestamp);
       } else {
@@ -342,7 +346,7 @@ class AlarmService {
             series
               .reverse()
               .filter(s => s._value !== undefined && s._value !== null && !isNaN(s._value))
-              .find(s => !this.isThresholdValueExceeded(alarm, s._value))?._time,
+              .find(s => !this.isThresholdValueExceeded(alarm, s._value * (measure === 'out_heater' ? 100 : 1)))?._time,
           );
 
           if (!isNaN(lastTimeNotExceeded)) {
@@ -362,10 +366,6 @@ class AlarmService {
   }
 
   private isThresholdValueExceeded(alarm: Alarm, sensorValue: number): boolean {
-    if (sensorValue === undefined || sensorValue === null || isNaN(sensorValue)) {
-      return false;
-    }
-
     switch (alarm.sensorType) {
       case 'dehumidifier':
       case 'co2_valve':
