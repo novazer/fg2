@@ -83,7 +83,7 @@
       "enable": "Enable Alarm",
       "disable": "Disable Alarm",
       "additionalInfo": "Additional log message",
-      "reportWebhookErrors": "Report errors",
+      "reportWebhookErrors": "Log error messages",
       "webhookMethod": "Webhook Method",
       "webhookMethodPOST": "POST",
       "webhookMethodGET": "GET",
