@@ -68,7 +68,7 @@
         </ion-item>
       </ion-col>
 
-      <ion-col [hidden]="!isMeasureEnabled('vpd')">
+      <ion-col [hidden]="!isMeasureEnabled('vpd') || !['fridge', 'fridge2', 'light'].includes(device_type)">
         <ion-item lines="none">
           <ion-label>{{ 'charts.vpd-mode-label' | translate }}</ion-label>
           <ion-select
@@ -80,6 +80,21 @@
             <ion-select-option value="day">{{'charts.vpd-mode.day' | translate}}</ion-select-option>
             <ion-select-option value="night">{{'charts.vpd-mode.night' | translate}}</ion-select-option>
           </ion-select>
+        </ion-item>
+      </ion-col>
+
+      <ion-col [hidden]="offset >= 0 && !offsetFocused">
+        <ion-item lines="none">
+          <ion-label>{{'charts.offset' | translate}}</ion-label>
+          <ion-input
+            type="number"
+            style="width: 4em; text-align: center;"
+            [(ngModel)]="offset"
+            (ionChange)="offsetChanged()"
+            (ionBlur)="offsetFocused = false"
+            (ionFocus)="offsetFocused = true"
+            [disabled]="autoUpdate"
+          ></ion-input>
         </ion-item>
       </ion-col>
 
@@ -98,21 +113,6 @@
         >
           &#8594;
         </ion-button>
-      </ion-col>
-
-      <ion-col [hidden]="offset >= 0 && !offsetFocused">
-        <ion-item lines="none">
-          <ion-label>{{'charts.offset' | translate}}</ion-label>
-          <ion-input
-            type="number"
-            style="width: 4em; text-align: center;"
-            [(ngModel)]="offset"
-            (ionChange)="offsetChanged()"
-            (ionBlur)="offsetFocused = false"
-            (ionFocus)="offsetFocused = true"
-            [disabled]="autoUpdate"
-          ></ion-input>
-        </ion-item>
       </ion-col>
     </ng-container>
   </ion-row>
