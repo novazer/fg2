@@ -231,12 +231,13 @@ class AlarmService {
     });
 
     req.on('error', error => {
-      console.error(`Error triggering webhook for device ${deviceId}:`, error);
+      const message = error.message || String(error) || 'Unknown error';
+      console.error(`Failed to trigger webhook for device ${deviceId} and alarm ${alarm.alarmId}: ${message}`);
 
       if (alarm.reportWebhookErrors) {
         void deviceService.logMessage(deviceId, {
           title: `Webhook error for alarm ${alarm.name ?? alarm.alarmId}`,
-          message: error.message || String(error) || 'Unknown error',
+          message,
           severity: 1,
           raw: true,
         });
