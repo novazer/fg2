@@ -67,6 +67,8 @@
       "upperThresholdHint": "Alarm triggers when value goes above this",
       "lowerThreshold": "Lower Threshold",
       "lowerThresholdHint": "Alarm triggers when value goes below this",
+      "thresholdSeconds": "Threshold seconds",
+      "thresholdSecondsHint": "Number of seconds the threshold must be exceeded before the alarm is triggered",
       "actionType": "Action Type",
       "actionTypeEmail": "Email",
       "actionTypeWebhook": "Webhook",

@@ -6,6 +6,7 @@ import { mailTransport } from '@services/auth.service';
 import { request as httpRequest } from 'http';
 import { request as httpsRequest } from 'https';
 import * as console from 'node:console';
+import { dataService } from '@services/data.service';
 
 const CACHE_EXPIRATION_SECONDS = 600;
 const MAINTENANCE_MODE_COOLDOWN_MILLIS = 10 * 60 * 1000;
@@ -14,6 +15,7 @@ const ACTION_TARGET_SEPARATOR = '|';
 
 class AlarmService {
   private alarmCache: Map<string, { device: Pick<Device, 'alarms' | 'maintenance_mode_until'>; expiresAt: number }> = new Map();
+  private lastTimeNotExceededCache: Map<string, number> = new Map();
 
   async onDataReceived(deviceId: string, data: StatusMessage) {
     // Retrieve alarms from cache or database
@@ -24,15 +26,16 @@ class AlarmService {
 
     for (const alarm of device.alarms) {
       const sensorValue = this.getSensorValue(alarm, data);
-      if (sensorValue !== undefined && !alarm.disabled && (alarm.latestDataPointTime ?? 0) < (data.timestamp ? data.timestamp * 1000 : Date.now())) {
-        const thresholdExceeded = this.isThresholdExceeded(alarm, sensorValue);
+      const timestamp = data.timestamp ? data.timestamp * 1000 : Date.now();
+      if (sensorValue !== undefined && !alarm.disabled && (alarm.latestDataPointTime ?? 0) < timestamp) {
+        const thresholdExceeded = await this.isThresholdExceeded(deviceId, alarm, sensorValue, timestamp);
         const inMaintenanceMode = device.maintenance_mode_until && device.maintenance_mode_until + MAINTENANCE_MODE_COOLDOWN_MILLIS > Date.now();
 
         if (thresholdExceeded !== alarm.isTriggered && !inMaintenanceMode) {
-          await this.handleAlarm(alarm, deviceId, sensorValue, data.timestamp);
+          await this.handleAlarm(alarm, deviceId, sensorValue, timestamp);
         } else {
           if (alarm.isTriggered) {
-            await this.handleAlarmData(alarm, deviceId, sensorValue, data.timestamp);
+            await this.handleAlarmData(alarm, deviceId, sensorValue, timestamp);
           }
 
           const lastAlarmAction = Math.max(alarm.lastTriggeredAt || 0, alarm.lastResolvedAt || 0);
@@ -46,7 +49,7 @@ class AlarmService {
             lastAlarmAction > 0 &&
             lastAlarmAction + alarm.retriggerSeconds * 1000 < Date.now()
           ) {
-            await this.handleAlarmRetrigger(alarm, deviceId, sensorValue, data.timestamp);
+            await this.handleAlarmRetrigger(alarm, deviceId, sensorValue, timestamp);
           }
         }
       }
@@ -88,7 +91,7 @@ class AlarmService {
     return device as unknown;
   }
 
-  private async handleAlarm(alarm: Alarm, deviceId: string, value: number, timestamp?: number) {
+  private async handleAlarm(alarm: Alarm, deviceId: string, value: number, timestamp: number) {
     const now = Date.now();
     const inCooldownPeriod = now - (alarm.lastTriggeredAt || 0) < (alarm.cooldownSeconds || 0) * 1000;
 
@@ -100,7 +103,7 @@ class AlarmService {
             'alarms.$.isTriggered': false,
             'alarms.$.extremeValue': undefined,
             'alarms.$.lastResolvedAt': now,
-            'alarms.$.latestDataPointTime': Math.max(alarm.latestDataPointTime ?? 0, (timestamp ?? 0) * 1000),
+            'alarms.$.latestDataPointTime': Math.max(alarm.latestDataPointTime ?? 0, timestamp),
           },
         },
       );
@@ -114,7 +117,7 @@ class AlarmService {
             'alarms.$.lastTriggeredAt': now,
             'alarms.$.isTriggered': true,
             'alarms.$.extremeValue': value,
-            'alarms.$.latestDataPointTime': Math.max(alarm.latestDataPointTime ?? 0, (timestamp ?? 0) * 1000),
+            'alarms.$.latestDataPointTime': Math.max(alarm.latestDataPointTime ?? 0, timestamp),
           },
         },
       );
@@ -253,7 +256,7 @@ class AlarmService {
     });
   }
 
-  private async handleAlarmData(alarm: Alarm, deviceId: string, value: number, timestamp?: number) {
+  private async handleAlarmData(alarm: Alarm, deviceId: string, value: number, timestamp: number) {
     let newExtreme = alarm.extremeValue || value;
     if (alarm.upperThreshold !== null && alarm.upperThreshold !== undefined && value > alarm.upperThreshold) {
       newExtreme = Math.max(newExtreme, value);
@@ -268,7 +271,7 @@ class AlarmService {
         {
           $set: {
             'alarms.$.extremeValue': newExtreme,
-            'alarms.$.latestDataPointTime': Math.max(alarm.latestDataPointTime ?? 0, (timestamp ?? 0) * 1000),
+            'alarms.$.latestDataPointTime': Math.max(alarm.latestDataPointTime ?? 0, timestamp),
           },
         },
       );
@@ -277,14 +280,14 @@ class AlarmService {
     }
   }
 
-  private async handleAlarmRetrigger(alarm: Alarm, deviceId: string, sensorValue: number, timestamp?: number) {
+  private async handleAlarmRetrigger(alarm: Alarm, deviceId: string, sensorValue: number, timestamp: number) {
     await deviceModel.updateOne(
       { device_id: deviceId, 'alarms.alarmId': alarm.alarmId },
       {
         $set: {
           'alarms.$.lastTriggeredAt': alarm.isTriggered ? Date.now() : alarm.lastTriggeredAt,
           'alarms.$.lastResolvedAt': alarm.isTriggered ? alarm.lastResolvedAt : Date.now(),
-          'alarms.$.latestDataPointTime': Math.max(alarm.latestDataPointTime ?? 0, (timestamp ?? 0) * 1000),
+          'alarms.$.latestDataPointTime': Math.max(alarm.latestDataPointTime ?? 0, timestamp),
         },
       },
     );
@@ -313,7 +316,57 @@ class AlarmService {
     }
   }
 
-  private isThresholdExceeded(alarm: Alarm, sensorValue: number): boolean {
+  private async isThresholdExceeded(deviceId: string, alarm: Alarm, sensorValue: number, timestamp: number): Promise<boolean> {
+    const exceeded = this.isThresholdValueExceeded(alarm, sensorValue);
+
+    if (alarm.thresholdSeconds > 4) {
+      if (!exceeded) {
+        this.lastTimeNotExceededCache.set(alarm.alarmId, timestamp);
+        console.log('Alarm', alarm.alarmId, 'threshold not exceeded, updating last time not exceeded to', new Date(timestamp).toISOString());
+      } else {
+        if (!this.lastTimeNotExceededCache.has(alarm.alarmId)) {
+          let measure;
+          switch (alarm.sensorType) {
+            case 'dehumidifier':
+            case 'heater':
+            case 'light':
+              measure = 'out_' + alarm.sensorType;
+              break;
+
+            case 'co2_valve':
+              measure = 'out_co2';
+              break;
+
+            default:
+              measure = alarm.sensorType;
+              break;
+          }
+
+          const series = await dataService.getSeries(deviceId, measure, `-${alarm.thresholdSeconds + 4}s`, '-4s', '5s');
+          const lastTimeNotExceeded = Date.parse(
+            series
+              .reverse()
+              .filter(s => s._value !== undefined && s._value !== null && !isNaN(s._value))
+              .find(s => !this.isThresholdValueExceeded(alarm, s._value))?._time,
+          );
+
+          if (!isNaN(lastTimeNotExceeded)) {
+            this.lastTimeNotExceededCache.set(alarm.alarmId, lastTimeNotExceeded);
+          } else {
+            this.lastTimeNotExceededCache.set(alarm.alarmId, Date.now() - 5000);
+          }
+        }
+
+        if (Date.now() - this.lastTimeNotExceededCache.get(alarm.alarmId) < alarm.thresholdSeconds * 1000) {
+          return false;
+        }
+      }
+    }
+
+    return exceeded;
+  }
+
+  private isThresholdValueExceeded(alarm: Alarm, sensorValue: number): boolean {
     if (sensorValue === undefined || sensorValue === null || isNaN(sensorValue)) {
       return false;
     }

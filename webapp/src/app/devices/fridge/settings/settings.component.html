@@ -309,6 +309,22 @@
           </ion-item>
 
           <ion-item lines="none">
+            <ion-label>{{'settings.alarms.thresholdSeconds' | translate}}</ion-label>
+            <ion-button fill="clear" id="thresholdSeconds-popover-{{alarm.alarmId}}">
+              <ion-icon name="help-circle-outline"></ion-icon>
+            </ion-button>
+            <ion-input type="number" [(ngModel)]="alarm.thresholdSeconds" min="0" class="ion-text-right" [disabled]="alarm.disabled"></ion-input>
+            <ion-text class="ion-text-right">s</ion-text>
+            <ion-popover trigger="thresholdSeconds-popover-{{alarm.alarmId}}" [dismissOnSelect]="true">
+              <ng-template>
+                <ion-content>
+                  {{'settings.alarms.thresholdSecondsHint' | translate}}
+                </ion-content>
+              </ng-template>
+            </ion-popover>
+          </ion-item>
+
+          <ion-item lines="none">
             <ion-label>{{'settings.alarms.actionType' | translate}}</ion-label>
             <ion-select [(ngModel)]="alarm.actionType" [disabled]="alarm.disabled">
               <ion-select-option value="info">{{'settings.alarms.actionTypeInfo' | translate}}</ion-select-option>
@@ -415,6 +431,7 @@
               <ion-icon name="help-circle-outline"></ion-icon>
             </ion-button>
             <ion-input type="number" [(ngModel)]="alarm.cooldownSeconds" class="ion-text-right" [disabled]="alarm.disabled"></ion-input>
+            <ion-text class="ion-text-right">s</ion-text>
             <ion-popover trigger="cooldownSeconds-popover-{{alarm.alarmId}}" [dismissOnSelect]="true">
               <ng-template>
                 <ion-content>
@@ -430,6 +447,7 @@
               <ion-icon name="help-circle-outline"></ion-icon>
             </ion-button>
             <ion-input type="number" min="60" [(ngModel)]="alarm.retriggerSeconds" class="ion-text-right" [disabled]="alarm.disabled"></ion-input>
+            <ion-text class="ion-text-right">s</ion-text>
             <ion-popover trigger="retriggerSeconds-popover-{{alarm.alarmId}}" [dismissOnSelect]="true">
               <ng-template>
                 <ion-content>

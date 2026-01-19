@@ -86,6 +86,7 @@ const deviceSchema: Schema = new Schema({
         webhookHeaders: { type: Schema.Types.Mixed, required: false },
         webhookTriggeredPayload: { type: String, required: false },
         webhookResolvedPayload: { type: String, required: false },
+        thresholdSeconds: { type: Number, required: false },
       },
     ],
     required: false,
