@@ -134,6 +134,7 @@ export class FridgeSettingsConfigurationComponent implements OnChanges {
         "sunrise": device_settings?.lights?.sunrise ?? 0,
         "sunset": device_settings?.lights?.sunset ?? 0,
         "limit": device_settings?.lights?.limit ?? 100,
+        "maintenanceOn": device_settings?.lights?.maintenanceOn || false,
       },
       "co2": device_settings?.co2?.target ?? 400,
       "internalfan": device_settings?.fans?.internal ?? 100,

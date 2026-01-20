@@ -49,6 +49,7 @@ namespace fg {
       float sunrise = 15.0;
       float sunset = 15.0;
       float limit = 100.0;
+      float maintenanceOn = 0;
     } lights;
 
     struct {

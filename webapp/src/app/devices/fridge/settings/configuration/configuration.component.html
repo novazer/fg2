@@ -11,9 +11,9 @@
       </ion-select>
     </ion-item>
 
-    <ion-item *ngIf="has_daycycle">
+    <ion-item *ngIf="has_daycycle && cloudSettings?.betaFeatures">
       <ion-label>{{'devices.fridge.settings.floating-day' | translate}}</ion-label>
-      <ion-checkbox labelPlacement="end" [(ngModel)]="settings.daynight.floating" (ionChange)="onSettingsChanged()">{{'devices.fridge.settings.floating-day' | translate}}</ion-checkbox>
+      <ion-checkbox [(ngModel)]="settings.daynight.floating" (ionChange)="onSettingsChanged()">{{'devices.fridge.settings.floating-day' | translate}}</ion-checkbox>
     </ion-item>
 
     <ion-item *ngIf="has_daycycle && settings.daynight.floating">
@@ -190,6 +190,11 @@
         <ion-button size="small" fill="clear" (click)="settings.lights.limit = settings.lights.limit + 1" [disabled]="settings.lights.limit >= 100"><ion-icon name="add-circle"></ion-icon></ion-button>
       </ion-item>
     </ng-container>
+
+    <ion-item *ngIf="cloudSettings?.betaFeatures">
+      <ion-label>{{ 'settings.lightsOnMaintenanceMode' | translate }}</ion-label>
+      <ion-checkbox [(ngModel)]="settings.lights.maintenanceOn" (ionChange)="onSettingsChanged()">{{'settings.lightsOnMaintenanceMode' | translate}}</ion-checkbox>
+    </ion-item>
 
     <ng-container *ngIf="settings.workmode !== 'off'">
       <ion-item>

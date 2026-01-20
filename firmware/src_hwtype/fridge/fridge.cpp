@@ -210,7 +210,10 @@ namespace fg {
   void FridgeController::controlLight() {
     const int SECONDS_PER_DAY = 24 * 60 * 60;
 
-    if(state.is_day) {
+    if (settings.lights.maintenanceOn > 0) {
+        state.out_light = 15f;
+        out_light.set(255.0f * (settings.lights.limit / 100.0f));
+    } else if(state.is_day) {
 
       static float light_current = 0.0f;
 
@@ -444,6 +447,7 @@ namespace fg {
       loadIfAvaliable(new_settings.lights.sunrise, doc["lights"]["sunrise"]);
       loadIfAvaliable(new_settings.lights.sunset, doc["lights"]["sunset"]);
       loadIfAvaliable(new_settings.lights.limit, doc["lights"]["limit"]);
+      loadIfAvaliable(new_settings.lights.maintenanceOn, doc["lights"]["maintenanceOn"]);
       loadIfAvaliable(new_settings.fans.external, doc["fans"]["external"]);
       loadIfAvaliable(new_settings.fans.internal, doc["fans"]["internal"]);
     }
@@ -460,6 +464,7 @@ namespace fg {
     Serial.printf("new_settings.lights.sunrise: %f\n\r", new_settings.lights.sunrise);
     Serial.printf("new_settings.lights.sunset: %f\n\r", new_settings.lights.sunset);
     Serial.printf("new_settings.lights.limit: %f\n\r", new_settings.lights.limit);
+    Serial.printf("new_settings.lights.maintenanceOn: %f\n\r", new_settings.lights.maintenanceOn);
     Serial.printf("new_settings.fans.external: %f\n\r", new_settings.fans.external);
     Serial.printf("new_settings.fans.internal: %f\n\r", new_settings.fans.internal);
     Serial.printf("#################################################\n\r");
@@ -481,6 +486,7 @@ namespace fg {
     doc["lights"]["sunrise"] = settings.lights.sunrise;
     doc["lights"]["sunset"] = settings.lights.sunset;
     doc["lights"]["limit"] = settings.lights.limit;
+    doc["lights"]["maintenanceOn"] = settings.lights.maintenanceOn;
     doc["fans"]["external"] = settings.fans.external;
     doc["fans"]["internal"] = settings.fans.internal;
 

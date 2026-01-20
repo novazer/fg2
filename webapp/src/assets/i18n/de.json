@@ -44,6 +44,7 @@
     "sunrise": "Sonnenaufgangsperiode",
     "sunset": "Sonnenuntergangsperiode",
     "lightlimit": "Maximalleistung",
+    "lightsOnMaintenanceMode": "Licht AN im Pflegemodus",
     "speed": "Geschwindigkeit",
     "maxspeed": "Maximalgeschwindigkeit",
     "minspeed": "Minimalgeschwindigkeit",
