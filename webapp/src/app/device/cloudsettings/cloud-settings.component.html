@@ -27,5 +27,12 @@
         (ngModelChange)="cloudSettingsChange.emit(cloudSettings)"
       ></ion-checkbox>
     </ion-item>
+    <ion-item lines="none">
+      <ion-label>{{'settings.betaFeatures' | translate}}</ion-label>
+      <ion-checkbox
+        [(ngModel)]="cloudSettings.betaFeatures"
+        (ngModelChange)="cloudSettingsChange.emit(cloudSettings)"
+      ></ion-checkbox>
+    </ion-item>
   </ion-card-content>
 </ion-card>

@@ -32,6 +32,7 @@ export interface CloudSettings {
   autoFirmwareUpdate?: boolean;
   vpdLeafTempOffsetDay?: number;
   vpdLeafTempOffsetNight?: number;
+  betaFeatures?: boolean;
 }
 
 export interface RecipeStep {

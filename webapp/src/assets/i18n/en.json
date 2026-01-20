@@ -100,7 +100,8 @@
     "cloudSettings": "Cloud settings",
     "vpdLeafTempOffsetDay": "Day VPD leaf temp. offset",
     "vpdLeafTempOffsetNight": "Night VPD leaf temp. offset",
-    "autoFirmwareUpdate": "Automatic Firmware Updates"
+    "autoFirmwareUpdate": "Automatic Firmware Updates",
+    "betaFeatures": "Beta features"
   },
 
   "menu": {
