@@ -10,6 +10,7 @@ See also:
 - Docker
 - Docker Compose
 - Git
+- A new firmware, that has the "Change server" option (see [Upgrading an older firmware](UPGRADING-FIRMWARE.md) if you don't have this)
 
 ### Quickstart
 1. `cd myfolder`
