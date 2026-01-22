@@ -180,6 +180,7 @@ namespace fg {
   }
 
   void FridgeController::controlCo2() {
+    const int SECONDS_PER_DAY = 24 * 60 * 60;
 
     if(state.is_day) {
       if(co2_inject_end < xTaskGetTickCount()) {
