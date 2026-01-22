@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e
+BACKUP_TARGET="$1"
 
 if [ -f .env ]; then
     export $(grep -v '^#' .env | grep -v CUSTOM_LINKS_HTML | xargs)
@@ -21,16 +22,22 @@ if [ -z "$INFLUX_CONTAINER" ]; then
     exit 1
 fi
 
-docker compose exec -T mongodb mongodump \
-    --username "$MONGODB_ADMINUSERNAME" \
-    --password "$MONGODB_ADMINPASSWORD" \
-    --quiet \
-    --archive=/backup.mongodump
-docker cp "$MONGO_CONTAINER":/backup.mongodump "${BACKUP_FILENAME}.mongodump"
-docker compose exec -T mongodb rm -rf /backup.mongodump || true
+if [ "$BACKUP_TARGET" != "influx" ]; then
+  docker compose exec -T mongodb mongodump \
+      --username "$MONGODB_ADMINUSERNAME" \
+      --password "$MONGODB_ADMINPASSWORD" \
+      --quiet \
+      --archive=/backup.mongodump
+  docker cp "$MONGO_CONTAINER":/backup.mongodump "${BACKUP_FILENAME}.mongodump"
+  docker compose exec -T mongodb rm -rf /backup.mongodump || true
+fi
 
-docker compose exec -T influxdb rm -rf /influxdb-backup.tar /influxdb-backup/ || true
-docker compose exec -T influxdb influx backup /influxdb-backup
-docker compose exec -T influxdb tar cf /influxdb-backup.tar /influxdb-backup
-docker cp "$INFLUX_CONTAINER":/influxdb-backup.tar "${BACKUP_FILENAME}.influxdump"
-docker compose exec -T influxdb rm -rf /influxdb-backup.tar /influxdb-backup/ || true
+if [ "$BACKUP_TARGET" != "mongo" ]; then
+  docker compose exec -T influxdb rm -rf /influxdb-backup.tar /influxdb-backup/ || true
+  docker compose exec -T influxdb influx backup /influxdb-backup
+  docker compose exec -T influxdb tar cf /influxdb-backup.tar /influxdb-backup
+  docker cp "$INFLUX_CONTAINER":/influxdb-backup.tar "${BACKUP_FILENAME}.influxdump"
+  docker compose exec -T influxdb rm -rf /influxdb-backup.tar /influxdb-backup/ || true
+fi
+
+echo "BACKUP SUCCESSFUL: ${BACKUP_FILENAME}"

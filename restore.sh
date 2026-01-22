@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e
+RESTORE_TARGET="$1"
 
 if [ -f .env ]; then
     export $(grep -v '^#' .env | grep -v CUSTOM_LINKS_HTML | xargs)
@@ -31,19 +32,23 @@ if [ -z "$INFLUX_CONTAINER" ]; then
     exit 1
 fi
 
-docker cp "${BACKUP_FILENAME}.mongodump" "$MONGO_CONTAINER":/backup.mongodump
-docker compose exec mongodb mongorestore \
-    --drop \
-    --archive=/backup.mongodump \
-    --nsInclude="${MONGODB_DATABASE}.*" \
-    "mongodb://${MONGODB_ADMINUSERNAME}:${MONGODB_ADMINPASSWORD}@localhost:27017"
-docker compose exec mongodb rm -rf /backup.mongodump || true
+if [ "$RESTORE_TARGET" != "influx" ]; then
+  docker cp "${BACKUP_FILENAME}.mongodump" "$MONGO_CONTAINER":/backup.mongodump
+  docker compose exec mongodb mongorestore \
+      --drop \
+      --archive=/backup.mongodump \
+      --nsInclude="${MONGODB_DATABASE}.*" \
+      "mongodb://${MONGODB_ADMINUSERNAME}:${MONGODB_ADMINPASSWORD}@localhost:27017"
+  docker compose exec mongodb rm -rf /backup.mongodump || true
+fi
 
-docker compose exec influxdb rm -rf /influxdb-backup* || true
-docker cp "${BACKUP_FILENAME}.influxdump" "$INFLUX_CONTAINER":/influxdb-backup.tar
-docker compose exec influxdb tar xf /influxdb-backup.tar
-docker compose exec influxdb influx bucket delete -n "${INFLUXDB_BUCKET}" -o "${INFLUXDB_ORG}"
-docker compose exec influxdb influx restore --bucket="${INFLUXDB_BUCKET}" --org="${INFLUXDB_ORG}" /influxdb-backup
-docker compose exec influxdb rm -rf /influxdb-backup* || true
+if [ "$RESTORE_TARGET" != "mongo" ]; then
+  docker compose exec influxdb rm -rf /influxdb-backup* || true
+  docker cp "${BACKUP_FILENAME}.influxdump" "$INFLUX_CONTAINER":/influxdb-backup.tar
+  docker compose exec influxdb tar xf /influxdb-backup.tar
+  docker compose exec influxdb influx bucket delete -n "${INFLUXDB_BUCKET}" -o "${INFLUXDB_ORG}"
+  docker compose exec influxdb influx restore --bucket="${INFLUXDB_BUCKET}" --org="${INFLUXDB_ORG}" /influxdb-backup
+  docker compose exec influxdb rm -rf /influxdb-backup* || true
+fi
 
-echo "RESTORE SUCCESSUL"
+echo "RESTORE SUCCESSUL: ${BACKUP_FILENAME}"
