@@ -36,6 +36,7 @@
     "nightHumidity": "Night humidity",
     "nightVpd": "Night VPD",
     "co2": "CO2",
+    "co2SunsetOff": "No CO2 during sunset",
     "co2-day": "CO2 Daytime",
     "co2-night": "CO2 Nighttime",
     "co2-on": "Injection Start",

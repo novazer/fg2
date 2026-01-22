@@ -136,7 +136,10 @@ export class FridgeSettingsConfigurationComponent implements OnChanges {
         "limit": device_settings?.lights?.limit ?? 100,
         "maintenanceOn": device_settings?.lights?.maintenanceOn || false,
       },
-      "co2": device_settings?.co2?.target ?? 400,
+      "co2": {
+        "target": device_settings?.co2?.target ?? 400,
+        "sunsetOff": device_settings?.co2?.sunsetOff || false,
+      },
       "internalfan": device_settings?.fans?.internal ?? 100,
       "externalfan": device_settings?.fans?.external ?? 100,
     }
@@ -167,7 +170,8 @@ export class FridgeSettingsConfigurationComponent implements OnChanges {
       },
 
       co2: {
-        target: this.settings.co2
+        target: this.settings.co2.target,
+        sunsetOff: this.settings.co2.sunsetOff,
       },
 
       day: {

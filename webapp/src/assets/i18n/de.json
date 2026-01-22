@@ -36,6 +36,7 @@
     "nightHumidity": "Nacht Luftfeuchtigkeit",
     "nightVpd": "Nacht VPD",
     "co2": "CO2",
+    "co2SunsetOff": "Kein CO2 bei Sonnenuntergang",
     "co2-day": "CO2 Tag",
     "co2-night": "CO2 Nacht",
     "co2-on": "Anreicherung Einschalten",

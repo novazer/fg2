@@ -31,6 +31,7 @@ namespace fg {
 
     struct {
       float target = 300;
+      float sunsetOff = 0;
     } co2;
 
     struct {

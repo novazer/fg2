@@ -147,12 +147,17 @@
       <ion-item>
         <ion-label>{{'settings.co2' | translate}}</ion-label>
         <ion-button size="small" fill="clear" [hidden]="co2EditMode" (click)="co2EditMode = true">{{'settings.edit-value' | translate}}</ion-button>
-        <ion-item lines="none">{{settings.co2}} ppm</ion-item>
+        <ion-item lines="none">{{settings.co2.target}} ppm</ion-item>
       </ion-item>
       <ion-item [hidden]="!co2EditMode">
-        <ion-button size="small" fill="clear" (click)="settings.co2 = settings.co2 - 100" [disabled]="settings.co2 <= limits.co2.min"><ion-icon name="remove-circle"></ion-icon></ion-button>
-        <ion-range [(ngModel)]="settings.co2" min="{{limits.co2.min}}" max="{{limits.co2.max}}" step="100" (ionChange)="onSettingsChanged()"></ion-range>
-        <ion-button size="small" fill="clear" (click)="settings.co2 = settings.co2 + 100" [disabled]="settings.co2 >= limits.co2.max"><ion-icon name="add-circle"></ion-icon></ion-button>
+        <ion-button size="small" fill="clear" (click)="settings.co2.target = settings.co2.target - 100" [disabled]="settings.co2.target <= limits.co2.min"><ion-icon name="remove-circle"></ion-icon></ion-button>
+        <ion-range [(ngModel)]="settings.co2.target" min="{{limits.co2.min}}" max="{{limits.co2.max}}" step="100" (ionChange)="onSettingsChanged()"></ion-range>
+        <ion-button size="small" fill="clear" (click)="settings.co2.target = settings.co2.target + 100" [disabled]="settings.co2.target >= limits.co2.max"><ion-icon name="add-circle"></ion-icon></ion-button>
+      </ion-item>
+
+      <ion-item *ngIf="cloudSettings?.betaFeatures">
+        <ion-label>{{ 'settings.co2SunsetOff' | translate }}</ion-label>
+        <ion-checkbox [(ngModel)]="settings.co2.sunsetOff" (ionChange)="onSettingsChanged()">{{'settings.co2SunsetOff' | translate}}</ion-checkbox>
       </ion-item>
     </ng-container>
 

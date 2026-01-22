@@ -183,7 +183,7 @@ namespace fg {
 
     if(state.is_day) {
       if(co2_inject_end < xTaskGetTickCount()) {
-        if((co2_avg.avg() < settings.co2.target && xTaskGetTickCount() > pause_until_tick)) {
+        if((co2_avg.avg() < settings.co2.target && xTaskGetTickCount() > pause_until_tick) && !(settings.co2.sunsetOff > 0 && (state.timeofday + SECONDS_PER_DAY) > (settings.daynight.night + SECONDS_PER_DAY - settings.lights.sunset * 60))) {
           state.out_co2 = 1;
           out_co2.set(1);
           co2_valve_close = xTaskGetTickCount() + co2_inject_count * CO2_INJECT_DURATION;
@@ -440,6 +440,7 @@ namespace fg {
       loadIfAvaliable(new_settings.daynight.day, doc["daynight"]["day"]);
       loadIfAvaliable(new_settings.daynight.night, doc["daynight"]["night"]);
       loadIfAvaliable(new_settings.co2.target, doc["co2"]["target"]);
+      loadIfAvaliable(new_settings.co2.sunsetOff, doc["co2"]["sunsetOff"]);
       loadIfAvaliable(new_settings.day.temperature, doc["day"]["temperature"]);
       loadIfAvaliable(new_settings.day.humidity, doc["day"]["humidity"]);
       loadIfAvaliable(new_settings.night.temperature, doc["night"]["temperature"]);
@@ -457,6 +458,7 @@ namespace fg {
     Serial.printf("new_settings.daynight.day: %lu\n\r", new_settings.daynight.day);
     Serial.printf("new_settings.daynight.night: %lu\n\r", new_settings.daynight.night);
     Serial.printf("new_settings.co2.target: %.0f\n\r", new_settings.co2.target);
+    Serial.printf("new_settings.co2.sunsetOff: %.0f\n\r", new_settings.co2.sunsetOff);
     Serial.printf("new_settings.day.temperature: %.2f\n\r", new_settings.day.temperature);
     Serial.printf("new_settings.day.humidity: %.0f\n\r", new_settings.day.humidity);
     Serial.printf("new_settings.night.temperature: %.2f\n\r", new_settings.night.temperature);
@@ -479,6 +481,7 @@ namespace fg {
     doc["daynight"]["day"] = settings.daynight.day;
     doc["daynight"]["night"] = settings.daynight.night;
     doc["co2"]["target"] = settings.co2.target;
+    doc["co2"]["sunsetOff"] = settings.co2.sunsetOff;
     doc["day"]["temperature"] = settings.day.temperature;
     doc["day"]["humidity"] = settings.day.humidity;
     doc["night"]["temperature"] = settings.night.temperature;
