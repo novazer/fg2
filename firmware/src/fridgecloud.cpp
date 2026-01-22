@@ -118,11 +118,7 @@ namespace fg {
 
       Serial.printf("loading firmware: %s\n\r", doc["version"]);
 #ifndef NO_FIRMWARE_UPDATE
-      if(doc["version"] != FIRMWARE_VERSION &&
-        ((fg::settings().getStr("mqtt_password") && doc["password"] == fg::settings().getStr("mqtt_password"))
-          ||
-          (fg::settings().getStr("mqtt_pass") && doc["password"] == fg::settings().getStr("mqtt_pass"))
-        )) {
+      if(doc["version"] != FIRMWARE_VERSION) {
         log("message-device-firmware-update");
         update_subject.next(true);
         updateFirmwareFromUrl(doc["url"]);
