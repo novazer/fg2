@@ -227,7 +227,7 @@ export class ChartsPage implements OnInit, OnDestroy {
       measure.axis = axis;
     }
 
-    let series = await Promise.all(this.filtered_measures.map(async (measure:any):Promise<Highcharts.SeriesOptionsType> => {
+    let series = await Promise.all(this.filtered_measures.map(async (measure:any):Promise<Highcharts.SeriesOptionsType & { data: [[number, number]] }> => {
       const requestedMeasure = measure.name + (measure.name === 'vpd' && this.vpdMode !== 'all' ? `_${this.vpdMode}` : '');
       let data = measure.enabled ? await this.data.getSeries(this.device_id, requestedMeasure, from, this.selectedInterval, to) : []
 
@@ -262,6 +262,9 @@ export class ChartsPage implements OnInit, OnDestroy {
     // this.lineChartData.datasets[1].data = await this.data.getSeries(room_id, 'humidity', span, interval);
     // this.lineChartData.datasets[2].data = await this.data.getSeries(room_id, 'co2', span, interval);
     // this.chart?.update();
+
+    this.currentImageTimestamp = series?.[0]?.data?.[(series?.[0]?.data?.length ?? 1) - 1]?.[0];
+    void this.loadDeviceImage(this.currentImageTimestamp);
   }
 
   public hasEnabledMeasures() {
