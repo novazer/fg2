@@ -6,7 +6,8 @@ import { AddDeviceClassDto, TestDeviceDto } from '@dtos/device.dto';
 import { isUserDeviceMiddelware } from '@/middlewares/auth.middleware';
 import { version } from 'os';
 import deviceModel from '@models/device.model'; // added import
-import recipeModel from '@models/recipe.model'; // new import
+import recipeModel from '@models/recipe.model';
+import { dataService } from '@services/data.service'; // new import
 
 class DeviceController {
   public getDevices = async (req: Request, res: Response, next: NextFunction) => {
@@ -14,6 +15,27 @@ class DeviceController {
       const devices: Device[] = await deviceService.findAllDevices();
 
       res.status(200).json(devices);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public getDeviceImage = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+    try {
+      if (await isUserDeviceMiddelware(req, res, req.params.device_id)) {
+        const image = await dataService.getDeviceImage(req.params.device_id, Number(req.query.timestamp));
+
+        if (image) {
+          res.setHeader('Content-type', 'image/jpeg');
+          res.setHeader('Cache-Control', 'max-age=2592000');
+          res.send(image.data);
+        } else {
+          res.setHeader('Cache-Control', 'no-cache');
+          res.status(404).send();
+        }
+      } else {
+        res.status(401).send();
+      }
     } catch (error) {
       next(error);
     }

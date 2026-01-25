@@ -2,6 +2,8 @@ import { InfluxDB, Point } from '@influxdata/influxdb-client';
 import { INFLUXDB_BUCKET, INFLUXDB_ORG, INFLUXDB_TOKEN } from '@/config';
 import { deviceService, StatusMessage } from '@services/device.service';
 import { calculateVpd } from '@utils/calculateVpd';
+import imageModel from '@models/images.model';
+import { Image } from '@interfaces/images.interface';
 
 const INFLUXDB_DB = 'devices';
 // You can generate a Token from the "Tokens Tab" in the UI
@@ -157,6 +159,10 @@ class DataService {
     }
 
     return NaN;
+  }
+
+  public async getDeviceImage(device_id: string, timestamp?: number): Promise<Image | undefined> {
+    return imageModel.findOne({ device_id, timestamp: { $lte: timestamp ? timestamp : Date.now() } }).sort({ timestamp: -1 });
   }
 }
 export const dataService = new DataService();

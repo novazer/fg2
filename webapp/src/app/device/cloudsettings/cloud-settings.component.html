@@ -20,6 +20,24 @@
                  class="ion-text-right"></ion-input>
       <ion-text>&deg;C</ion-text>
     </ion-item>
+    <ion-item lines="none" *ngIf="cloudSettings.betaFeatures">
+      <ion-label>{{'settings.rtspStream' | translate}}</ion-label>
+      <ion-button fill="clear" id="cloudSettings-rtspStream-popover">
+        <ion-icon name="help-circle-outline"></ion-icon>
+      </ion-button>
+      <ion-input
+        type="text"
+        [(ngModel)]="cloudSettings.rtspStream"
+        (ngModelChange)="cloudSettingsChange.emit(cloudSettings)"
+        class="ion-text-right"></ion-input>
+      <ion-popover trigger="cloudSettings-rtspStream-popover" [dismissOnSelect]="true">
+        <ng-template>
+          <ion-content>
+            {{'settings.rtspStreamHint' | translate}}
+          </ion-content>
+        </ng-template>
+      </ion-popover>
+    </ion-item>
     <ion-item lines="none">
       <ion-label>{{'settings.autoFirmwareUpdate' | translate}}</ion-label>
       <ion-checkbox

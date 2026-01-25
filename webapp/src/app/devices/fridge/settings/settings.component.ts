@@ -98,6 +98,7 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
       await this.devices.setCloudSettings(this.device_id, this.cloudSettings);
       this.saved = true;
       await this._router.navigateByUrl('/list', { replaceUrl: true });
+      await this.devices.refetchDevices();
     } catch(e) {
       console.log('Failed saving settings:', e);
       this.errorSaving = true;

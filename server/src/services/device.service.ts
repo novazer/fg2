@@ -13,6 +13,8 @@ import { ENABLE_SELF_REGISTRATION, SELF_REGISTRATION_PASSWORD, SMTP_SENDER } fro
 import { alarmService } from '@services/alarm.service';
 import { isNumeric } from 'influx/lib/src/grammar';
 import { mailTransport } from '@services/auth.service';
+import { exec, execFile } from 'node:child_process';
+import imageModel from '@models/images.model';
 
 export type StatusMessage = {
   sensors: {
@@ -57,7 +59,7 @@ const minimal_classes = [
 class DeviceService {
   constructor() {
     setTimeout(() => {
-      this.connectMqtt();
+      void this.connectMqtt();
     }, 5000);
     setInterval(async () => {
       await this.findUpgradeableDevices();
@@ -65,7 +67,10 @@ class DeviceService {
     setInterval(async () => {
       await this.runRecipes();
     }, 20000);
-    this.checkDeviceClasses();
+    setTimeout(() => {
+      void this.readRtspStreams();
+    }, 30000);
+    void this.checkDeviceClasses();
   }
 
   private async checkDeviceClasses() {
@@ -298,6 +303,53 @@ class DeviceService {
     }
   }
 
+  private async readRtspStreams(): Promise<void> {
+    const devices = await deviceModel.find({
+      'cloudSettings.rtspStream': { $exists: true, $ne: '' },
+    });
+
+    for (const device of devices) {
+      try {
+        const image = await this.getRtspStreamImage(device.cloudSettings.rtspStream);
+
+        await imageModel.create({
+          image_id: uuidv4(),
+          device_id: device.device_id,
+          timestamp: Date.now(),
+          data: image,
+        });
+      } catch (e) {
+        console.log(`Error reading RTSP streams for device ${device.device_id}:`, e);
+      }
+    }
+
+    setTimeout(() => {
+      void this.readRtspStreams();
+    }, 10000);
+  }
+
+  private getRtspStreamImage(rtspUrl: string): Promise<Buffer> {
+    return new Promise((resolve, reject) => {
+      execFile(
+        'ffmpeg',
+        ['-y', '-rtsp_transport', 'tcp', '-i', rtspUrl, '-vframes', '1', '-f', 'mjpeg', '-'],
+        {
+          timeout: 10000,
+          maxBuffer: 5 * 1024 * 1024,
+          encoding: 'buffer',
+        },
+        (error, stdout, stderr) => {
+          if (error) {
+            console.log('FFMPEG error for url ' + rtspUrl + ':', stderr);
+            reject(error);
+          } else {
+            resolve(stdout);
+          }
+        },
+      );
+    });
+  }
+
   private async statusMessage(device: Device, message: StatusMessage) {
     if (device.owner_id) {
       await dataService.addData(device.device_id, device.owner_id, message);
@@ -403,7 +455,7 @@ class DeviceService {
   public async findUserDevices(user_id: string): Promise<Device[]> {
     const devices: Device[] = await deviceModel.find(
       { owner_id: user_id },
-      { device_id: 1, configuration: 1, device_type: 1, name: 1, maintenance_mode_until: 1 },
+      { device_id: 1, configuration: 1, device_type: 1, name: 1, maintenance_mode_until: 1, cloudSettings: 1 },
     );
     // const users: Device[] = await deviceModel.aggregate([{$match: {owner_id: user_id}}, {$lookup: {from: 'deviceclasses', localField:'class_id', foreignField: 'class_id', as:'device_class'}}]);
     return devices;

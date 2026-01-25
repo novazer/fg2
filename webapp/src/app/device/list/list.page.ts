@@ -19,7 +19,6 @@ export class ListPage implements OnInit {
 
   ngOnInit(): void {
     this.deviceService.devices.subscribe(devices => {
-      console.log(devices)
       this.all_devices = devices;
 
       if (devices.length <= 0 && !this.reloaded) {

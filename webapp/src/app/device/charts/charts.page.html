@@ -33,10 +33,20 @@
         <img class="icon-on" src="assets/icon/autoUpdate.png" />
         <img class="icon-off" src="assets/icon/autoUpdate_off.png" style="opacity: 0.3" />
       </ion-col>
+      <ion-col
+        class="onoff deviceImage"
+        style="cursor: pointer;"
+        [class.on]="showImage"
+        (click)="toggleShowImage()"
+        [hidden]="!cloudSettings?.rtspStream"
+        title="Show image">
+        <img class="icon-on" src="assets/icon/camera.svg" />
+        <img class="icon-off" src="assets/icon/camera_off.svg" style="opacity: 0.3" />
+      </ion-col>
     </ng-container>
   </ion-row>
 
-  <ion-row [hidden]="!useCustom">
+  <ion-row [hidden]="!useCustom || !hasEnabledMeasures()">
     <ng-container>
       <ion-col>
         <ion-item lines="none">
@@ -117,7 +127,7 @@
     </ng-container>
   </ion-row>
 
-  <ion-row [hidden]="useCustom">
+  <ion-row [hidden]="useCustom || !hasEnabledMeasures()">
     <ion-col>
       <ion-button
         *ngFor="let tf of timespans"
@@ -139,15 +149,19 @@
 
   <div #spacer style="padding: 5px, width: 100%"></div>
 
-<highcharts-chart
-*ngIf="loaded"
-[Highcharts]="Highcharts"
-constructorType="stockChart"
-[options]="chartOptions"
-[(update)]="updateFlag"
-(chartInstance)="onChartInstance($event)"
-
-
-></highcharts-chart>
+  <ion-row>
+    <ion-col [style.width]="showImage ? '50%' : ''" [hidden]="!hasEnabledMeasures()">
+      <highcharts-chart
+      *ngIf="loaded"
+      [Highcharts]="Highcharts"
+      constructorType="stockChart"
+      [options]="chartOptions"
+      [(update)]="updateFlag"
+      (chartInstance)="onChartInstance($event)"></highcharts-chart>
+    </ion-col>
+    <ion-col *ngIf="showImage">
+      <img [src]="deviceImageUrl ?? ''" fill="fill" alt="Device Image" style="width: 100%"/>
+    </ion-col>
+  </ion-row>
 
 </ion-content>

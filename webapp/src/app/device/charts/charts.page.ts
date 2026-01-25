@@ -22,6 +22,8 @@ noData(Highcharts);
 
 const IS_TOUCH_DEVICE = window.matchMedia("(pointer: coarse)").matches;
 
+const IMAGE_LOAD_DELAY_MS = 500;
+
 @Component({
   selector: 'app-charts',
   templateUrl: './charts.page.html',
@@ -30,44 +32,10 @@ const IS_TOUCH_DEVICE = window.matchMedia("(pointer: coarse)").matches;
 export class ChartsPage implements OnInit, OnDestroy {
   Highcharts: typeof Highcharts = Highcharts;
   updateFlag:boolean = false;
-  chartOptions: Highcharts.Options = {
-    chart: {
-      animation: true,
-      panning: {
-        enabled: true,
-        type: 'x',
-      },
-      panKey: 'ctrl',
-      zooming: {
-        type: 'x',
-        key: 'shift',
-        resetButton: {
-          position: {
-            align: 'right',
-            verticalAlign: 'top',
-          },
-        },
-        singleTouch: false,
-      }
-    },
-    rangeSelector: {
-      buttons: [],
-      inputEnabled: false
-    },
-
-    yAxis: [],
-    time: {
-      useUTC: false
-    },
-    series: [],
-
-    navigator: {
-      enabled: window.innerHeight > 600 && !IS_TOUCH_DEVICE,
-    }
-  };
+  chartOptions: Highcharts.Options;
 
   public timespans = [
-    { name: '20m', durationValue: 20, durationUnit: 'm', defaultInterval:'10s' },
+    { name: '20m', durationValue: 20, durationUnit: 'm', defaultInterval:'5s' },
     { name: '1h', durationValue: 1, durationUnit: 'h', defaultInterval:'10s', highlight: true },
     { name: '6h', durationValue: 6, durationUnit: 'h', defaultInterval:'10s' },
     { name: '12h', durationValue: 12, durationUnit: 'h', defaultInterval:'10s' },
@@ -113,8 +81,9 @@ export class ChartsPage implements OnInit, OnDestroy {
   public end_ts = 0;
 
   public loaded = false;
-  public device_id:string = ""
-  public device_type:string = ""
+  public device_id:string = "";
+  public device_type:string = "";
+  public cloudSettings: any = {};
 
   public autoUpdate:boolean = false;
 
@@ -126,7 +95,13 @@ export class ChartsPage implements OnInit, OnDestroy {
 
   public useCustom = false;
 
+  public showImage = false;
+
+  public deviceImageUrl: string | undefined = undefined;
+
   public chartInstance!: Highcharts.Chart;
+
+  public currentImageTimestamp: number | undefined = undefined;
 
   @ViewChild(BaseChartDirective) chart?: BaseChartDirective;
   @ViewChild('spacer') spacer? : ElementRef;
@@ -134,21 +109,73 @@ export class ChartsPage implements OnInit, OnDestroy {
   private interval?: NodeJS.Timeout;
 
   constructor(private route: ActivatedRoute, private data: DataService, private devices: DeviceService) {
+    this.chartOptions = {
+      chart: {
+        animation: true,
+        panning: {
+          enabled: true,
+          type: 'x',
+        },
+        panKey: 'ctrl',
+        zooming: {
+          type: 'x',
+          key: 'shift',
+          resetButton: {
+            position: {
+              align: 'right',
+              verticalAlign: 'top',
+            },
+          },
+          singleTouch: false,
+        },
+      },
+      plotOptions: {
+        series: {
+          point: {
+            events: {
+              mouseOver: e => {
+                const timestamp = (e.target as any).x;
+                this.currentImageTimestamp = timestamp;
+
+                setTimeout(() => {
+                  void this.loadDeviceImage(timestamp);
+                }, IMAGE_LOAD_DELAY_MS);
+              },
+            }
+          }
+        }
+      },
+      rangeSelector: {
+        buttons: [],
+        inputEnabled: false
+      },
+
+      yAxis: [],
+      time: {
+        useUTC: false
+      },
+      series: [],
+
+      navigator: {
+        enabled: window.innerHeight > 600 && !IS_TOUCH_DEVICE,
+      }
+    };
   }
 
   ngOnInit(){
     this.device_id = this.route.snapshot.paramMap.get('device_id') || '';
     this.devices.devices.subscribe((devices) => {
-      this.device_type = devices.find((device) => device.device_id == this.device_id)?.device_type || '';
+      const device = devices.find((device) => device.device_id == this.device_id);
+      this.device_type = device?.device_type || '';
+      this.cloudSettings = device?.cloudSettings || {};
       if(this.device_type != "") {
-        console.log(this.measures)
-        console.log(this.device_type)
         this.filtered_measures = this.measures.filter((measure) => measure.types.includes(this.device_type))
-        console.log(this.filtered_measures)
 
         setTimeout(() => this.loadData(), 10)
         this.interval = setInterval(() => {
           if (this.autoUpdate && !this.offsetFocused && this.offset >= 0) {
+            this.currentImageTimestamp = undefined;
+            void this.loadDeviceImage();
             void this.loadData();
           }
         }, 10000)
@@ -237,6 +264,10 @@ export class ChartsPage implements OnInit, OnDestroy {
     // this.chart?.update();
   }
 
+  public hasEnabledMeasures() {
+    return Boolean(this.filtered_measures.find(m => m.enabled));
+  }
+
   public prevOffset() {
     this.offset--;
     this.offsetChanged();
@@ -272,10 +303,38 @@ export class ChartsPage implements OnInit, OnDestroy {
   public toggleMeasure(measure:any) {
     measure.enabled = !measure.enabled;
 
-    this.loadData();
+    this.loadData().then(() => {
+      this.redrawChart();
+    });
   }
 
   public onChartInstance(chart: Highcharts.Chart) {
     this.chartInstance = chart;
+  }
+
+  async loadDeviceImage(timestamp?: number): Promise<void> {
+    if (!this.showImage) {
+      return;
+    }
+
+    const url = await this.devices.getDeviceImageUrl(this.device_id, timestamp);
+
+    if (url && this.currentImageTimestamp === timestamp) {
+      this.deviceImageUrl = url;
+    }
+  }
+
+  toggleShowImage() {
+    this.showImage = !this.showImage;
+    this.redrawChart();
+  }
+
+  private redrawChart() {
+    this.chartInstance.reflow();
+    this.chartInstance.redraw();
+    window.setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+      void this.loadDeviceImage(this.currentImageTimestamp);
+    }, 10);
   }
 }

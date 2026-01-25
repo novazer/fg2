@@ -8,7 +8,8 @@ import { Device } from '@/interfaces/device.interface';
 
 export const authMiddleware = async (req: RequestWithUser, res: Response, next: NextFunction) => {
   try {
-    const Authorization = req.cookies['Authorization'] || (req.header('Authorization') ? req.header('Authorization').split('Bearer ')[1] : null);
+    const Authorization =
+      req.cookies['Authorization'] || (req.header('Authorization') ? req.header('Authorization').split('Bearer ')[1] : null) || req.query.token;
 
     if (Authorization) {
       const secretKey: string = SECRET_KEY;
@@ -54,7 +55,8 @@ export const authAdminMiddleware = async (req: RequestWithUser, res: Response, n
 
 export const isUserDeviceMiddelware = async (req: RequestWithUser, res: Response, device_id: string) => {
   try {
-    const Authorization = req.cookies['Authorization'] || (req.header('Authorization') ? req.header('Authorization').split('Bearer ')[1] : null);
+    const Authorization =
+      req.cookies['Authorization'] || (req.header('Authorization') ? req.header('Authorization').split('Bearer ')[1] : null) || req.query.token;
 
     if (Authorization) {
       const secretKey: string = SECRET_KEY;

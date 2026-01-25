@@ -3,6 +3,8 @@ ARG DOCKER_NODE_SERVER_IMAGE
 # Common build stage
 FROM ${DOCKER_NODE_SERVER_IMAGE} as common-build-stage
 
+RUN apk add --no-cache ffmpeg
+
 RUN mkdir -p /app
 COPY package.json /app
 COPY package-lock.json /app

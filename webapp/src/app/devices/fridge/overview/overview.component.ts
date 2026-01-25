@@ -25,7 +25,9 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
   @Input() device_id:string = "";
   @Input() device_name:string = "";
   @Input() maintenance_mode_until:number = 0;
+  @Input() cloud_settings:any = {};
   @ViewChild("nameedit", { read: ElementRef }) private nameInput: ElementRef | undefined;
+  @ViewChild(IonModal) modal!: IonModal;
 
   public logs:any;
   public t_l:number = NaN;
@@ -55,6 +57,8 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
   // timer used to refresh remaining time every second
   private timerId: any = null;
   private tick = 0;
+
+  public deviceImageUrl: string | undefined = '';
 
   constructor(private devices: DeviceService, public data: DataService, private route: ActivatedRoute, private renderer: Renderer2, private alertController: AlertController, private toastController: ToastController) { }
 
@@ -105,6 +109,9 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
     // Load recipe if any
     this.recipe = await this.devices.getRecipe(this.device_id);
 
+    // Load device image
+    void this.loadDeviceImage();
+
     // Load logs
     this.logs = await this.devices.getLogs(this.device_id);
     for(let log of this.logs) {
@@ -119,6 +126,8 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
       this.severity = Math.max(...this.logs.map((o: { severity: number; }) => {return isNaN(o.severity) ? 0 : o.severity}))
 
       this.recipe = await this.devices.getRecipe(this.device_id);
+
+      void this.loadDeviceImage();
     }, 30000);
 
     // Load device configuration (settings page values)
@@ -160,9 +169,6 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
     }
   }
 
-  @ViewChild(IonModal) modal!: IonModal;
-
-
   showLogs() {
     console.log(this.showDeviceLog)
     this.showDeviceLog = true;
@@ -172,6 +178,12 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
     this.devices.clearLogs(this.device_id);
     this.logs = [];
     this.has_logs = false;
+  }
+
+  async loadDeviceImage() {
+    if (this.cloud_settings?.rtspStream) {
+      this.deviceImageUrl = await this.devices.getDeviceImageUrl(this.device_id);
+    }
   }
 
   private updateTargets() {

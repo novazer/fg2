@@ -102,7 +102,9 @@
     "vpdLeafTempOffsetDay": "Tages VPD Blatt Temp. Offset",
     "vpdLeafTempOffsetNight": "Nacht VPD Blatt Temp. Offset",
     "autoFirmwareUpdate": "Automatische Firmware Updates",
-    "betaFeatures": "Beta Funktionen"
+    "betaFeatures": "Beta Funktionen",
+    "rtspStream": "RTSP Webcam URL",
+    "rtspStreamHint": "Trage hier die RTSP URL deiner Webcam ein um Webcam Streaming im Portal zu aktivieren, z.B. \"rtsp://user:password@my-public-hostname-or-ip.com:554/\""
   },
 
   "menu": {

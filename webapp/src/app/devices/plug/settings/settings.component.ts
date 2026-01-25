@@ -426,6 +426,7 @@ export class PlugSettingsComponent implements OnInit {
     await this.devices.setCloudSettings(this.device_id, this.cloudSettings);
     this.saved = true;
     await this._router.navigateByUrl('/list', { replaceUrl: true });
+    await this.devices.refetchDevices();
     setTimeout(() => {
       this.saving = false;
     }, 500)
