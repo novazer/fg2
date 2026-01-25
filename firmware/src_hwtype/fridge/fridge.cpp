@@ -211,7 +211,7 @@ namespace fg {
   void FridgeController::controlLight() {
     const int SECONDS_PER_DAY = 24 * 60 * 60;
 
-    if (settings.lights.maintenanceOn > 0) {
+    if (settings.lights.maintenanceOn > 0 && xTaskGetTickCount() <= pause_until_tick) {
         state.out_light = 15.0f;
         out_light.set(255.0f * (settings.lights.limit / 100.0f));
     } else if(state.is_day) {
