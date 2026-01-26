@@ -19,13 +19,16 @@ export class ListPage implements OnInit {
 
   ngOnInit(): void {
     this.deviceService.devices.subscribe(devices => {
-      this.all_devices = devices;
-
       if (devices.length <= 0 && !this.reloaded) {
         this.reloaded = true;
-        setTimeout(() => this.deviceService.refetchDevices(), 2000);
+        setTimeout(() => {
+          if (!this.all_devices?.length) {
+            void this.deviceService.refetchDevices()
+          }
+        }, 2000);
       } else {
         this.reloaded = false;
+        this.all_devices = devices;
       }
     });
   }
