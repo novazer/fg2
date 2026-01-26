@@ -105,7 +105,8 @@
     "autoFirmwareUpdate": "Automatic Firmware Updates",
     "betaFeatures": "Beta features",
     "rtspStream": "RTSP webcam URL",
-    "rtspStreamHint": "Enter the RTSP URL of your webcam here to enable webcam streaming in the portal, e.g. \"rtsp://user:password@my-public-hostname-or-ip.com:554/\""
+    "rtspStreamHint": "Enter the RTSP URL of your webcam here to enable webcam streaming in the portal, e.g. \"rtsp://user:password@my-public-hostname-or-ip.com:554/\"",
+    "logRtspStreamErrors": "Log RTSP stream errors"
   },
 
   "menu": {

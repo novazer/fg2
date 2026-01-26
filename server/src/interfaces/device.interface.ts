@@ -34,6 +34,7 @@ export interface CloudSettings {
   vpdLeafTempOffsetNight?: number;
   betaFeatures?: boolean;
   rtspStream?: string;
+  logRtspStreamErrors?: boolean;
 }
 
 export interface RecipeStep {

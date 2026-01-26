@@ -29,6 +29,9 @@ export type StatusMessage = {
 
 const UPGRADE_TIMEOUT: number = 10 * 60 * 1000;
 const ONLINE_TIMEOUT: number = 10 * 60 * 1000;
+const FFMPEG_THROTTLE_MS = 1000;
+const FFMPEG_TIMEOUT_MS = 45000;
+const RTSP_MIN_INTERVAL_MS = 30000;
 
 const minimal_classes = [
   {
@@ -314,46 +317,57 @@ class DeviceService {
 
     const promises: Promise<void>[] = [];
     for (const device of devices) {
-      if (this.deviceIdToLastRtspImageTimestamps.get(device.device_id) <= Date.now() - 30 * 1000) {
+      if ((this.deviceIdToLastRtspImageTimestamps.get(device.device_id) ?? 0) <= Date.now() - RTSP_MIN_INTERVAL_MS) {
         promises.push(
-          this.ffmpegLimit(() => this.getRtspStreamImage(device.cloudSettings.rtspStream))
-            .then(
-              async image =>
-                void imageModel.create({
-                  image_id: uuidv4(),
-                  device_id: device.device_id,
-                  timestamp: Date.now(),
-                  data: image,
-                }),
-            )
-            .then(() => void this.deviceIdToLastRtspImageTimestamps.set(device.device_id, Date.now()))
-            .catch(e => console.log(`Error reading RTSP streams:`, e)),
+          this.ffmpegLimit(() =>
+            this.getRtspStreamImage(device.cloudSettings.rtspStream, device.device_id)
+              .then(image => {
+                console.log('Fetched RTSP image for device ' + device.device_id);
+                return image;
+              })
+              .then(
+                async image =>
+                  void imageModel.create({
+                    image_id: uuidv4(),
+                    device_id: device.device_id,
+                    timestamp: Date.now(),
+                    data: image,
+                  }),
+              )
+              .finally(() => void this.deviceIdToLastRtspImageTimestamps.set(device.device_id, Date.now()))
+              .catch(e => console.log(`Error reading RTSP streams:`, e)),
+          ),
         );
       }
 
-      await new Promise(r => setTimeout(r, 1000));
+      await new Promise(r => setTimeout(r, FFMPEG_THROTTLE_MS));
     }
 
     await Promise.all(promises);
 
     setTimeout(() => {
       void this.readRtspStreams();
-    }, 1000);
+    }, FFMPEG_THROTTLE_MS);
   }
 
-  private getRtspStreamImage(rtspUrl: string): Promise<Buffer> {
+  private getRtspStreamImage(rtspUrl: string, deviceId: string): Promise<Buffer> {
     return new Promise((resolve, reject) => {
       execFile(
         'ffmpeg',
-        ['-y', '-rtsp_transport', 'tcp', '-i', rtspUrl, '-q:v', '20', '-vframes', '1', '-f', 'mjpeg', '-'],
+        ['-loglevel', 'error', '-y', '-rtsp_transport', 'tcp', '-i', rtspUrl, '-q:v', '25', '-vframes', '1', '-f', 'mjpeg', '-'],
         {
-          timeout: 30000,
+          timeout: FFMPEG_TIMEOUT_MS,
           maxBuffer: 5 * 1024 * 1024,
           encoding: 'buffer',
         },
         (error, stdout, stderr) => {
           if (error) {
-            console.log('FFMPEG error for url ' + rtspUrl + ':', stderr);
+            void deviceService.logMessage(deviceId, {
+              title: `RTSP Stream Error`,
+              message: 'Failed to fetch image from RTSP stream: ' + stderr,
+              severity: 1,
+              raw: true,
+            });
             reject(error);
           } else {
             resolve(stdout);
@@ -709,6 +723,10 @@ class DeviceService {
 
     if (!device?.cloudSettings.vpdLeafTempOffsetNight) {
       device.cloudSettings.vpdLeafTempOffsetNight = 0;
+    }
+
+    if (device?.cloudSettings.logRtspStreamErrors === undefined) {
+      device.cloudSettings.logRtspStreamErrors = true;
     }
 
     return device.cloudSettings;

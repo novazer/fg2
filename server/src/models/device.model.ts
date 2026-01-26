@@ -104,6 +104,8 @@ const deviceSchema: Schema = new Schema({
       vpdLeafTempOffsetDay: { type: Number, required: false },
       vpdLeafTempOffsetNight: { type: Number, required: false },
       betaFeatures: { type: Boolean, required: false },
+      rtspStream: { type: String, required: false },
+      logRtspStreamErrors: { type: Boolean, required: false },
     },
     required: false,
   },

@@ -38,6 +38,13 @@
         </ng-template>
       </ion-popover>
     </ion-item>
+    <ion-item lines="none" [hidden]="!cloudSettings?.rtspStream">
+      <ion-label>{{'settings.logRtspStreamErrors' | translate}}</ion-label>
+      <ion-checkbox
+        [(ngModel)]="cloudSettings.logRtspStreamErrors"
+        (ngModelChange)="cloudSettingsChange.emit(cloudSettings)"
+      ></ion-checkbox>
+    </ion-item>
     <ion-item lines="none">
       <ion-label>{{'settings.autoFirmwareUpdate' | translate}}</ion-label>
       <ion-checkbox
