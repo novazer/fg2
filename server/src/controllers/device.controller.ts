@@ -7,7 +7,8 @@ import { isUserDeviceMiddelware } from '@/middlewares/auth.middleware';
 import { version } from 'os';
 import deviceModel from '@models/device.model'; // added import
 import recipeModel from '@models/recipe.model';
-import { dataService } from '@services/data.service'; // new import
+import { dataService } from '@services/data.service';
+import { readFileSync } from 'fs'; // new import
 
 class DeviceController {
   public getDevices = async (req: Request, res: Response, next: NextFunction) => {
@@ -23,15 +24,16 @@ class DeviceController {
   public getDeviceImage = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
       if (await isUserDeviceMiddelware(req, res, req.params.device_id)) {
-        const image = await dataService.getDeviceImage(req.params.device_id, Number(req.query.timestamp));
+        const image = await dataService.getDeviceImage(req.params.device_id, String(req.query.format), Number(req.query.timestamp));
 
         if (image) {
-          res.setHeader('Content-type', 'image/jpeg');
+          res.setHeader('Content-type', 'image/' + (image.format || 'jpeg'));
           res.setHeader('Cache-Control', 'max-age=2592000');
           res.send(image.data);
         } else {
+          res.setHeader('Content-type', 'image/png');
           res.setHeader('Cache-Control', 'no-cache');
-          res.status(404).send();
+          res.status(404).send(readFileSync('assets/no-image_placeholder.png'));
         }
       } else {
         res.status(401).send();

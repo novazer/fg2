@@ -281,8 +281,20 @@ export class ChartsPage implements OnInit, OnDestroy {
     this.offsetChanged();
   }
 
+  toggleAutoUpdate() {
+    this.autoUpdate = !this.autoUpdate;
+    this.offsetChanged();
+  }
+
   public offsetChanged() {
-    this.loadData().then(() => this.chartInstance?.zoomOut());
+    this.loadData().then(() => {
+      this.chartInstance?.zoomOut();
+
+      if (this.isAnimatedImage()) {
+        this.currentImageTimestamp = Date.now() + this.offset * 86400000;
+        void this.loadDeviceImage(this.currentImageTimestamp);
+      }
+    });
   }
 
   public intervalChanged() {
@@ -315,16 +327,31 @@ export class ChartsPage implements OnInit, OnDestroy {
     this.chartInstance = chart;
   }
 
+  public showOffsetControlForImage(): boolean {
+    return this.showImage && !this.autoUpdate && !this.hasEnabledMeasures();
+  }
+
   async loadDeviceImage(timestamp?: number): Promise<void> {
     if (!this.showImage) {
       return;
     }
 
-    const url = await this.devices.getDeviceImageUrl(this.device_id, timestamp);
+    let format: 'gif' | 'jpeg';
+    if (this.isAnimatedImage()) {
+      format = 'gif';
+    } else {
+      format = 'jpeg';
+    }
+
+    const url = await this.devices.getDeviceImageUrl(this.device_id, format, timestamp);
 
     if (url && this.currentImageTimestamp === timestamp) {
       this.deviceImageUrl = url;
     }
+  }
+
+  isAnimatedImage(): boolean {
+    return this.showImage && !this.hasEnabledMeasures() && !this.autoUpdate;
   }
 
   toggleShowImage() {

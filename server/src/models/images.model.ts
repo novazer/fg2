@@ -19,9 +19,14 @@ const imagesSchema: Schema = new Schema({
     type: Buffer,
     required: true,
   },
+  format: {
+    type: String,
+    enum: ['jpeg', 'gif'],
+    required: true,
+  },
 });
 
-imagesSchema.index({ device_id: 1, timestamp: -1 }, { unique: true });
+imagesSchema.index({ device_id: 1, format: 1, timestamp: -1 }, { unique: true });
 
 const imageModel = model<Image & Document>('Image', imagesSchema);
 

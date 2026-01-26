@@ -1,4 +1,4 @@
-import { Alarm, Device, DeviceClass, DeviceFirmware, DeviceFirmwareBinary, CloudSettings } from '@interfaces/device.interface';
+import { Alarm, CloudSettings, Device, DeviceClass, DeviceFirmware, DeviceFirmwareBinary } from '@interfaces/device.interface';
 import deviceModel from '@models/device.model';
 import deviceLogModel from '@models/devicelog.model';
 import deviceClassModel from '@/models/deviceclass.model';
@@ -13,9 +13,12 @@ import { ENABLE_SELF_REGISTRATION, SELF_REGISTRATION_PASSWORD, SMTP_SENDER } fro
 import { alarmService } from '@services/alarm.service';
 import { isNumeric } from 'influx/lib/src/grammar';
 import { mailTransport } from '@services/auth.service';
-import { exec, execFile } from 'node:child_process';
+import { execFile } from 'node:child_process';
 import imageModel from '@models/images.model';
 import pLimit from 'p-limit';
+import { tmpdir } from 'node:os';
+import { join } from 'path';
+import { mkdtemp, unlink, writeFile } from 'node:fs/promises';
 
 export type StatusMessage = {
   sensors: {
@@ -32,6 +35,8 @@ const ONLINE_TIMEOUT: number = 10 * 60 * 1000;
 const FFMPEG_THROTTLE_MS = 1000;
 const FFMPEG_TIMEOUT_MS = 45000;
 const RTSP_MIN_INTERVAL_MS = 30000;
+const MS_IN_A_DAY = 24 * 60 * 60 * 1000;
+const IMAGE_RETENTION_DAYS = 365;
 
 const minimal_classes = [
   {
@@ -77,6 +82,9 @@ class DeviceService {
     setTimeout(() => {
       void this.readRtspStreams();
     }, 30000);
+    setInterval(async () => {
+      await this.compressRtspImages();
+    }, 2 * 60 * 60 * 1000);
     void this.checkDeviceClasses();
   }
 
@@ -326,6 +334,7 @@ class DeviceService {
                   void imageModel.create({
                     image_id: uuidv4(),
                     device_id: device.device_id,
+                    format: 'jpeg',
                     timestamp: Date.now(),
                     data: image,
                   }),
@@ -346,6 +355,88 @@ class DeviceService {
     }, FFMPEG_THROTTLE_MS);
   }
 
+  private async compressRtspImages(): Promise<void> {
+    const devices = await deviceModel.find({ 'cloudSettings.rtspStream': { $exists: true, $ne: '' } });
+
+    const step = MS_IN_A_DAY;
+    let startTimestamp = Math.floor(Date.now() / step) * step;
+
+    for (const device of devices) {
+      const oldImages = await imageModel
+        .find({
+          device_id: device.device_id,
+          format: 'jpeg',
+          timestamp: { $lt: Date.now() - IMAGE_RETENTION_DAYS * step },
+        })
+        .select({ image_id: 1 });
+      for (const oldImage of oldImages) {
+        await imageModel.deleteOne({ image_id: oldImage.image_id });
+      }
+
+      const compressedImage = await imageModel.findOne({
+        device_id: device.device_id,
+        format: 'gif',
+        timestamp: startTimestamp,
+      });
+      if (compressedImage) {
+        continue;
+      }
+
+      const images = await imageModel
+        .find({
+          device_id: device.device_id,
+          format: 'jpeg',
+          timestamp: {
+            $lt: startTimestamp,
+            $gte: startTimestamp - step,
+          },
+        })
+        .sort({ timestamp: 1 })
+        .select({ image_id: 1, timestamp: 1 });
+      startTimestamp -= step;
+
+      const filesWritten = [];
+      try {
+        const tmpDir = await mkdtemp(join(tmpdir(), device.device_id));
+        let sequenceNumber = 1;
+        for (const image of images) {
+          const imageData = await imageModel.findOne({
+            image_id: image.image_id,
+            format: { $ne: 'gif' },
+          });
+          if (imageData) {
+            // pad sequence number with leading zeros
+            const filename = `${tmpDir}/${sequenceNumber++}.jpg`;
+            filesWritten.push(filename);
+            await writeFile(filename, imageData.data);
+          }
+        }
+
+        if (filesWritten.length > 0) {
+          const gif = await this.compressRtspStream(tmpDir);
+          await imageModel.create({
+            image_id: uuidv4(),
+            device_id: device.device_id,
+            timestamp: startTimestamp,
+            data: gif,
+            format: 'gif',
+          });
+        }
+      } catch (e) {
+        console.log('Error compressing RTSP images for device ' + device.device_id + ':', e);
+
+        await new Promise(r => setTimeout(r, 300000));
+        for (const file of filesWritten) {
+          try {
+            await unlink(file);
+          } catch (e) {
+            console.log('Error deleting temp file ' + file + ':', e);
+          }
+        }
+      }
+    }
+  }
+
   private getRtspStreamImage(rtspUrl: string, deviceId: string): Promise<Buffer> {
     return new Promise((resolve, reject) => {
       execFile(
@@ -364,6 +455,28 @@ class DeviceService {
               severity: 1,
               raw: true,
             });
+            reject(error);
+          } else {
+            resolve(stdout);
+          }
+        },
+      );
+    });
+  }
+
+  private compressRtspStream(filesDir: string): Promise<Buffer> {
+    return new Promise((resolve, reject) => {
+      execFile(
+        'ffmpeg',
+        ['-loglevel', 'error', '-y', '-framerate', '30', '-pattern_type', 'glob', '-f', 'image2', '-i', `${filesDir}/*.jpg`, '-f', 'gif', '-'],
+        {
+          timeout: 15 * 60000,
+          maxBuffer: 5 * 1024 * 1024,
+          encoding: 'buffer',
+        },
+        (error, stdout, stderr) => {
+          if (error) {
+            console.log('Error compressing RTSP stream images:', stderr, error);
             reject(error);
           } else {
             resolve(stdout);

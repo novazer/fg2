@@ -71,7 +71,7 @@ services:
     build:
       context: ./server
       args:
-        DOCKER_NODE_SERVER_IMAGE: ${DOCKER_NODE_SERVER_IMAGE:-node:14.20.0-alpine3.16}
+        DOCKER_NODE_SERVER_IMAGE: ${DOCKER_NODE_SERVER_IMAGE:-node:20-alpine}
     restart: always
     links:
      - mongodb

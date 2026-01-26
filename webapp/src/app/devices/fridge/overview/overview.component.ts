@@ -182,7 +182,7 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
 
   async loadDeviceImage() {
     if (this.cloud_settings?.rtspStream) {
-      this.deviceImageUrl = await this.devices.getDeviceImageUrl(this.device_id);
+      this.deviceImageUrl = await this.devices.getDeviceImageUrl(this.device_id, 'jpeg');
     }
   }
 

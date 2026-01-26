@@ -3,4 +3,5 @@ export interface Image {
   device_id: string;
   timestamp: number;
   data: Buffer;
+  format?: 'jpeg' | 'gif';
 }

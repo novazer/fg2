@@ -24,16 +24,6 @@
     </ng-container>
     <ng-container>
       <ion-col
-        class="onoff autoUpdate"
-        style="cursor: pointer;"
-        [class.on]="autoUpdate"
-        (click)="autoUpdate = !autoUpdate"
-        [hidden]="offset < 0"
-        title="Auto update">
-        <img class="icon-on" src="assets/icon/autoUpdate.png" />
-        <img class="icon-off" src="assets/icon/autoUpdate_off.png" style="opacity: 0.3" />
-      </ion-col>
-      <ion-col
         class="onoff deviceImage"
         style="cursor: pointer;"
         [class.on]="showImage"
@@ -43,12 +33,22 @@
         <img class="icon-on" src="assets/icon/camera.svg" />
         <img class="icon-off" src="assets/icon/camera_off.svg" style="opacity: 0.3" />
       </ion-col>
+      <ion-col
+        class="onoff autoUpdate"
+        style="cursor: pointer;"
+        [class.on]="autoUpdate"
+        (click)="toggleAutoUpdate()"
+        [hidden]="offset < 0"
+        title="Auto update">
+        <img class="icon-on" src="assets/icon/autoUpdate.png" />
+        <img class="icon-off" src="assets/icon/autoUpdate_off.png" style="opacity: 0.3" />
+      </ion-col>
     </ng-container>
   </ion-row>
 
-  <ion-row [hidden]="!useCustom || !hasEnabledMeasures()">
+  <ion-row [hidden]="(!useCustom && !showOffsetControlForImage()) || (autoUpdate && showImage)">
     <ng-container>
-      <ion-col>
+      <ion-col [hidden]="showOffsetControlForImage()">
         <ion-item lines="none">
           <ion-label>{{'charts.timespan' | translate}}</ion-label>
           <ion-select
@@ -63,7 +63,7 @@
         </ion-item>
       </ion-col>
 
-      <ion-col>
+      <ion-col [hidden]="showOffsetControlForImage()">
         <ion-item lines="none">
           <ion-label>{{'charts.interval' | translate}}</ion-label>
           <ion-select
@@ -93,7 +93,7 @@
         </ion-item>
       </ion-col>
 
-      <ion-col [hidden]="offset >= 0 && !offsetFocused">
+      <ion-col [hidden]="offset >= 0 && !offsetFocused && !showOffsetControlForImage()">
         <ion-item lines="none">
           <ion-label>{{'charts.offset' | translate}}</ion-label>
           <ion-input
