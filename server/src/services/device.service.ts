@@ -41,6 +41,7 @@ const RTSP_MIN_INTERVAL_MS = 30000;
 const MS_IN_A_DAY = 24 * 60 * 60 * 1000;
 const IMAGE_RETENTION_DAYS = 365;
 const RTSP_TIMELAPSE_INTERVAL_MS = 60 * 60 * 1000;
+const RTSP_TIMELAPSE_FRAME_MS = 2 * 60 * 1000;
 
 const minimal_classes = [
   {
@@ -436,19 +437,25 @@ class DeviceService {
   private async extractRtspImages(device: Device, images: Omit<Image, 'data'>[]): Promise<Buffer | undefined> {
     const filesWritten = [];
     const tmpDir = await mkdtemp(join(tmpdir(), device.device_id));
+    let lastImageTimestamp = 0;
 
     try {
       let sequenceNumber = 1;
       for (const image of images) {
+        if (image.timestamp - lastImageTimestamp < RTSP_TIMELAPSE_FRAME_MS) {
+          continue;
+        }
+
         const imageData = await imageModel.findOne({
           image_id: image.image_id,
-          format: { $ne: 'mp4' },
+          format: 'jpeg',
         });
         if (imageData) {
           // pad sequence number with leading zeros
           const filename = `${tmpDir}/${sequenceNumber++}.jpeg`;
           filesWritten.push(filename);
           await writeFile(filename, imageData.data);
+          lastImageTimestamp = image.timestamp;
         }
       }
 
