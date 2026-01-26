@@ -10,7 +10,6 @@ const imagesSchema: Schema = new Schema({
   device_id: {
     type: String,
     required: true,
-    index: -1,
   },
   timestamp: {
     type: Number,
@@ -21,6 +20,8 @@ const imagesSchema: Schema = new Schema({
     required: true,
   },
 });
+
+imagesSchema.index({ device_id: 1, timestamp: -1 }, { unique: true });
 
 const imageModel = model<Image & Document>('Image', imagesSchema);
 
