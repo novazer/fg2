@@ -435,8 +435,9 @@ class DeviceService {
 
   private async extractRtspImages(device: Device, images: Omit<Image, 'data'>[]): Promise<Buffer | undefined> {
     const filesWritten = [];
+    const tmpDir = await mkdtemp(join(tmpdir(), device.device_id));
+
     try {
-      const tmpDir = await mkdtemp(join(tmpdir(), device.device_id));
       let sequenceNumber = 1;
       for (const image of images) {
         const imageData = await imageModel.findOne({
@@ -464,6 +465,11 @@ class DeviceService {
         } catch (e) {
           console.log('Error deleting temp file ' + file + ':', e);
         }
+      }
+      try {
+        await unlink(tmpDir);
+      } catch (e) {
+        console.log('Error deleting temp dir ' + tmpDir + ':', e);
       }
     }
 
@@ -507,12 +513,10 @@ class DeviceService {
           '-y',
           '-framerate',
           '30',
-          '-pattern_type',
-          'glob',
           '-f',
           'image2',
           '-i',
-          `${filesDir}/*.jpeg`,
+          `${filesDir}/%d.jpeg`,
           '-f',
           'mp4',
           '-vcodec',
