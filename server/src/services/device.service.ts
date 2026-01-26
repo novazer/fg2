@@ -21,6 +21,7 @@ import { join } from 'path';
 import { mkdtemp, unlink, writeFile } from 'node:fs/promises';
 import { Image } from '@interfaces/images.interface';
 import { readFileSync } from 'fs';
+import { unlinkSync } from 'node:fs';
 
 export type StatusMessage = {
   sensors: {
@@ -514,6 +515,10 @@ class DeviceService {
           `${filesDir}/*.jpeg`,
           '-f',
           'mp4',
+          '-vcodec',
+          'libx265',
+          '-crf',
+          '40',
           `${filesDir}/result.mp4`,
         ],
         {
@@ -528,6 +533,8 @@ class DeviceService {
           } else {
             resolve(readFileSync(`${filesDir}/result.mp4`));
           }
+
+          unlinkSync(`${filesDir}/result.mp4`);
         },
       );
     });
