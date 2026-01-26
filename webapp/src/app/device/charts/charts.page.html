@@ -161,6 +161,8 @@
     </ion-col>
     <ion-col *ngIf="showImage">
       <img [src]="deviceImageUrl ?? ''" fill="fill" alt="Device Image" style="width: 100%"/>
+      <br />
+      {{ currentImageTimestamp | date:'medium' }}
     </ion-col>
   </ion-row>
 
