@@ -321,10 +321,6 @@ class DeviceService {
         promises.push(
           this.ffmpegLimit(() =>
             this.getRtspStreamImage(device.cloudSettings.rtspStream, device.device_id)
-              .then(image => {
-                console.log('Fetched RTSP image for device ' + device.device_id);
-                return image;
-              })
               .then(
                 async image =>
                   void imageModel.create({
@@ -334,8 +330,8 @@ class DeviceService {
                     data: image,
                   }),
               )
-              .finally(() => void this.deviceIdToLastRtspImageTimestamps.set(device.device_id, Date.now()))
-              .catch(e => console.log(`Error reading RTSP streams:`, e)),
+              .catch(e => console.log(`Error reading RTSP streams:`, e))
+              .finally(() => void this.deviceIdToLastRtspImageTimestamps.set(device.device_id, Date.now())),
           ),
         );
       }
