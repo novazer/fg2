@@ -175,7 +175,7 @@ export class DeviceService {
     return await firstValueFrom( this.http.get<string>(environment.API_URL + '/device/logs/' + device_id) )
   }
 
-  public async getDeviceImageUrl(device_id: string, format: 'gif' | 'jpeg', timestamp?: number): Promise<string | undefined> {
+  public async getDeviceImageUrl(device_id: string, format: 'mp4' | 'jpeg', timestamp?: number): Promise<string | undefined> {
     return `${environment.API_URL}/device/${device_id}/image?timestamp=${timestamp ?? Date.now()}&token=${await this.auth.getToken()}&format=${format}`;
   }
 

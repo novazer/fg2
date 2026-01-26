@@ -15,13 +15,17 @@ const imagesSchema: Schema = new Schema({
     type: Number,
     required: true,
   },
+  timestampEnd: {
+    type: Number,
+    required: false,
+  },
   data: {
     type: Buffer,
     required: true,
   },
   format: {
     type: String,
-    enum: ['jpeg', 'gif'],
+    enum: ['jpeg', 'mp4'],
     required: true,
   },
 });

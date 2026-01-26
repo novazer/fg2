@@ -336,9 +336,9 @@ export class ChartsPage implements OnInit, OnDestroy {
       return;
     }
 
-    let format: 'gif' | 'jpeg';
+    let format: 'mp4' | 'jpeg';
     if (this.isAnimatedImage()) {
-      format = 'gif';
+      format = 'mp4';
     } else {
       format = 'jpeg';
     }

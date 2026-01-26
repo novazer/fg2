@@ -160,7 +160,8 @@
       (chartInstance)="onChartInstance($event)"></highcharts-chart>
     </ion-col>
     <ion-col *ngIf="showImage">
-      <img [src]="deviceImageUrl ?? ''" fill="fill" alt="Device Image" style="width: 100%"/>
+      <img *ngIf="!isAnimatedImage()" [src]="deviceImageUrl ?? ''" fill="fill" alt="Device Image" style="width: 100%"/>
+      <video *ngIf="isAnimatedImage()" [src]="deviceImageUrl ?? ''" autoplay muted loop style="width: 100%"></video>
       <br />
       {{ currentImageTimestamp | date:'medium' }}
     </ion-col>

@@ -27,13 +27,18 @@ class DeviceController {
         const image = await dataService.getDeviceImage(req.params.device_id, String(req.query.format), Number(req.query.timestamp));
 
         if (image) {
-          res.setHeader('Content-type', 'image/' + (image.format || 'jpeg'));
-          res.setHeader('Cache-Control', 'max-age=2592000');
+          res.setHeader('Content-type', image.format === 'mp4' ? 'video/mp4' : 'image/jpeg');
+          res.setHeader('Cache-Control', 'max-age=3600');
           res.send(image.data);
         } else {
-          res.setHeader('Content-type', 'image/png');
           res.setHeader('Cache-Control', 'no-cache');
-          res.status(404).send(readFileSync('assets/no-image_placeholder.png'));
+          if (req.query.format === 'mp4') {
+            res.setHeader('Content-type', 'video/mp4');
+            res.status(200).send(readFileSync('assets/no-image_placeholder.mp4'));
+          } else {
+            res.setHeader('Content-type', 'image/png');
+            res.status(200).send(readFileSync('assets/no-image_placeholder.png'));
+          }
         }
       } else {
         res.status(401).send();
