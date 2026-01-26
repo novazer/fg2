@@ -15,6 +15,7 @@ import { isNumeric } from 'influx/lib/src/grammar';
 import { mailTransport } from '@services/auth.service';
 import { exec, execFile } from 'node:child_process';
 import imageModel from '@models/images.model';
+import pLimit from 'p-limit';
 
 export type StatusMessage = {
   sensors: {
@@ -57,6 +58,9 @@ const minimal_classes = [
 ];
 
 class DeviceService {
+  private ffmpegLimit = pLimit(10);
+  private deviceIdToLastRtspImageTimestamps = new Map<string, number>();
+
   constructor() {
     setTimeout(() => {
       void this.connectMqtt();
@@ -308,33 +312,42 @@ class DeviceService {
       'cloudSettings.rtspStream': { $exists: true, $ne: '' },
     });
 
+    const promises: Promise<void>[] = [];
     for (const device of devices) {
-      try {
-        const image = await this.getRtspStreamImage(device.cloudSettings.rtspStream);
-
-        await imageModel.create({
-          image_id: uuidv4(),
-          device_id: device.device_id,
-          timestamp: Date.now(),
-          data: image,
-        });
-      } catch (e) {
-        console.log(`Error reading RTSP streams for device ${device.device_id}:`, e);
+      if (this.deviceIdToLastRtspImageTimestamps.get(device.device_id) <= Date.now() - 30 * 1000) {
+        promises.push(
+          this.ffmpegLimit(() => this.getRtspStreamImage(device.cloudSettings.rtspStream))
+            .then(
+              async image =>
+                void imageModel.create({
+                  image_id: uuidv4(),
+                  device_id: device.device_id,
+                  timestamp: Date.now(),
+                  data: image,
+                }),
+            )
+            .then(() => void this.deviceIdToLastRtspImageTimestamps.set(device.device_id, Date.now()))
+            .catch(e => console.log(`Error reading RTSP streams:`, e)),
+        );
       }
+
+      await new Promise(r => setTimeout(r, 1000));
     }
+
+    await Promise.all(promises);
 
     setTimeout(() => {
       void this.readRtspStreams();
-    }, 10000);
+    }, 1000);
   }
 
   private getRtspStreamImage(rtspUrl: string): Promise<Buffer> {
     return new Promise((resolve, reject) => {
       execFile(
         'ffmpeg',
-        ['-y', '-rtsp_transport', 'tcp', '-i', rtspUrl, '-vframes', '1', '-f', 'mjpeg', '-'],
+        ['-y', '-rtsp_transport', 'tcp', '-i', rtspUrl, '-q:v', '20', '-vframes', '1', '-f', 'mjpeg', '-'],
         {
-          timeout: 10000,
+          timeout: 30000,
           maxBuffer: 5 * 1024 * 1024,
           encoding: 'buffer',
         },
