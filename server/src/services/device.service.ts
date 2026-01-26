@@ -330,7 +330,7 @@ class DeviceService {
                     data: image,
                   }),
               )
-              .catch(e => console.log(`Error reading RTSP streams:`, e))
+              .catch(e => console.log(`Error reading RTSP stream ${device.cloudSettings.rtspStream}:`, e.message))
               .finally(() => void this.deviceIdToLastRtspImageTimestamps.set(device.device_id, Date.now())),
           ),
         );
