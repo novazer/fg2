@@ -104,10 +104,10 @@
     "vpdLeafTempOffsetNight": "Night VPD leaf temp. offset",
     "autoFirmwareUpdate": "Automatic Firmware Updates",
     "betaFeatures": "Beta features",
-    "rtspStream": "RTSP webcam URL",
+    "rtspStream": "Webcam stream URL",
     "rtspStreamHint": "Enter the URL of your webcam here to enable webcam streaming in the portal, e.g. \"rtsp://user:password@my-public-hostname-or-ip.com:554/\". The input here must be processable by FFMPEG.",
     "rtspStreamTransport": "RTSP transport protocol",
-    "logRtspStreamErrors": "Log RTSP stream errors"
+    "logRtspStreamErrors": "Log webcam stream errors"
   },
 
   "menu": {
