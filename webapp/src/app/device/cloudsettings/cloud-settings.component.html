@@ -39,7 +39,7 @@
         </ng-template>
       </ion-popover>
     </ion-item>
-    <ion-item lines="none">
+    <ion-item lines="none" *ngIf="cloudSettings?.rtspStream?.startsWith('rtsp://')">
       <ion-label>{{'settings.rtspStreamTransport' | translate}}</ion-label>
       <ion-select
         [(ngModel)]="cloudSettings.rtspStreamTransport"
