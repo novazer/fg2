@@ -46,7 +46,7 @@
     </ng-container>
   </ion-row>
 
-  <ion-row [hidden]="(!useCustom && !showOffsetControlForImage()) || (autoUpdate && showImage)">
+  <ion-row [hidden]="(!useCustom && !showOffsetControlForImage()) || (autoUpdate && showImage && !hasEnabledMeasures())">
     <ng-container>
       <ion-col>
         <ion-item lines="none">
