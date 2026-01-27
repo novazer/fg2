@@ -316,7 +316,7 @@ export class ChartsPage implements OnInit, OnDestroy {
   }
 
   public vpdModeChanged() {
-    this.loadData();
+    void this.loadData();
   }
 
   public isMeasureEnabled(measure: string) {

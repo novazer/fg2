@@ -35,13 +35,6 @@ export type StatusMessage = {
 
 const UPGRADE_TIMEOUT: number = 10 * 60 * 1000;
 const ONLINE_TIMEOUT: number = 10 * 60 * 1000;
-const FFMPEG_THROTTLE_MS = 1000;
-const FFMPEG_TIMEOUT_MS = 45000;
-const RTSP_MIN_INTERVAL_MS = 30000;
-const MS_IN_A_DAY = 24 * 60 * 60 * 1000;
-const IMAGE_RETENTION_DAYS = 365;
-const RTSP_TIMELAPSE_INTERVAL_MS = 60 * 60 * 1000;
-const RTSP_TIMELAPSE_FRAME_MS = 2 * 60 * 1000;
 
 const minimal_classes = [
   {
@@ -71,9 +64,6 @@ const minimal_classes = [
 ];
 
 class DeviceService {
-  private ffmpegLimit = pLimit(10);
-  private deviceIdToLastRtspImageTimestamps = new Map<string, number>();
-
   constructor() {
     void this.checkDeviceClasses();
 
@@ -86,12 +76,6 @@ class DeviceService {
     setInterval(async () => {
       await this.runRecipes();
     }, 20000);
-    setTimeout(() => {
-      void this.readRtspStreams();
-    }, 30000);
-    setTimeout(() => {
-      void this.compressRtspImages();
-    }, 300000);
   }
 
   private async checkDeviceClasses() {
@@ -319,241 +303,6 @@ class DeviceService {
         }
       }
     }
-  }
-
-  private async readRtspStreams(): Promise<void> {
-    const devices = await deviceModel.find({
-      'cloudSettings.rtspStream': { $exists: true, $ne: '' },
-    });
-
-    const promises: Promise<void>[] = [];
-    for (const device of devices) {
-      if ((this.deviceIdToLastRtspImageTimestamps.get(device.device_id) ?? 0) <= Date.now() - RTSP_MIN_INTERVAL_MS) {
-        promises.push(
-          this.ffmpegLimit(() =>
-            this.getRtspStreamImage(device.cloudSettings.rtspStream, device.device_id)
-              .then(
-                async image =>
-                  void imageModel.create({
-                    image_id: uuidv4(),
-                    device_id: device.device_id,
-                    format: 'jpeg',
-                    timestamp: Date.now(),
-                    data: image,
-                  }),
-              )
-              .catch(e => console.log(`Error reading RTSP stream ${device.cloudSettings.rtspStream}:`, e.message))
-              .finally(() => void this.deviceIdToLastRtspImageTimestamps.set(device.device_id, Date.now())),
-          ),
-        );
-      }
-
-      await new Promise(r => setTimeout(r, FFMPEG_THROTTLE_MS));
-    }
-
-    await Promise.all(promises);
-
-    setTimeout(() => {
-      void this.readRtspStreams();
-    }, FFMPEG_THROTTLE_MS);
-  }
-
-  private async compressRtspImages(): Promise<void> {
-    try {
-      const devices = await deviceModel.find({ 'cloudSettings.rtspStream': { $exists: true, $ne: '' } });
-
-      for (const device of devices) {
-        const oldImages = await imageModel
-          .find({
-            device_id: device.device_id,
-            format: 'jpeg',
-            timestamp: { $lt: Date.now() - IMAGE_RETENTION_DAYS * MS_IN_A_DAY },
-          })
-          .select({ image_id: 1 });
-        for (const oldImage of oldImages) {
-          await imageModel.deleteOne({ image_id: oldImage.image_id });
-        }
-
-        await this.extractRtspStreamRange(device, MS_IN_A_DAY, RTSP_TIMELAPSE_FRAME_MS, '1d');
-        await this.extractRtspStreamRange(device, 7 * MS_IN_A_DAY, 7 * RTSP_TIMELAPSE_FRAME_MS, '1w');
-        await this.extractRtspStreamRange(device, 30 * MS_IN_A_DAY, 30 * RTSP_TIMELAPSE_FRAME_MS, '1m');
-      }
-    } finally {
-      setTimeout(() => {
-        void this.compressRtspImages();
-      }, RTSP_TIMELAPSE_INTERVAL_MS);
-    }
-  }
-
-  private async extractRtspStreamRange(
-    device: Device,
-    timeStep: number,
-    minFrameIntervalMs: number,
-    targetDuration: '1d' | '1w' | '1m',
-  ): Promise<void> {
-    let endTimestamp = Math.ceil(Date.now() / timeStep) * timeStep;
-
-    while (true) {
-      const compressedImage = await imageModel.findOne({
-        device_id: device.device_id,
-        format: 'mp4',
-        timestamp: endTimestamp - timeStep,
-        duration: targetDuration,
-      });
-
-      const images = await imageModel
-        .find({
-          device_id: device.device_id,
-          format: 'jpeg',
-          timestamp: {
-            $lt: endTimestamp,
-            $gte: endTimestamp - timeStep,
-          },
-        })
-        .sort({ timestamp: 1 })
-        .select({ image_id: 1, timestamp: 1 });
-
-      if (images && (!compressedImage || compressedImage.timestampEnd < images[images.length - 1]?.timestamp)) {
-        const video = await this.extractRtspImages(device, images, minFrameIntervalMs);
-
-        if (video) {
-          if (compressedImage) {
-            await imageModel.deleteOne({ image_id: compressedImage.image_id });
-          }
-
-          await imageModel.create({
-            image_id: uuidv4(),
-            device_id: device.device_id,
-            timestamp: endTimestamp - timeStep,
-            timestampEnd: images[images.length - 1]?.timestamp,
-            data: video,
-            format: 'mp4',
-            duration: targetDuration,
-          });
-          endTimestamp -= timeStep;
-        } else {
-          return;
-        }
-      } else {
-        return;
-      }
-    }
-  }
-
-  private async extractRtspImages(device: Device, images: Omit<Image, 'data'>[], minFrameIntervalMs: number): Promise<Buffer | undefined> {
-    const filesWritten = [];
-    const tmpDir = await mkdtemp(join(tmpdir(), device.device_id));
-    let lastImageTimestamp = 0;
-
-    try {
-      let sequenceNumber = 1;
-      for (const image of images) {
-        if (image.timestamp - lastImageTimestamp < minFrameIntervalMs) {
-          continue;
-        }
-
-        const imageData = await imageModel.findOne({
-          image_id: image.image_id,
-          format: 'jpeg',
-        });
-        if (imageData) {
-          // pad sequence number with leading zeros
-          const filename = `${tmpDir}/${sequenceNumber++}.jpeg`;
-          filesWritten.push(filename);
-          await writeFile(filename, imageData.data);
-          lastImageTimestamp = image.timestamp;
-        }
-      }
-
-      if (filesWritten.length > 0) {
-        return await this.compressRtspStream(tmpDir);
-      }
-    } catch (e) {
-      console.log('Error compressing RTSP images for device ' + device.device_id + ':', e);
-
-      for (const file of filesWritten) {
-        try {
-          await unlink(file);
-        } catch (e) {
-          console.log('Error deleting temp file ' + file + ':', e);
-        }
-      }
-      try {
-        await unlink(tmpDir);
-      } catch (e) {
-        console.log('Error deleting temp dir ' + tmpDir + ':', e);
-      }
-    }
-
-    return undefined;
-  }
-
-  private getRtspStreamImage(rtspUrl: string, deviceId: string): Promise<Buffer> {
-    return new Promise((resolve, reject) => {
-      execFile(
-        'ffmpeg',
-        ['-loglevel', 'error', '-y', '-rtsp_transport', 'tcp', '-i', rtspUrl, '-q:v', '25', '-vframes', '1', '-f', 'mjpeg', '-'],
-        {
-          timeout: FFMPEG_TIMEOUT_MS,
-          maxBuffer: 5 * 1024 * 1024,
-          encoding: 'buffer',
-        },
-        (error, stdout, stderr) => {
-          if (error) {
-            void deviceService.logMessage(deviceId, {
-              title: `RTSP Stream Error`,
-              message: 'Failed to fetch image from RTSP stream: ' + stderr,
-              severity: 1,
-              raw: true,
-            });
-            reject(error);
-          } else {
-            resolve(stdout);
-          }
-        },
-      );
-    });
-  }
-
-  private compressRtspStream(filesDir: string): Promise<Buffer> {
-    return new Promise((resolve, reject) => {
-      execFile(
-        'ffmpeg',
-        [
-          '-loglevel',
-          'error',
-          '-y',
-          '-framerate',
-          '30',
-          '-f',
-          'image2',
-          '-i',
-          `${filesDir}/%d.jpeg`,
-          '-f',
-          'mp4',
-          '-vcodec',
-          'libx265',
-          '-crf',
-          '30',
-          `${filesDir}/result.mp4`,
-        ],
-        {
-          timeout: 15 * 60000,
-          maxBuffer: 50 * 1024 * 1024,
-          encoding: 'buffer',
-        },
-        (error, stdout, stderr) => {
-          if (error) {
-            console.log('Error compressing RTSP stream images:', stderr, error);
-            reject(error);
-          } else {
-            resolve(readFileSync(`${filesDir}/result.mp4`));
-          }
-
-          unlinkSync(`${filesDir}/result.mp4`);
-        },
-      );
-    });
   }
 
   private async statusMessage(device: Device, message: StatusMessage) {

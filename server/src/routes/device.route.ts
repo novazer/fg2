@@ -26,7 +26,6 @@ class DeviceRoute implements Routes {
   private initializeRoutes() {
     this.router.get(`${this.path}/all`, authAdminMiddleware, this.deviceController.getDevices);
     this.router.post(`${this.path}/create`, authAdminMiddleware, validationMiddleware(AddDeviceDto, 'body'), this.deviceController.create);
-    this.router.get(`${this.path}/:device_id/image`, authMiddleware, this.deviceController.getDeviceImage);
 
     this.router.post(`${this.path}/register`, validationMiddleware(RegisterDeviceDto, 'body'), this.deviceController.register);
 
