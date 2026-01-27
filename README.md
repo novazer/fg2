@@ -3,6 +3,7 @@
 See also:
 - [Running on Raspberry PI](RASPBERRY-PI.md)
 - [Upgrading an older firmware](UPGRADING-FIRMWARE.md)
+- [TriAC-FIX (en)](TriAC-FIX.en.md) or [TriAC-FIX (de)](TriAC-FIX.de.md)
 
 ## Getting started
 

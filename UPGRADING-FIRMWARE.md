@@ -6,7 +6,7 @@ guide you through upgrading your firmware to the latest version.
 ## Overview
 
 The old firmware still tries to contact the old server located at `plantalytix-app.com`. For this reason, it is 
-necessary to make sure, that this old domain points to a upgrade-server. The upgrade-server is automatically instructing 
+necessary to make sure, that this old domain points to an upgrade-server. The upgrade-server is automatically instructing 
 devices to download a newer firmware (with the "Change server" option), as soon as they connect.
 
 ### Details
