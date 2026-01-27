@@ -1,4 +1,4 @@
-import { NextFunction, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { RequestWithUser } from '@/interfaces/auth.interface';
 import { isUserDeviceMiddelware } from '@/middlewares/auth.middleware';
 import { imageService } from '@services/image.service';
@@ -40,44 +40,12 @@ class ImageController {
         );
 
         if (image) {
-          res.setHeader('Content-type', image.format === 'mp4' ? 'video/mp4' : 'image/jpeg');
-          res.setHeader('Cache-Control', 'max-age=3600');
-
-          if (req.query.width || req.query.height) {
-            const tmpFile = join(tmpdir(), req.params.device_id + '-' + Number(req.query.timestamp ?? Date.now()) + '-' + uuidv4() + '.jpeg');
-
-            im.resize(
-              {
-                srcData: arrayBufferToString(image.data),
-                dstPath: tmpFile,
-                width: Number(req.query.width ?? 0),
-                height: Number(req.query.height ?? 0),
-              },
-              async (err: any, buffer: any) => {
-                try {
-                  if (err) {
-                    console.log('Failed resizing image:', err);
-                    res.status(500).send(await readFile('assets/no-image_placeholder.png'));
-                  } else {
-                    console.log('Image resized successfully', typeof buffer, buffer.length, buffer);
-                    res.send(readFileSync(tmpFile));
-                  }
-                } finally {
-                  void unlink(tmpFile);
-                }
-              },
-            );
-          } else {
-            res.send(image.data);
-          }
+          this.sendImage(req, res, image.data, image.format);
         } else {
-          res.setHeader('Cache-Control', 'no-cache');
           if (req.query.format === 'mp4') {
-            res.setHeader('Content-type', 'video/mp4');
-            res.status(200).send(await readFile('assets/no-image_placeholder.mp4'));
+            this.sendImage(req, res, readFileSync('assets/no-image_placeholder.mp4'), 'video/mp4');
           } else {
-            res.setHeader('Content-type', 'image/png');
-            res.status(200).send(await readFile('assets/no-image_placeholder.png'));
+            this.sendImage(req, res, readFileSync('assets/no-image_placeholder.png'), 'image/png');
           }
         }
       } else {
@@ -87,6 +55,44 @@ class ImageController {
       next(error);
     }
   };
+
+  private sendImage(req: Request, res: Response, image: Buffer, contentType: string) {
+    if (contentType.startsWith('image/') && (req.query.width || req.query.height)) {
+      const tmpFile = join(tmpdir(), Date.now() + '-' + uuidv4() + '.jpeg');
+
+      im.resize(
+        {
+          srcData: arrayBufferToString(image),
+          dstPath: tmpFile,
+          width: Number(req.query.width ?? 0),
+          height: Number(req.query.height ?? 0),
+          format: 'jpeg',
+        },
+        async (err: any, buffer: any) => {
+          try {
+            if (err) {
+              console.log('Failed resizing image:', err);
+              res.status(500).send(await readFile('assets/no-image_placeholder.png'));
+            } else {
+              const resizedBuffer = await readFile(tmpFile);
+              res.setHeader('Content-type', 'image/jpeg');
+              res.setHeader('Cache-Control', 'max-age=3600');
+              res.send(resizedBuffer);
+            }
+          } catch (e) {
+            console.log('Failed reading resized image:', e);
+            res.status(500).send('Failed reading resized image');
+          } finally {
+            void unlink(tmpFile);
+          }
+        },
+      );
+    } else {
+      res.setHeader('Content-type', contentType);
+      res.setHeader('Cache-Control', 'max-age=3600');
+      res.send(image);
+    }
+  }
 }
 
 export default ImageController;
