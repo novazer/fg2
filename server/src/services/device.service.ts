@@ -13,15 +13,6 @@ import { ENABLE_SELF_REGISTRATION, SELF_REGISTRATION_PASSWORD, SMTP_SENDER } fro
 import { alarmService } from '@services/alarm.service';
 import { isNumeric } from 'influx/lib/src/grammar';
 import { mailTransport } from '@services/auth.service';
-import { execFile } from 'node:child_process';
-import imageModel from '@models/images.model';
-import pLimit from 'p-limit';
-import { tmpdir } from 'node:os';
-import { join } from 'path';
-import { mkdtemp, unlink, writeFile } from 'node:fs/promises';
-import { Image } from '@interfaces/images.interface';
-import { readFileSync } from 'fs';
-import { unlinkSync } from 'node:fs';
 
 export type StatusMessage = {
   sensors: {

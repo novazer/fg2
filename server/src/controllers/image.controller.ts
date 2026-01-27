@@ -1,8 +1,8 @@
 import { NextFunction, Response } from 'express';
 import { RequestWithUser } from '@/interfaces/auth.interface';
 import { isUserDeviceMiddelware } from '@/middlewares/auth.middleware';
-import { readFileSync } from 'fs';
-import { imageService } from '@services/image.service'; // new import
+import { imageService } from '@services/image.service';
+import { readFile } from 'node:fs/promises'; // new import
 
 class ImageController {
   public getDeviceImage = async (req: RequestWithUser, res: Response, next: NextFunction) => {
@@ -23,10 +23,10 @@ class ImageController {
           res.setHeader('Cache-Control', 'no-cache');
           if (req.query.format === 'mp4') {
             res.setHeader('Content-type', 'video/mp4');
-            res.status(200).send(readFileSync('assets/no-image_placeholder.mp4'));
+            res.status(200).send(await readFile('assets/no-image_placeholder.mp4'));
           } else {
             res.setHeader('Content-type', 'image/png');
-            res.status(200).send(readFileSync('assets/no-image_placeholder.png'));
+            res.status(200).send(await readFile('assets/no-image_placeholder.png'));
           }
         }
       } else {

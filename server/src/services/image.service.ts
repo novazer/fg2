@@ -18,10 +18,8 @@ import imageModel from '@models/images.model';
 import pLimit from 'p-limit';
 import { tmpdir } from 'node:os';
 import { join } from 'path';
-import { mkdtemp, unlink, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, unlink, writeFile } from 'node:fs/promises';
 import { Image } from '@interfaces/images.interface';
-import { readFileSync } from 'fs';
-import { unlinkSync } from 'node:fs';
 import { deviceService } from '@services/device.service';
 
 export type StatusMessage = {
@@ -91,7 +89,10 @@ class ImageService {
                     data: image,
                   }),
               )
-              .catch(e => console.log(`Error reading RTSP stream ${device.cloudSettings.rtspStream}:`, e.message))
+              .catch(e => {
+                console.log(`Error reading RTSP stream ${device.cloudSettings.rtspStream}:`, e.message);
+                return Promise.resolve();
+              })
               .finally(() => void this.deviceIdToLastRtspImageTimestamps.set(device.device_id, Date.now())),
           ),
         );
@@ -296,10 +297,14 @@ class ImageService {
             console.log('Error compressing RTSP stream images:', stderr, error);
             reject(error);
           } else {
-            resolve(readFileSync(`${filesDir}/result.mp4`));
+            readFile(`${filesDir}/result.mp4`)
+              .then(data => resolve(data))
+              .catch(err => {
+                console.log(`Error reading result file ${filesDir}/result.mp4:`, err);
+                reject(err);
+              })
+              .finally(() => unlink(`${filesDir}/result.mp4`).catch(() => Promise.resolve()));
           }
-
-          unlinkSync(`${filesDir}/result.mp4`);
         },
       );
     });
