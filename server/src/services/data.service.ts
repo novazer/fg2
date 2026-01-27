@@ -161,9 +161,14 @@ class DataService {
     return NaN;
   }
 
-  public async getDeviceImage(device_id: string, format: string, timestamp?: number): Promise<Image | undefined> {
+  public async getDeviceImage(device_id: string, format: string, timestamp?: number, duration?: string): Promise<Image | undefined> {
     return imageModel
-      .findOne({ device_id, format: { $eq: format as 'jpeg' | 'mp4' }, timestamp: { $lte: timestamp ? timestamp : Date.now() } })
+      .findOne({
+        device_id,
+        format: { $eq: format as 'jpeg' | 'mp4' },
+        timestamp: { $lte: timestamp ? timestamp : Date.now() },
+        duration: (duration as '1d' | '1w' | '1m') || undefined,
+      })
       .sort({ timestamp: -1 });
   }
 }

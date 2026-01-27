@@ -48,7 +48,7 @@
 
   <ion-row [hidden]="(!useCustom && !showOffsetControlForImage()) || (autoUpdate && showImage)">
     <ng-container>
-      <ion-col [hidden]="showOffsetControlForImage()">
+      <ion-col>
         <ion-item lines="none">
           <ion-label>{{'charts.timespan' | translate}}</ion-label>
           <ion-select
@@ -56,7 +56,7 @@
             (ionChange)="timespanChanged()"
             style="width: 4.7em"
           >
-            <ion-select-option *ngFor="let ts of timespans" [value]="ts">
+            <ion-select-option *ngFor="let ts of getAvailableTimespans()" [value]="ts">
               {{ts.name}}
             </ion-select-option>
           </ion-select>
@@ -163,7 +163,7 @@
       <img *ngIf="!isAnimatedImage()" [src]="deviceImageUrl ?? ''" fill="fill" alt="Device Image" style="width: 100%"/>
       <video *ngIf="isAnimatedImage()" [src]="deviceImageUrl ?? ''" autoplay muted loop style="width: 100%"></video>
       <br />
-      {{ currentImageTimestamp | date:'medium' }}
+      {{ currentImageTimestamp | date: (isAnimatedImage() ? 'mediumDate' : 'medium') }}
     </ion-col>
   </ion-row>
 

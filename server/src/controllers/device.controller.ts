@@ -24,7 +24,12 @@ class DeviceController {
   public getDeviceImage = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
       if (await isUserDeviceMiddelware(req, res, req.params.device_id)) {
-        const image = await dataService.getDeviceImage(req.params.device_id, String(req.query.format), Number(req.query.timestamp));
+        const image = await dataService.getDeviceImage(
+          req.params.device_id,
+          String(req.query.format),
+          Number(req.query.timestamp),
+          String(req.query.duration || ''),
+        );
 
         if (image) {
           res.setHeader('Content-type', image.format === 'mp4' ? 'video/mp4' : 'image/jpeg');

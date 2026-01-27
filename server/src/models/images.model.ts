@@ -28,10 +28,16 @@ const imagesSchema: Schema = new Schema({
     enum: ['jpeg', 'mp4'],
     required: true,
   },
+  duration: {
+    type: String,
+    enum: ['1d', '1w', '1m'],
+    required: false,
+  },
 });
 
-imagesSchema.index({ device_id: 1, format: 1, timestamp: -1 }, { unique: true });
+imagesSchema.index({ device_id: 1, format: 1, timestamp: -1, duration: 1 }, { unique: true });
 
 const imageModel = model<Image & Document>('Image', imagesSchema);
+void imageModel.createIndexes();
 
 export default imageModel;

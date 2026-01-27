@@ -39,10 +39,10 @@ export class ChartsPage implements OnInit, OnDestroy {
     { name: '1h', durationValue: 1, durationUnit: 'h', defaultInterval:'10s', highlight: true },
     { name: '6h', durationValue: 6, durationUnit: 'h', defaultInterval:'10s' },
     { name: '12h', durationValue: 12, durationUnit: 'h', defaultInterval:'10s' },
-    { name: '1d', durationValue: 24, durationUnit: 'h', defaultInterval:'20s', highlight: true },
+    { name: '1d', durationValue: 24, durationUnit: 'h', defaultInterval:'20s', highlight: true, imageIntervalMs: 86400000 },
     { name: '3d', durationValue: 3, durationUnit: 'd', defaultInterval:'1m', highlight: true },
-    { name: '1w', durationValue: 7, durationUnit: 'd', defaultInterval:'15m', highlight: true },
-    { name: '1m', durationValue: 30, durationUnit: 'd', defaultInterval:'1h', highlight: true },
+    { name: '1w', durationValue: 7, durationUnit: 'd', defaultInterval:'15m', highlight: true, imageIntervalMs: 7 * 86400000 },
+    { name: '1m', durationValue: 30, durationUnit: 'd', defaultInterval:'1h', highlight: true, imageIntervalMs: 30 * 86400000 },
     { name: '3m', durationValue: 90, durationUnit: 'd', defaultInterval:'4h' },
     { name: '6m', durationValue: 180, durationUnit: 'd', defaultInterval:'1d' },
     { name: '1y', durationValue: 1, durationUnit: 'y', defaultInterval:'1w' },
@@ -189,6 +189,11 @@ export class ChartsPage implements OnInit, OnDestroy {
     }
   }
 
+  public getAvailableTimespans() {
+    const showImageControls = this.showOffsetControlForImage();
+    return this.timespans.filter(ts => !showImageControls || ts.imageIntervalMs);
+  }
+
   private async loadData() {
 
     const from = String(-this.selectedTimespan.durationValue + this.offset * this.selectedTimespan.durationValue) + this.selectedTimespan.durationUnit;
@@ -265,6 +270,9 @@ export class ChartsPage implements OnInit, OnDestroy {
 
     this.currentImageTimestamp = series?.[0]?.data?.[(series?.[0]?.data?.length ?? 1) - 1]?.[0];
     void this.loadDeviceImage(this.currentImageTimestamp);
+    if (this.showOffsetControlForImage() && !this.selectedTimespan.imageIntervalMs) {
+      this.selectedTimespan = this.getAvailableTimespans()[0];
+    }
   }
 
   public hasEnabledMeasures() {
@@ -291,7 +299,7 @@ export class ChartsPage implements OnInit, OnDestroy {
       this.chartInstance?.zoomOut();
 
       if (this.isAnimatedImage()) {
-        this.currentImageTimestamp = Date.now() + this.offset * 86400000;
+        this.currentImageTimestamp = Date.now() + this.offset * (this.selectedTimespan?.imageIntervalMs ?? 0);
         void this.loadDeviceImage(this.currentImageTimestamp);
       }
     });
@@ -337,13 +345,15 @@ export class ChartsPage implements OnInit, OnDestroy {
     }
 
     let format: 'mp4' | 'jpeg';
+    let duration: string | undefined;
     if (this.isAnimatedImage()) {
       format = 'mp4';
+      duration = this.selectedTimespan.name;
     } else {
       format = 'jpeg';
     }
 
-    const url = await this.devices.getDeviceImageUrl(this.device_id, format, timestamp);
+    const url = await this.devices.getDeviceImageUrl(this.device_id, format, timestamp, duration);
 
     if (url && this.currentImageTimestamp === timestamp) {
       this.deviceImageUrl = url;

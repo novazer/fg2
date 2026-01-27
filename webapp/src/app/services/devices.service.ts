@@ -175,8 +175,8 @@ export class DeviceService {
     return await firstValueFrom( this.http.get<string>(environment.API_URL + '/device/logs/' + device_id) )
   }
 
-  public async getDeviceImageUrl(device_id: string, format: 'mp4' | 'jpeg', timestamp?: number): Promise<string | undefined> {
-    return `${environment.API_URL}/device/${device_id}/image?timestamp=${timestamp ?? (Math.ceil(Date.now()/5000)*5000)}&token=${await this.auth.getToken()}&format=${format}`;
+  public async getDeviceImageUrl(device_id: string, format: 'mp4' | 'jpeg', timestamp?: number, duration?: string): Promise<string | undefined> {
+    return `${environment.API_URL}/device/${device_id}/image?timestamp=${timestamp ?? (Math.ceil(Date.now()/5000)*5000)}&token=${await this.auth.getToken()}&format=${format}&duration=${duration ?? ''}`;
   }
 
   public async clearLogs(device_id:string) {

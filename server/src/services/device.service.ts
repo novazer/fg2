@@ -98,11 +98,8 @@ class DeviceService {
     for (const device_class of minimal_classes) {
       const class_data = await this.findClass(device_class.name);
       if (!class_data) {
-        console.log('Adding Device class ' + device_class.name);
-        this.createClass(device_class.name, device_class.description, device_class.concurrent, device_class.maxfails, '');
+        await this.createClass(device_class.name, device_class.description, device_class.concurrent, device_class.maxfails, '');
       } else {
-        console.log('FOUND CLASS ' + device_class.name);
-        console.log(class_data);
       }
     }
   }
@@ -111,7 +108,7 @@ class DeviceService {
     try {
       await mqttclient.connect();
 
-      mqttclient.subscribe('/devices/#');
+      void mqttclient.subscribe('/devices/#');
       mqttclient.messages.subscribe(async message => {
         const device_id = message.topic.split('/')[2];
         const topic = message.topic.split('/')[3];
@@ -156,7 +153,7 @@ class DeviceService {
       });
     } catch (exception) {
       console.log(exception);
-      this.connectMqtt();
+      void this.connectMqtt();
     }
   }
 
@@ -365,8 +362,6 @@ class DeviceService {
     try {
       const devices = await deviceModel.find({ 'cloudSettings.rtspStream': { $exists: true, $ne: '' } });
 
-      const startTimestamp = Math.ceil(Date.now() / MS_IN_A_DAY) * MS_IN_A_DAY;
-
       for (const device of devices) {
         const oldImages = await imageModel
           .find({
@@ -379,7 +374,9 @@ class DeviceService {
           await imageModel.deleteOne({ image_id: oldImage.image_id });
         }
 
-        await this.extractRtspStreamRange(device, startTimestamp, MS_IN_A_DAY);
+        await this.extractRtspStreamRange(device, MS_IN_A_DAY, RTSP_TIMELAPSE_FRAME_MS, '1d');
+        await this.extractRtspStreamRange(device, 7 * MS_IN_A_DAY, 7 * RTSP_TIMELAPSE_FRAME_MS, '1w');
+        await this.extractRtspStreamRange(device, 30 * MS_IN_A_DAY, 30 * RTSP_TIMELAPSE_FRAME_MS, '1m');
       }
     } finally {
       setTimeout(() => {
@@ -388,12 +385,20 @@ class DeviceService {
     }
   }
 
-  private async extractRtspStreamRange(device: Device, endTimestamp: number, timeStep: number): Promise<void> {
+  private async extractRtspStreamRange(
+    device: Device,
+    timeStep: number,
+    minFrameIntervalMs: number,
+    targetDuration: '1d' | '1w' | '1m',
+  ): Promise<void> {
+    let endTimestamp = Math.ceil(Date.now() / timeStep) * timeStep;
+
     while (true) {
       const compressedImage = await imageModel.findOne({
         device_id: device.device_id,
         format: 'mp4',
         timestamp: endTimestamp - timeStep,
+        duration: targetDuration,
       });
 
       const images = await imageModel
@@ -409,7 +414,7 @@ class DeviceService {
         .select({ image_id: 1, timestamp: 1 });
 
       if (images && (!compressedImage || compressedImage.timestampEnd < images[images.length - 1]?.timestamp)) {
-        const video = await this.extractRtspImages(device, images);
+        const video = await this.extractRtspImages(device, images, minFrameIntervalMs);
 
         if (video) {
           if (compressedImage) {
@@ -423,8 +428,9 @@ class DeviceService {
             timestampEnd: images[images.length - 1]?.timestamp,
             data: video,
             format: 'mp4',
+            duration: targetDuration,
           });
-          endTimestamp -= MS_IN_A_DAY;
+          endTimestamp -= timeStep;
         } else {
           return;
         }
@@ -434,7 +440,7 @@ class DeviceService {
     }
   }
 
-  private async extractRtspImages(device: Device, images: Omit<Image, 'data'>[]): Promise<Buffer | undefined> {
+  private async extractRtspImages(device: Device, images: Omit<Image, 'data'>[], minFrameIntervalMs: number): Promise<Buffer | undefined> {
     const filesWritten = [];
     const tmpDir = await mkdtemp(join(tmpdir(), device.device_id));
     let lastImageTimestamp = 0;
@@ -442,7 +448,7 @@ class DeviceService {
     try {
       let sequenceNumber = 1;
       for (const image of images) {
-        if (image.timestamp - lastImageTimestamp < RTSP_TIMELAPSE_FRAME_MS) {
+        if (image.timestamp - lastImageTimestamp < minFrameIntervalMs) {
           continue;
         }
 
@@ -465,7 +471,6 @@ class DeviceService {
     } catch (e) {
       console.log('Error compressing RTSP images for device ' + device.device_id + ':', e);
 
-      await new Promise(r => setTimeout(r, 300000));
       for (const file of filesWritten) {
         try {
           await unlink(file);
@@ -529,7 +534,7 @@ class DeviceService {
           '-vcodec',
           'libx265',
           '-crf',
-          '40',
+          '30',
           `${filesDir}/result.mp4`,
         ],
         {
