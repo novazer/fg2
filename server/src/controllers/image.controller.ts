@@ -40,7 +40,7 @@ class ImageController {
         );
 
         if (image) {
-          this.sendImage(req, res, image.data, image.format);
+          this.sendImage(req, res, image.data, image.format === 'mp4' ? 'video/mp4' : 'image/jpeg');
         } else {
           if (req.query.format === 'mp4') {
             this.sendImage(req, res, readFileSync('assets/no-image_placeholder.mp4'), 'video/mp4');
