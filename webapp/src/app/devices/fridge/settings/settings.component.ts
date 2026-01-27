@@ -58,8 +58,11 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
       this.recipe = await this.devices.getRecipe(this.device_id);
       this.recipe?.steps?.forEach((step: any) => step.settings = JSON.parse(step.settings));
 
-      if (!this?.recipe.notifications) {
+      if (!this.recipe.notifications) {
         this.recipe.notifications = 'off';
+      }
+      if (this.recipe.additionalInfo === undefined) {
+        this.recipe.additionalInfo = true;
       }
 
       if (this.recipe.activeSince > 0) {

@@ -397,6 +397,18 @@ class DeviceController {
         step.notified = false;
       });
 
+      const oldRecipe = await deviceModel.findOne({ device_id }).select('recipe');
+      if (oldRecipe?.recipe?.activeStepIndex !== recipePayload?.activeStepIndex || oldRecipe?.recipe?.activeSince !== recipePayload?.activeSince) {
+        await deviceService.logMessage(device_id, {
+          title: `Recipe step ${recipePayload.activeStepIndex + 1} manually activated`,
+          message: `Recipe step ${recipePayload.activeStepIndex + 1} (${
+            recipePayload.steps?.[recipePayload.activeStepIndex]?.name ?? ''
+          }) has been manually activated by the user.`,
+          raw: true,
+          severity: 0,
+        });
+      }
+
       const updated = await deviceModel.findOneAndUpdate({ device_id }, { $set: { recipe: recipePayload } }, { new: true, useFindAndModify: false });
 
       if (!updated) {

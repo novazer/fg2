@@ -125,6 +125,7 @@ const deviceSchema: Schema = new Schema({
             confirmationMessage: { type: String, required: false },
             lastTimeApplied: { type: Number, required: false },
             notified: { type: Boolean, required: false },
+            additionalInfo: { type: Boolean, required: false },
           },
         ],
         required: true,

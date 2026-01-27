@@ -230,6 +230,17 @@ class DeviceService {
               activeStep.confirmationMessage || 'No additional information provided.'
             }`;
 
+            if (device.recipe.additionalInfo) {
+              await this.logMessage(device.device_id, {
+                title: `Recipe step #${device.recipe.activeStepIndex + 1} awaiting confirmation`,
+                message: `Recipe step #${device.recipe.activeStepIndex + 1} (${activeStep.name ?? ''}) is awaiting confirmation: ${
+                  activeStep.confirmationMessage || 'No additional information provided.'
+                }`,
+                raw: true,
+                severity: 0,
+              });
+            }
+
             activeStep.notified = true;
             hasChanges = true;
           }
@@ -247,6 +258,15 @@ class DeviceService {
               emailSubject = `[FG2] Recipe advanced to step #${device.recipe.activeStepIndex + 1} on device ${device.device_id}`;
               emailBody = `The recipe has advanced to step #${device.recipe.activeStepIndex + 1} ${activeStep.name}`;
             }
+
+            if (device.recipe.additionalInfo) {
+              await this.logMessage(device.device_id, {
+                title: `Recipe advanced to step #${device.recipe.activeStepIndex + 1}`,
+                message: `The recipe has advanced to step #${device.recipe.activeStepIndex + 1} (${activeStep.name ?? ''})`,
+                raw: true,
+                severity: 0,
+              });
+            }
           } else if (device.recipe.loop) {
             device.recipe.activeStepIndex = 0;
             device.recipe.activeSince = now;
@@ -260,6 +280,15 @@ class DeviceService {
               emailSubject = `[FG2] Recipe looped to step #1 on device ${device.device_id}`;
               emailBody = `The recipe has looped back to step #1 ${activeStep.name}.`;
             }
+
+            if (device.recipe.additionalInfo) {
+              await this.logMessage(device.device_id, {
+                title: `Recipe looped to step #1`,
+                message: `The recipe has looped back to step #1 (${activeStep.name ?? ''}).`,
+                raw: true,
+                severity: 0,
+              });
+            }
           } else {
             device.recipe.activeSince = 0;
             device.recipe.activeStepIndex = 0;
@@ -270,6 +299,15 @@ class DeviceService {
             if (device.recipe.notifications === 'onStep') {
               emailSubject = `[FG2] Recipe completed on device ${device.device_id}`;
               emailBody = `The recipe has completed all steps on device ${device.device_id}.`;
+            }
+
+            if (device.recipe.additionalInfo) {
+              await this.logMessage(device.device_id, {
+                title: `Recipe completed`,
+                message: `The recipe has completed all steps.`,
+                raw: true,
+                severity: 0,
+              });
             }
           }
 

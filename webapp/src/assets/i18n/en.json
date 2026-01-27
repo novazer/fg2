@@ -224,6 +224,7 @@
         "emailNotifications-none": "Off",
         "emailNotifications-onStep": "On every step change",
         "emailNotifications-onConfirmation": "Only on confirmations",
+        "additionalInfo": "Log messages on step changes",
         "emailAddress": "Email address"
       }
     },

@@ -54,6 +54,7 @@ export interface Recipe {
   activeSince: number;
   loop?: boolean;
   notifications?: 'off' | 'onStep' | 'onConfirmation';
+  additionalInfo?: boolean;
   email?: string;
 }
 

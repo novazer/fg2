@@ -217,6 +217,7 @@
         "emailNotifications-none": "Aus",
         "emailNotifications-onStep": "Bei jedem Schrittwechsel",
         "emailNotifications-onConfirmation": "Nur bei Bestätigungen",
+        "additionalInfo": "Log-Meldung bei Schrittwechsel",
         "emailAddress": "E-Mail Adresse"
       }
     },

@@ -74,6 +74,11 @@
         </ion-select>
       </ion-item>
 
+      <ion-item lines="none">
+        <ion-label>{{ 'devices.fridge.recipe.additionalInfo' | translate}}</ion-label>
+        <ion-checkbox slot="end" [(ngModel)]="recipe.additionalInfo"></ion-checkbox>
+      </ion-item>
+
       <ion-item lines="none" *ngIf="recipe.notifications !== 'off'">
         <ion-label>{{ 'devices.fridge.recipe.emailAddress' | translate}}</ion-label>
         <ion-input type="email" [(ngModel)]="recipe.email" class="ion-text-right"></ion-input>
