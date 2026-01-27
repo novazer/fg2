@@ -155,7 +155,7 @@
         <ion-button size="small" fill="clear" (click)="settings.co2.target = settings.co2.target + 100" [disabled]="settings.co2.target >= limits.co2.max"><ion-icon name="add-circle"></ion-icon></ion-button>
       </ion-item>
 
-      <ion-item *ngIf="cloudSettings?.betaFeatures">
+      <ion-item>
         <ion-label>{{ 'settings.co2SunsetOff' | translate }}</ion-label>
         <ion-checkbox [(ngModel)]="settings.co2.sunsetOff" (ionChange)="onSettingsChanged()">{{'settings.co2SunsetOff' | translate}}</ion-checkbox>
       </ion-item>
@@ -196,7 +196,7 @@
       </ion-item>
     </ng-container>
 
-    <ion-item *ngIf="cloudSettings?.betaFeatures">
+    <ion-item>
       <ion-label>{{ 'settings.lightsOnMaintenanceMode' | translate }}</ion-label>
       <ion-checkbox [(ngModel)]="settings.lights.maintenanceOn" (ionChange)="onSettingsChanged()">{{'settings.lightsOnMaintenanceMode' | translate}}</ion-checkbox>
     </ion-item>
