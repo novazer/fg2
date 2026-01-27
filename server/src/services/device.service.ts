@@ -686,6 +686,10 @@ class DeviceService {
       device.cloudSettings.logRtspStreamErrors = true;
     }
 
+    if (!device?.cloudSettings.rtspStreamTransport) {
+      device.cloudSettings.rtspStreamTransport = 'tcp';
+    }
+
     return device.cloudSettings;
   }
 

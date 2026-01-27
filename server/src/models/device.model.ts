@@ -106,6 +106,7 @@ const deviceSchema: Schema = new Schema({
       betaFeatures: { type: Boolean, required: false },
       rtspStream: { type: String, required: false },
       logRtspStreamErrors: { type: Boolean, required: false },
+      rtspStreamTransport: { type: String, required: false },
     },
     required: false,
   },

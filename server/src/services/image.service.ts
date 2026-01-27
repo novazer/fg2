@@ -78,7 +78,7 @@ class ImageService {
       if ((this.deviceIdToLastRtspImageTimestamps.get(device.device_id) ?? 0) <= Date.now() - IMAGE_LOAD_INTERVAL_MS) {
         promises.push(
           this.ffmpegLimit(() =>
-            this.readRtspStreamImage(device.cloudSettings.rtspStream, device.device_id)
+            this.readRtspStreamImage(device.cloudSettings, device.device_id)
               .then(
                 async image =>
                   void imageModel.create({
@@ -238,11 +238,25 @@ class ImageService {
     return undefined;
   }
 
-  private readRtspStreamImage(rtspUrl: string, deviceId: string): Promise<Buffer> {
+  private readRtspStreamImage(cloudSettings: CloudSettings, deviceId: string): Promise<Buffer> {
     return new Promise((resolve, reject) => {
       execFile(
         'ffmpeg',
-        ['-loglevel', 'error', '-y', '-rtsp_transport', 'tcp', '-i', rtspUrl, '-q:v', '25', '-vframes', '1', '-f', 'mjpeg', '-'],
+        [
+          '-loglevel',
+          'error',
+          '-y',
+          ...(cloudSettings.rtspStream.startsWith('rtsp://') ? ['-rtsp_transport', cloudSettings.rtspStreamTransport ?? 'tcp'] : []),
+          '-i',
+          cloudSettings.rtspStream,
+          '-q:v',
+          '20',
+          '-vframes',
+          '1',
+          '-f',
+          'mjpeg',
+          '-',
+        ],
         {
           timeout: FFMPEG_TIMEOUT_MS,
           maxBuffer: 5 * 1024 * 1024,
