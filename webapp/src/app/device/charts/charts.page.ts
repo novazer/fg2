@@ -299,7 +299,7 @@ export class ChartsPage implements OnInit, OnDestroy {
       this.chartInstance?.zoomOut();
 
       if (this.isAnimatedImage()) {
-        this.currentImageTimestamp = Date.now() + this.offset * (this.selectedTimespan?.imageIntervalMs ?? 0);
+        this.currentImageTimestamp = Math.ceil(Date.now() / 5000) * 5000 + this.offset * (this.selectedTimespan?.imageIntervalMs ?? 0);
         void this.loadDeviceImage(this.currentImageTimestamp);
       }
     });
