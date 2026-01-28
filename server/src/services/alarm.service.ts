@@ -241,6 +241,7 @@ class AlarmService {
           message,
           severity: 1,
           raw: true,
+          categories: ['alarm', 'alarm-error'],
         });
       }
     });
@@ -260,6 +261,7 @@ class AlarmService {
         (!alarm.isTriggered && this.hasThresholds(alarm) ? `, extreme value: ${alarm.extremeValue ?? 'n/a'}` : ''),
       severity: alarm.isTriggered ? 1 : 0,
       raw: true,
+      categories: ['alarm', 'alarm-' + (alarm.isTriggered ? 'triggered' : 'resolved')],
     });
   }
 

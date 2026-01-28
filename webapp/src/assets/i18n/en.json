@@ -144,7 +144,11 @@
     },
     "timespan": "Time span",
     "interval": "Interval",
-    "offset": "Offset"
+    "offset": "Offset",
+    "logsTitle": "Log messages",
+    "logsShowAll": "Show all",
+    "logsNoEntries": "No log messages for the selected timespan",
+    "logsNoFilteredEntries": "No log messages for the selected filters"
   },
   "diagnostics": {
     "serialnumber": "Device serial number",

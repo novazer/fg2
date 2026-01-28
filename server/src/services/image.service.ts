@@ -269,6 +269,7 @@ class ImageService {
               message: 'Failed to fetch image from RTSP stream: ' + stderr,
               severity: 1,
               raw: true,
+              categories: ['webcam', 'error'],
             });
             reject(error);
           } else {

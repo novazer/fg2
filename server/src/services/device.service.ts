@@ -111,7 +111,11 @@ class DeviceService {
               await this.fetchMessage(device, parsedMessage);
               break;
             case 'log':
-              await this.logMessage(device.device_id, JSON.parse(message.message));
+              const msg = JSON.parse(message.message);
+              await this.logMessage(device.device_id, {
+                categories: msg?.message?.startsWith('message-maintenance-mode-activated') ? ['maintenance', 'device'] : ['device'],
+                ...msg,
+              });
               break;
             case 'configuration':
               await this.settingsMessage(device, JSON.parse(message.message));
@@ -229,6 +233,7 @@ class DeviceService {
                 }`,
                 raw: true,
                 severity: 0,
+                categories: ['recipe'],
               });
             }
 
@@ -256,6 +261,7 @@ class DeviceService {
                 message: `The recipe has advanced to step #${device.recipe.activeStepIndex + 1} (${activeStep.name ?? ''})`,
                 raw: true,
                 severity: 0,
+                categories: ['recipe'],
               });
             }
           } else if (device.recipe.loop) {
@@ -278,6 +284,7 @@ class DeviceService {
                 message: `The recipe has looped back to step #1 (${activeStep.name ?? ''}).`,
                 raw: true,
                 severity: 0,
+                categories: ['recipe'],
               });
             }
           } else {
@@ -298,6 +305,7 @@ class DeviceService {
                 message: `The recipe has completed all steps.`,
                 raw: true,
                 severity: 0,
+                categories: ['recipe'],
               });
             }
           }
@@ -352,6 +360,7 @@ class DeviceService {
             await deviceService.logMessage(device.device_id, {
               message: `message-firmware-update-complete`,
               severity: 0,
+              categories: ['device', 'firmware'],
             });
           } else {
             await deviceModel.findByIdAndUpdate(device._id, { current_firmware: payload.firmware_id });
@@ -365,12 +374,11 @@ class DeviceService {
     }
   }
 
-  public async logMessage(deviceId: string, msg: { message: string; title?: string; severity: 0 | 1 | 2; raw?: boolean }) {
+  public async logMessage(deviceId: string, msg: { message: string; title?: string; severity: 0 | 1 | 2; raw?: boolean; categories: string[] }) {
     //console.log("\nLOG\n", message)
-    const log_count = await deviceLogModel.where({ device_id: deviceId }).countDocuments();
-    if (log_count > 100) {
-      const last_logs: any = await deviceLogModel.find({ device_id: deviceId }).sort({ time: -1 }).skip(99).limit(1);
-      await deviceLogModel.deleteMany({ device_id: deviceId, time: { $lt: last_logs[0].time } });
+    const [messageKey, value] = msg.message.split(':');
+    if (messageKey?.startsWith('message-maintenance-mode-activated') && isNumeric(value)) {
+      await alarmService.maintenanceActivatedForDevice(deviceId, parseInt(value));
     }
 
     await deviceLogModel.create({
@@ -379,15 +387,11 @@ class DeviceService {
       title: msg.title || msg.message,
       severity: msg.severity,
       raw: msg.raw,
+      categories: msg.categories || [],
     });
-
-    const [messageKey, value] = msg.message.split(':');
-    if (messageKey?.startsWith('message-maintenance-mode-activated') && isNumeric(value)) {
-      await alarmService.maintenanceActivatedForDevice(deviceId, parseInt(value));
-    }
   }
 
-  public async getDeviceLogs(device_id: string, user_id: string, is_admin: boolean) {
+  public async getDeviceLogs(device_id: string, user_id: string, is_admin: boolean, timestampFrom: number, timestampTo: number, deleted: boolean) {
     let device;
     if (is_admin) {
       device = await deviceModel.findOne({ device_id: device_id }, { device_id: 1 });
@@ -395,8 +399,16 @@ class DeviceService {
       device = await deviceModel.findOne({ device_id: device_id, owner_id: user_id }, { device_id: 1 });
     }
     if (device) {
-      const logs = await deviceLogModel.find({ device_id: device_id }).sort({ time: 1 }).limit(100);
-      return logs;
+      const logs = await deviceLogModel
+        .find({
+          device_id: device_id,
+          time: { $gte: new Date(timestampFrom), $lt: new Date(timestampTo) },
+          ...(deleted ? {} : { deleted: { $ne: true } }),
+        })
+        .sort({ time: -1 })
+        .limit(1000);
+      logs.forEach(log => (log.categories = log.categories?.length > 0 ? log.categories : ['unknown']));
+      return logs.reverse();
     }
     return [];
   }
@@ -404,7 +416,7 @@ class DeviceService {
   public async deleteDeviceLogs(device_id: string, user_id: string) {
     const device = await deviceModel.findOne({ device_id: device_id, owner_id: user_id }, { device_id: 1 });
     if (device) {
-      await deviceLogModel.deleteMany({ device_id: device_id });
+      await deviceLogModel.updateMany({ device_id: device_id }, { $set: { deleted: true } });
     }
   }
 

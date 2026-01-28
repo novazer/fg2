@@ -141,7 +141,11 @@
     },
     "timespan": "Zeitraum",
     "interval": "Intervall",
-    "offset": "Offset"
+    "offset": "Offset",
+    "logsTitle": "Log-Meldungen",
+    "logsShowAll": "Alle anzeigen",
+    "logsNoEntries": "Keine Log-Meldungen für den gewählten Zeitraum",
+    "logsNoFilteredEntries": "Keine Log-Meldungen für die gewählten Filter"
   },
 
   "devices": {

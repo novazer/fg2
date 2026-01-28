@@ -316,7 +316,14 @@ class DeviceController {
   public getDeviceLogs = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
       if (await isUserDeviceMiddelware(req, res, req.params.device_id)) {
-        const logs = await deviceService.getDeviceLogs(req.params.device_id, req.user_id, req.is_admin);
+        const logs = await deviceService.getDeviceLogs(
+          req.params.device_id,
+          req.user_id,
+          req.is_admin,
+          Number(req.query.from ?? 0),
+          Number(req.query.to ?? Date.now()),
+          Boolean(req.query.deleted ?? false),
+        );
         res.status(200).json(logs);
       }
     } catch (error) {
@@ -406,6 +413,7 @@ class DeviceController {
           }) has been manually activated by the user.`,
           raw: true,
           severity: 0,
+          categories: ['recipe'],
         });
       }
 

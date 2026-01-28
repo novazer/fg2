@@ -120,4 +120,6 @@ export interface DeviceLog {
   raw?: boolean;
   severity: number;
   time: Date;
+  categories: [string];
+  deleted?: boolean;
 }

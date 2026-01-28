@@ -34,6 +34,15 @@
         <img class="icon-off" src="assets/icon/camera_off.svg" style="opacity: 0.3" />
       </ion-col>
       <ion-col
+        class="onoff showLogs"
+        style="cursor: pointer;"
+        [class.on]="showLogs"
+        (click)="toggleShowLogs()"
+        title="Show logs">
+        <img class="icon-on" src="assets/icon/logs.svg" />
+        <img class="icon-off" src="assets/icon/logs_off.svg" style="opacity: 0.3" />
+      </ion-col>
+      <ion-col
         class="onoff autoUpdate"
         style="cursor: pointer;"
         [class.on]="autoUpdate"
@@ -46,7 +55,7 @@
     </ng-container>
   </ion-row>
 
-  <ion-row [hidden]="(!useCustom && !showOffsetControlForImage()) || (autoUpdate && showImage && !hasEnabledMeasures())">
+  <ion-row [hidden]="(!useCustom && !showLightOffsetControls()) || (autoUpdate && (showImage || showLogs) && !hasEnabledMeasures())">
     <ng-container>
       <ion-col>
         <ion-item lines="none">
@@ -63,7 +72,7 @@
         </ion-item>
       </ion-col>
 
-      <ion-col [hidden]="showOffsetControlForImage()">
+      <ion-col [hidden]="showLightOffsetControls()">
         <ion-item lines="none">
           <ion-label>{{'charts.interval' | translate}}</ion-label>
           <ion-select
@@ -93,7 +102,7 @@
         </ion-item>
       </ion-col>
 
-      <ion-col [hidden]="offset >= 0 && !offsetFocused && !showOffsetControlForImage()">
+      <ion-col [hidden]="offset >= 0 && !offsetFocused && !showLightOffsetControls()">
         <ion-item lines="none">
           <ion-label>{{'charts.offset' | translate}}</ion-label>
           <ion-input
@@ -150,7 +159,7 @@
   <div #spacer style="padding: 5px, width: 100%"></div>
 
   <ion-row>
-    <ion-col [style.width]="showImage ? '50%' : ''" [hidden]="!hasEnabledMeasures()">
+    <ion-col [style.width]="(showImage || showLogs) ? '50%' : ''" [hidden]="!hasEnabledMeasures()">
       <highcharts-chart
       *ngIf="loaded"
       [Highcharts]="Highcharts"
@@ -159,11 +168,78 @@
       [(update)]="updateFlag"
       (chartInstance)="onChartInstance($event)"></highcharts-chart>
     </ion-col>
-    <ion-col *ngIf="showImage">
-      <img *ngIf="!isAnimatedImage()" [src]="deviceImageUrl ?? ''" fill="fill" alt="Device Image" style="width: 100%"/>
-      <video *ngIf="isAnimatedImage()" [src]="deviceImageUrl ?? ''" autoplay muted loop style="width: 100%"></video>
-      <br />
-      {{ currentImageTimestamp | date: (isAnimatedImage() ? 'mediumDate' : 'medium') }}
+    <ion-col *ngIf="showImage || showLogs" [style.width]="hasEnabledMeasures() ? '50%' : '100%'">
+      <div *ngIf="showImage">
+        <img *ngIf="!isAnimatedImage()" [src]="deviceImageUrl ?? ''" fill="fill" alt="Device Image" style="width: 100%"/>
+        <video *ngIf="isAnimatedImage()" [src]="deviceImageUrl ?? ''" autoplay muted loop style="width: 100%"></video>
+        <br />
+        {{ currentImageTimestamp | date: (isAnimatedImage() ? 'mediumDate' : 'medium') }}
+      </div>
+      <div *ngIf="showLogs">
+        <ion-list>
+          <ion-item>
+            <ion-label>
+              <ion-row>
+                <ion-col>
+                  <h1>{{'charts.logsTitle' | translate}}</h1>
+                </ion-col>
+                <ion-col class="ion-text-right" [hidden]="(this.deviceLogCategories.size <= 0 && !this.selectedLogCategory) || this.selectedLog">
+                  <ion-select
+                    [(ngModel)]="selectedLogCategory"
+                    (ionChange)="logCategoryChanged()"
+                  >
+                    <ion-select-option value="all">all</ion-select-option>
+                    <ion-select-option *ngFor="let category of deviceLogCategories" [value]="category">{{ category }}</ion-select-option>
+                  </ion-select>
+                </ion-col>
+              </ion-row>
+            </ion-label>
+          </ion-item>
+          <ion-item lines="full" *ngIf="getFilteredLogs().length === 0">
+            <ion-label>
+              {{ (this.selectedLogCategory !== 'all' ? 'charts.logsNoFilteredEntries' : 'charts.logsNoEntries') | translate }}
+            </ion-label>
+          </ion-item>
+          <ion-item *ngFor="let log of getFilteredLogs()" lines="full">
+            <ion-label style="white-space: normal">
+<!--              <ion-item slot="header" [color]="log.severity == 1 ? 'warning' : log.severity == 2 ? 'danger' : 'light'">-->
+<!--              </ion-item>-->
+              <ion-row>
+                <ion-col>
+                  <h3 [style.color]="log.severity == 1 ? 'orange' : log.severity == 2 ? 'crimson' : 'dodgerblue'">
+                    {{ log.raw
+                    ? log.title
+                    : (log.title + '-title' | translate) !== log.title + '-title'
+                      ? (log.title + '-title' | translate)
+                      : (log.title?.split(':')?.[0] + '-title' | translate: {value: log.title?.split(':')?.[1]})
+                    }}
+                  </h3>
+                </ion-col>
+                <ion-col class="ion-text-right">
+                  {{ log.time | date: 'medium' }}
+                </ion-col>
+              </ion-row>
+              <ion-row>
+                <ion-col>
+                  {{ log.raw
+                  ? log.message
+                  : (log.message + '-text' | translate) !== log.message + '-text'
+                    ? (log.message + '-text' | translate)
+                    : (log.message?.split(':')?.[0] + '-text' | translate: {value: log.message?.split(':')?.[1]})
+                  }}
+                </ion-col>
+              </ion-row>
+            </ion-label>
+          </ion-item>
+          <ion-item lines="full" *ngIf="(this.selectedLogCategory && this.selectedLogCategory !== 'all') || this.selectedLog" >
+            <ion-row>
+              <ion-col>
+                <ion-button expand="block" color="primary" (click)="selectedLog = undefined; selectedLogCategory = 'all'">{{'charts.logsShowAll' | translate}}</ion-button>
+              </ion-col>
+            </ion-row>
+          </ion-item>
+        </ion-list>
+      </div>
     </ion-col>
   </ion-row>
 

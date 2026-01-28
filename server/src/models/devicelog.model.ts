@@ -30,8 +30,18 @@ const deviceLogSchema: Schema = new Schema({
       return Date.now();
     },
   },
+  categories: {
+    type: [String],
+    required: false,
+  },
+  deleted: {
+    type: Boolean,
+    required: false,
+  },
 });
+deviceLogSchema.index({ device_id: 1, time: -1 });
 
 const deviceLogModel = model<DeviceLog & Document>('DeviceLog', deviceLogSchema);
+void deviceLogModel.createIndexes();
 
 export default deviceLogModel;
