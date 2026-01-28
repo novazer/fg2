@@ -25,11 +25,13 @@
                 <ion-item slot="header" [color]="message.severity == 1 ? 'warning' : message.severity == 2 ? 'danger' : 'light'">
                   <ion-label>
                     <span class="timestamp">{{message.time}}</span>
+                    {{ message.count > 1 ? '(' + message.count + 'x)' : '' }}
+
                     {{message.raw
                         ? message.title
                         : (message.title + '-title' | translate) !== message.title + '-title'
                             ? (message.title + '-title' | translate)
-                            : (message.title.split(':')[0] + '-title' | translate: {value: message.title.split(':')[1]})
+                            : (message.title?.split(':')?.[0] + '-title' | translate: {value: message.title?.split(':')?.[1]})
 
                     }}
                   </ion-label>
@@ -39,9 +41,11 @@
                   ? message.message
                   : (message.message + '-text' | translate) !== message.message + '-text'
                     ? (message.message + '-text' | translate)
-                    : (message.message.split(':')[0] + '-text' | translate: {value: message.message.split(':')[1]})
+                    : (message.message?.split(':')?.[0] + '-text' | translate: {value: message.message?.split(':')?.[1]})
 
                   }}
+
+                  <p [hidden]="message.count <= 1">{{ '(Message appeared ' + message.count + ' times consecutively)' }}</p>
                 </div>
               </ion-accordion>
             </ng-container>

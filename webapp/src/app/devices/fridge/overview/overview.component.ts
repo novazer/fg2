@@ -3,7 +3,7 @@ import {ActivatedRoute} from '@angular/router';
 import {AlertController, IonModal, ToastController} from '@ionic/angular';
 import {combineLatest} from 'rxjs';
 import {DataService} from 'src/app/services/data.service';
-import {DeviceService} from 'src/app/services/devices.service';
+import {DeviceLog, DeviceService} from 'src/app/services/devices.service';
 import TimeAgo from 'javascript-time-ago'
 
 // English.
@@ -29,7 +29,7 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
   @ViewChild("nameedit", { read: ElementRef }) private nameInput: ElementRef | undefined;
   @ViewChild(IonModal) modal!: IonModal;
 
-  public logs:any;
+  public logs: (DeviceLog & { count: number })[] = [];
   public t_l:number = NaN;
   public t_h:number = NaN;
   public r_l:number = NaN;
@@ -113,12 +113,12 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
     void this.loadDeviceImage();
 
     // Load logs
-    this.logs = await this.devices.getLogs(this.device_id);
+    this.logs = await this.loadLogs();
     for(let log of this.logs) {
       log.time = timeAgo.format(new Date(log.time))
     }
     this.refreshLogsTimer = setInterval(async() => {
-      this.logs = await this.devices.getLogs(this.device_id);
+      this.logs = await this.loadLogs();
       for(let log of this.logs) {
         log.time = timeAgo.format(new Date(log.time))
       }
@@ -156,6 +156,28 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
         this.tick = Date.now(); // trigger change detection / getter recalculation
       }
     }, 1000);
+  }
+
+  async loadLogs(): Promise<(DeviceLog & { count: number })[]> {
+    const newLogs = await this.devices.getLogs(this.device_id);
+
+    const result = [];
+    let count = 0;
+    for (let i = 0; i < newLogs.length - 1; i++) {
+      const curLog = newLogs[i];
+      const nextLog = newLogs[i + 1];
+      if (curLog.message !== nextLog.message || curLog.severity !== nextLog.severity || curLog.title !== nextLog.title || curLog.raw !== nextLog.raw) {
+        result.push({
+          ...curLog,
+          count,
+        });
+        count = 1;
+      } else {
+        count++;
+      }
+    }
+
+    return result;
   }
 
   ngOnDestroy() {
