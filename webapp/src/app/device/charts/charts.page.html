@@ -34,6 +34,7 @@
         <img class="icon-off" src="assets/icon/camera_off.svg" style="opacity: 0.3" />
       </ion-col>
       <ion-col
+        [hidden]="!cloudSettings?.betaFeatures"
         class="onoff showLogs"
         style="cursor: pointer;"
         [class.on]="showLogs"
