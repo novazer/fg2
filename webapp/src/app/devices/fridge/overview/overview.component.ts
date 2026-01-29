@@ -163,10 +163,10 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
 
     const result = [];
     let count = 0;
-    for (let i = 0; i < newLogs.length - 1; i++) {
+    for (let i = 0; i < newLogs.length; i++) {
       const curLog = newLogs[i];
-      const nextLog = newLogs[i + 1];
-      if (curLog.message !== nextLog.message || curLog.severity !== nextLog.severity || curLog.title !== nextLog.title || curLog.raw !== nextLog.raw) {
+      const nextLog = i < newLogs.length - 1 ? newLogs[i + 1] : undefined;
+      if (curLog.message !== nextLog?.message || curLog.severity !== nextLog?.severity || curLog.title !== nextLog?.title || curLog.raw !== nextLog?.raw) {
         result.push({
           ...curLog,
           count,
