@@ -39,7 +39,7 @@ const deviceLogSchema: Schema = new Schema({
     required: false,
   },
 });
-deviceLogSchema.index({ device_id: 1, time: -1 });
+deviceLogSchema.index({ device_id: 1, time: -1, deleted: -1 });
 
 const deviceLogModel = model<DeviceLog & Document>('DeviceLog', deviceLogSchema);
 void deviceLogModel.createIndexes();
