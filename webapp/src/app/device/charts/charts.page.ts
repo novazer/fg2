@@ -460,10 +460,10 @@ export class ChartsPage implements OnInit, OnDestroy {
     );
   }
 
-  getFilteredLogs(): DeviceLog[] {
+  getFilteredLogs(ignoreSelection?: boolean): DeviceLog[] {
     return this.deviceLogs.filter(log => {
 
-      const anyLogSelected = this.selectedLogs.length > 0;
+      const anyLogSelected = ignoreSelection ? false : this.selectedLogs.length > 0;
       const anyCategorySelected = this.selectedLogCategory && this.selectedLogCategory !== 'all'
       const thisLogSelected = anyLogSelected && this.selectedLogs.find(selectedLog => selectedLog._id === log._id);
       const thisCategorySelected = anyCategorySelected && log.categories?.includes(this.selectedLogCategory);

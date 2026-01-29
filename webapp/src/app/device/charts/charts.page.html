@@ -184,7 +184,7 @@
                 <ion-col>
                   <h1>{{'charts.logsTitle' | translate}} ({{ getFilteredLogs().length }})</h1>
                 </ion-col>
-                <ion-col class="ion-text-right" [hidden]="this.deviceLogCategories.size <= 0 && !this.selectedLogCategory">
+                <ion-col class="ion-text-right" [hidden]="deviceLogCategories.size <= 0 && !selectedLogCategory">
                   <ion-select
                     [(ngModel)]="selectedLogCategory"
                     (ionChange)="logCategoryChanged()"
@@ -195,16 +195,16 @@
                   </ion-select>
                 </ion-col>
               </ion-row>
-              <ion-row *ngIf="this.selectedLogs.length > 0 && this.getFilteredLogs().length < this.selectedLogs.length">
+              <ion-row *ngIf="selectedLogs.length > 0 && getFilteredLogs(true).length > getFilteredLogs().length">
                 <ion-col>
-                  <ion-button expand="block" color="primary" (click)="this.selectedLogs.splice(0, this.selectedLogs.length)">{{'charts.logsShowAll' | translate}}</ion-button>
+                  <ion-button expand="block" color="primary" (click)="selectedLogs.splice(0, selectedLogs.length)">{{'charts.logsShowAll' | translate}}</ion-button>
                 </ion-col>
               </ion-row>
             </ion-label>
           </ion-item>
           <ion-item lines="full" *ngIf="getFilteredLogs().length === 0">
             <ion-label>
-              {{ (this.selectedLogCategory !== 'all' ? 'charts.logsNoFilteredEntries' : 'charts.logsNoEntries') | translate }}
+              {{ (selectedLogCategory !== 'all' ? 'charts.logsNoFilteredEntries' : 'charts.logsNoEntries') | translate }}
             </ion-label>
           </ion-item>
           <ion-item *ngFor="let log of getFilteredLogs()" lines="full">
