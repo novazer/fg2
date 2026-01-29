@@ -203,9 +203,9 @@ namespace fg {
             overflow = true;
             log("message-buffer-overflow", 1);
           }
-          else {
-            overflow = false;
-          }
+        }
+        else {
+          overflow = false;
         }
 
         auto epochTime = getTime();
