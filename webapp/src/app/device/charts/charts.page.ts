@@ -10,6 +10,7 @@ import { DataService } from 'src/app/services/data.service';
 import * as Highcharts from 'highcharts/highstock';
 import {DeviceLog, DeviceService} from 'src/app/services/devices.service';
 import {PlotLineOrBand, XAxisPlotLinesOptions} from "highcharts";
+import {YAxisOptions} from "highcharts/highstock";
 
 declare var require: any;
 let Boost = require('highcharts/modules/boost');
@@ -117,9 +118,7 @@ export class ChartsPage implements OnInit, OnDestroy {
 
   private interval?: NodeJS.Timeout;
 
-  public selectedLog: DeviceLog | undefined = undefined;
-
-  public zoomTimes: { from: number, to: number } | undefined = undefined;
+  public selectedLogs: DeviceLog[] = [];
 
   constructor(private route: ActivatedRoute, private data: DataService, private devices: DeviceService) {
     this.chartOptions = {
@@ -141,25 +140,27 @@ export class ChartsPage implements OnInit, OnDestroy {
           },
           singleTouch: false,
         },
-        events: {
-          redraw: (e: any) => {
-            const from = e?.target.xAxis?.[0]?.min;
-            const to = e?.target.xAxis?.[0]?.max;
-            this.zoomTimes = (from && to) ? { from, to } : undefined;
-          }
-        }
       },
       plotOptions: {
         series: {
           point: {
             events: {
               mouseOver: e => {
-                const timestamp = (e.target as any).x;
+                const target = e.target as any;
+                const timestamp = target.x;
                 this.currentImageTimestamp = timestamp;
 
                 setTimeout(() => {
                   void this.loadDeviceImage(timestamp);
                 }, IMAGE_LOAD_DELAY_MS);
+
+                if (target.series.initialType === 'column') {
+                  const category = target.category;
+                  const dataGroup = target.dataGroup;
+                  const timestamps = dataGroup ? [...target.series.xData].splice(dataGroup.start, dataGroup.length) : [category];
+                  this.selectedLogs.splice(0, this.selectedLogs.length);
+                  this.selectedLogs.push(...this.deviceLogs.filter(log => timestamps.includes(Date.parse(log.time))));
+                }
               },
             }
           }
@@ -195,7 +196,7 @@ export class ChartsPage implements OnInit, OnDestroy {
         this.interval = setInterval(() => {
           if (this.autoUpdate && !this.offsetFocused && this.offset >= 0) {
             this.currentImageTimestamp = undefined;
-            this.selectedLog = undefined;
+            this.selectedLogs.splice(0, this.selectedLogs.length);
             void this.loadDeviceImage();
             void this.loadData();
           }
@@ -289,49 +290,46 @@ export class ChartsPage implements OnInit, OnDestroy {
       };
     }));
 
-    this.chartOptions.series = series;
-
     this.deviceLogs = this.showLogs ? await this.devices.getLogs(this.device_id, fromMs, toMs, true) : [];
     this.deviceLogCategories.clear();
     this.deviceLogs.forEach(log =>
       log.categories?.forEach(category => this.deviceLogCategories.add(category))
     );
 
+    [2, 1, 0].forEach(severity => {
+      (this.chartOptions?.yAxis as YAxisOptions[] ?? []).push({
+        labels: {
+          format: severity == 2 ? '!!' : (severity == 1 ? '!' : ''),
+          style: {
+            color: severity == 2 ? 'crimson' : (severity == 1 ? 'orange' : 'dodgerblue'),
+            fontSize: '10px',
+          },
+        },
+        softMin: 0,
+        softMax: 1,
+        visible: false,
+      });
+    });
+
     let onHide: (() => void) | undefined;
-    this.chartOptions.xAxis = {
-      plotLines: this.deviceLogs
-        .filter(log => !this.selectedLogCategory || this.selectedLogCategory === 'all' || log.categories?.includes(this.selectedLogCategory))
-        .map(log => {
-          const result: XAxisPlotLinesOptions = {
-            value: Date.parse(log.time),
-            color: log.severity == 2 ? 'crimson' : (log.severity == 1 ? 'orange' : 'dodgerblue'),
-            width: 5,
-            id: `plotline-log-${log._id}`,
-            className: 'log-plotline',
-            events: {
-              mouseover: e => {
-                onHide?.();
-                const originalColor = result.color;
+    [0,1,2].forEach(severity => {
+      const logs = this.deviceLogs
+        .filter(log => log.severity === severity)
+        .filter(log => !this.selectedLogCategory || this.selectedLogCategory === 'all' || log.categories?.includes(this.selectedLogCategory));
 
-                this.selectedLog = log;
-                result.color = log.severity == 2 ? 'darkred' : (log.severity == 1 ? 'darkorange' : 'mediumblue');
-                (result.label ?? {}).text = log.title;
-                this.updateFlag = true;
-                onHide = () => {
-                  (result.label ?? {}).text = undefined;
-                  result.color = originalColor;
-                };
-              },
-            },
-            zIndex: 999999,
-            label: {
-              text: undefined,
-            },
-          };
-          return result;
-      })
-    };
+      series.push({
+        name: severity == 2 ? 'Critical logs' : (severity == 1 ? 'Warning logs' : 'Info logs'),
+        type: 'column',
+        data: logs.map(log => [Date.parse(log.time), 1]) as [[number, number]],
+        yAxis: (this.chartOptions?.yAxis as YAxisOptions[] ?? []).length - 1 - severity,
+        color: severity == 2 ? 'crimson' : (severity == 1 ? 'orange' : 'dodgerblue'),
+        visible: true,
+        grouping: true,
+        groupPadding: 0.15,
+      });
+    });
 
+    this.chartOptions.series = series;
     this.updateFlag = true;
     this.loaded = true;
 
@@ -366,7 +364,7 @@ export class ChartsPage implements OnInit, OnDestroy {
   }
 
   public offsetChanged() {
-    this.selectedLog = undefined;
+    this.selectedLogs.splice(0, this.selectedLogs.length);
     this.loadData().then(() => {
       this.chartInstance?.zoomOut();
 
@@ -384,7 +382,7 @@ export class ChartsPage implements OnInit, OnDestroy {
   public timespanChanged() {
     this.offset = 0;
     this.selectedInterval = this.selectedTimespan.defaultInterval;
-    this.selectedLog = undefined;
+    this.selectedLogs.splice(0, this.selectedLogs.length);
     this.loadData().then(() => this.chartInstance?.zoomOut());
   }
 
@@ -400,7 +398,7 @@ export class ChartsPage implements OnInit, OnDestroy {
     measure.enabled = !measure.enabled;
 
     if (!this.hasEnabledMeasures()) {
-      this.selectedLog = undefined;
+      this.selectedLogs.splice(0, this.selectedLogs.length);
     }
 
     this.loadData().then(() => {
@@ -448,7 +446,7 @@ export class ChartsPage implements OnInit, OnDestroy {
 
   toggleShowLogs() {
     this.showLogs = !this.showLogs;
-    this.selectedLog = undefined;
+    this.selectedLogs.splice(0, this.selectedLogs.length);
     void this.loadData().then(() =>
       this.redrawChart()
     );
@@ -456,28 +454,22 @@ export class ChartsPage implements OnInit, OnDestroy {
 
   getFilteredLogs(): DeviceLog[] {
     return this.deviceLogs.filter(log => {
-      if (this.zoomTimes) {
-        const logTime = Date.parse(log.time);
-        if (logTime >= (this.zoomTimes?.to ?? Date.now()) || logTime < (this.zoomTimes?.from ?? 0)) {
-          return false;
-        }
-      }
 
-      const logSelected = this.selectedLog?._id;
-      const categorySelected = this.selectedLogCategory && this.selectedLogCategory !== 'all'
-      const thisLogSelected = logSelected && log._id === this.selectedLog?._id;
-      const thisCategorySelected = categorySelected && log.categories?.includes(this.selectedLogCategory);
+      const anyLogSelected = this.selectedLogs.length > 0;
+      const anyCategorySelected = this.selectedLogCategory && this.selectedLogCategory !== 'all'
+      const thisLogSelected = anyLogSelected && this.selectedLogs.find(selectedLog => selectedLog._id === log._id);
+      const thisCategorySelected = anyCategorySelected && log.categories?.includes(this.selectedLogCategory);
 
       if (thisLogSelected) {
         return true;
       }
 
-      return !logSelected && (!categorySelected || thisCategorySelected);
+      return !anyLogSelected && (!anyCategorySelected || thisCategorySelected);
     });
   }
 
   logCategoryChanged() {
-    this.selectedLog = undefined;
+    this.selectedLogs.splice(0, this.selectedLogs.length);
     void this.loadData();
   }
 

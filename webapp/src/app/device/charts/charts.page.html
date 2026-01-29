@@ -178,13 +178,13 @@
       </div>
       <div *ngIf="showLogs">
         <ion-list>
-          <ion-item>
+          <ion-item lines="full">
             <ion-label>
               <ion-row>
                 <ion-col>
-                  <h1>{{'charts.logsTitle' | translate}}</h1>
+                  <h1>{{'charts.logsTitle' | translate}} ({{ getFilteredLogs().length }})</h1>
                 </ion-col>
-                <ion-col class="ion-text-right" [hidden]="(this.deviceLogCategories.size <= 0 && !this.selectedLogCategory) || this.selectedLog">
+                <ion-col class="ion-text-right" [hidden]="(this.deviceLogCategories.size <= 0 && !this.selectedLogCategory) || this.selectedLogs.length > 0">
                   <ion-select
                     [(ngModel)]="selectedLogCategory"
                     (ionChange)="logCategoryChanged()"
@@ -192,6 +192,11 @@
                     <ion-select-option value="all">all</ion-select-option>
                     <ion-select-option *ngFor="let category of deviceLogCategories" [value]="category">{{ category }}</ion-select-option>
                   </ion-select>
+                </ion-col>
+              </ion-row>
+              <ion-row *ngIf="getFilteredLogs().length < deviceLogs.length">
+                <ion-col>
+                  <ion-button expand="block" color="primary" (click)="this.selectedLogs.splice(0, this.selectedLogs.length); selectedLogCategory = 'all'">{{'charts.logsShowAll' | translate}}</ion-button>
                 </ion-col>
               </ion-row>
             </ion-label>
@@ -207,7 +212,7 @@
 <!--              </ion-item>-->
               <ion-row>
                 <ion-col>
-                  <h3 [style.color]="log.severity == 1 ? 'orange' : log.severity == 2 ? 'crimson' : 'dodgerblue'">
+                  <h3 [style.color]="log.severity === 1 ? 'orange' : log.severity === 2 ? 'crimson' : 'dodgerblue'">
                     {{ log.raw
                     ? log.title
                     : (log.title + '-title' | translate) !== log.title + '-title'
@@ -231,13 +236,6 @@
                 </ion-col>
               </ion-row>
             </ion-label>
-          </ion-item>
-          <ion-item lines="full" *ngIf="(this.selectedLogCategory && this.selectedLogCategory !== 'all') || this.selectedLog" >
-            <ion-row>
-              <ion-col>
-                <ion-button expand="block" color="primary" (click)="selectedLog = undefined; selectedLogCategory = 'all'">{{'charts.logsShowAll' | translate}}</ion-button>
-              </ion-col>
-            </ion-row>
           </ion-item>
         </ion-list>
       </div>
