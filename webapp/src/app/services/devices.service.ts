@@ -187,7 +187,7 @@ export class DeviceService {
   }
 
   public async getDeviceImageUrl(device_id: string, format: 'mp4' | 'jpeg', timestamp?: number, duration?: string): Promise<string | undefined> {
-    return `${environment.API_URL}/image/${device_id}?timestamp=${timestamp ?? (Math.ceil(Date.now()/5000)*5000)}&token=${await this.auth.getToken()}&format=${format}&duration=${duration ?? ''}`;
+    return `${environment.API_URL}/image/${device_id}?timestamp=${timestamp ?? (Math.ceil(Date.now()/5000)*5000)}&token=${await this.auth.getImageToken()}&format=${format}&duration=${duration ?? ''}`;
   }
 
   public async clearLogs(device_id:string) {

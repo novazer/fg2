@@ -35,12 +35,13 @@ class AuthController {
   public logIn = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const userData: LoginDto = req.body;
-      const { userToken, refreshToken, findUser } = await this.authService.login(userData);
+      const { userToken, refreshToken, imageToken, findUser } = await this.authService.login(userData);
 
       res.status(200).json({
         user: { username: findUser.username, user_id: findUser.user_id, is_admin: findUser.is_admin },
         userToken: userToken,
         refreshToken: refreshToken,
+        imageToken: imageToken,
       });
     } catch (error) {
       next(error);
@@ -67,12 +68,13 @@ class AuthController {
         const secretKey: string = SECRET_KEY;
         const verificationResponse = (await verify(token, secretKey)) as DataStoredInToken;
 
-        if (verificationResponse.user_id) {
-          const { userToken, refreshToken } = await this.authService.refresh(verificationResponse);
+        if (verificationResponse.user_id && verificationResponse.token_type === 'refresh') {
+          const { userToken, refreshToken, imageToken } = await this.authService.refresh(verificationResponse);
 
           res.status(200).json({
             userToken: userToken,
             refreshToken: refreshToken,
+            imageToken: imageToken,
           });
           return;
         }

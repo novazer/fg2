@@ -14,7 +14,7 @@ export const authMiddleware = async (req: RequestWithUser, res: Response, next: 
     if (Authorization) {
       const secretKey: string = SECRET_KEY;
       const verificationResponse = (await verify(Authorization, secretKey)) as DataStoredInToken;
-      if (verificationResponse.user_id) {
+      if (verificationResponse.user_id && verificationResponse.token_type === 'user') {
         req.user_id = verificationResponse.user_id;
         req.is_admin = verificationResponse.is_admin;
         next();
@@ -37,7 +37,7 @@ export const authAdminMiddleware = async (req: RequestWithUser, res: Response, n
       const secretKey: string = SECRET_KEY;
       const verificationResponse = (await verify(Authorization, secretKey)) as DataStoredInToken;
 
-      if (verificationResponse.is_admin) {
+      if (verificationResponse.is_admin && verificationResponse.token_type === 'user') {
         req.user_id = verificationResponse.user_id;
         req.is_admin = verificationResponse.is_admin;
         next();
@@ -53,7 +53,12 @@ export const authAdminMiddleware = async (req: RequestWithUser, res: Response, n
   }
 };
 
-export const isUserDeviceMiddelware = async (req: RequestWithUser, res: Response, device_id: string) => {
+export const isUserDeviceMiddelware = async (
+  req: RequestWithUser,
+  res: Response,
+  device_id: string,
+  tokenType: DataStoredInToken['token_type'] = 'user',
+) => {
   try {
     const Authorization =
       req.cookies['Authorization'] || (req.header('Authorization') ? req.header('Authorization').split('Bearer ')[1] : null) || req.query.token;
@@ -61,7 +66,7 @@ export const isUserDeviceMiddelware = async (req: RequestWithUser, res: Response
     if (Authorization) {
       const secretKey: string = SECRET_KEY;
       const verificationResponse = (await verify(Authorization, secretKey)) as DataStoredInToken;
-      if (verificationResponse.user_id) {
+      if (verificationResponse.user_id && verificationResponse.token_type === tokenType) {
         req.user_id = verificationResponse.user_id;
         req.is_admin = verificationResponse.is_admin;
         if (req.is_admin) {

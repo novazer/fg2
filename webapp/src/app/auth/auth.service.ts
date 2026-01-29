@@ -11,6 +11,7 @@ const EXPIRE_SAFETY_SECONDS = 10;
 interface LoginData {
   userToken: any,
   refreshToken: any,
+  imageToken: any,
   user: User
 }
 @Injectable({
@@ -69,6 +70,14 @@ export class AuthService implements OnDestroy {
     } catch (err) {}
 
     return localStorage.getItem('id_token');
+  }
+
+  public async getImageToken(): Promise<string | null> {
+    try {
+      await this.getToken();
+    } catch (err) {}
+
+    return localStorage.getItem('image_token');
   }
 
   private async refresh() {
@@ -136,6 +145,7 @@ export class AuthService implements OnDestroy {
   private setLogin(login: LoginData) {
     localStorage.setItem('id_token', login.userToken.token);
     localStorage.setItem('refresh_token', login.refreshToken.token);
+    localStorage.setItem('image_token', login.imageToken.token);
     localStorage.setItem("expires_at", DateTime.now().plus({seconds: login.userToken.expiresIn - EXPIRE_SAFETY_SECONDS}).toString());
     localStorage.setItem("refresh_expires_at", DateTime.now().plus({seconds: login.refreshToken.expiresIn - EXPIRE_SAFETY_SECONDS}).toString());
 

@@ -14,7 +14,7 @@ class ImageRoute implements Routes {
   }
 
   private initializeRoutes() {
-    this.router.get(`${this.path}/:device_id`, authMiddleware, this.imageController.getDeviceImage);
+    this.router.get(`${this.path}/:device_id`, this.imageController.getDeviceImage);
   }
 }
 

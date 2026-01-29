@@ -1,21 +1,21 @@
-import { hash, compare } from 'bcrypt';
+import { compare, hash } from 'bcrypt';
 import { sign } from 'jsonwebtoken';
 import {
-  SECRET_KEY,
-  AUTOMATION_TOKEN,
-  SMTP_SECURE,
-  REQUIRE_ACTIVATION,
   API_URL_EXTERNAL,
-  SMTP_SERVER,
-  SMTP_PORT,
-  SMTP_USER,
+  AUTOMATION_TOKEN,
+  REQUIRE_ACTIVATION,
+  SECRET_KEY,
   SMTP_PASSWORD,
+  SMTP_PORT,
+  SMTP_SECURE,
   SMTP_SENDER,
+  SMTP_SERVER,
+  SMTP_USER,
 } from '@config';
-import { LoginDto, SignupDto, ActivationDto } from '@dtos/users.dto';
+import { ActivationDto, LoginDto, SignupDto } from '@dtos/users.dto';
 import { HttpException } from '@exceptions/HttpException';
 import { DataStoredInToken, TokenData } from '@interfaces/auth.interface';
-import { User, PasswordToken } from '@interfaces/users.interface';
+import { PasswordToken, User } from '@interfaces/users.interface';
 import userModel from '@models/users.model';
 import passwordTokenModel from '@models/password_token.model';
 import { isEmpty } from '@utils/util';
@@ -99,7 +99,7 @@ class AuthService {
     return true;
   }
 
-  public async login(userData: LoginDto): Promise<{ userToken: TokenData; refreshToken: TokenData; findUser: User }> {
+  public async login(userData: LoginDto): Promise<{ userToken: TokenData; refreshToken: TokenData; imageToken: TokenData; findUser: User }> {
     if (isEmpty(userData)) throw new HttpException(400, 'Invalid request data.');
 
     const findUser: User = await userModel.findOne(
@@ -113,10 +113,10 @@ class AuthService {
 
     if (!findUser.is_active) throw new HttpException(409, 'User not activated');
 
-    const { userToken, refreshToken } = this.createTokensFromUser(findUser, userData.stayLoggedIn);
+    const { userToken, refreshToken, imageToken } = this.createTokensFromUser(findUser, userData.stayLoggedIn);
     // const cookie = this.createCookie(tokenData);
 
-    return { userToken, refreshToken, findUser };
+    return { userToken, refreshToken, findUser, imageToken };
   }
 
   public async changePassword(user_id: string, password: string): Promise<void> {
@@ -145,22 +145,28 @@ class AuthService {
     const dataStoredInToken: DataStoredInToken = {
       user_id: '',
       is_admin: true,
+      token_type: 'user',
+      secret: uuidv4(),
     };
 
     const token_expiration: number = 5 * 60;
 
     return {
-      userToken: { expiresIn: token_expiration, token: sign(dataStoredInToken, SECRET_KEY, { expiresIn: token_expiration }) },
+      userToken: {
+        expiresIn: token_expiration,
+        token: sign(dataStoredInToken, SECRET_KEY, { expiresIn: token_expiration }),
+        secret: dataStoredInToken.secret,
+      },
     };
   }
 
-  public async refresh(tokenData: DataStoredInToken): Promise<{ userToken: TokenData; refreshToken: TokenData }> {
-    const { userToken, refreshToken } = this.createTokens({
+  public async refresh(tokenData: DataStoredInToken): Promise<{ userToken: TokenData; refreshToken: TokenData; imageToken: TokenData }> {
+    const { userToken, refreshToken, imageToken } = this.createTokens({
       user_id: tokenData.user_id,
       is_admin: tokenData.is_admin,
       stay_logged_in: tokenData.stay_logged_in,
     });
-    return { userToken, refreshToken };
+    return { userToken, refreshToken, imageToken };
   }
 
   public async logout(userData: User): Promise<User> {
@@ -172,23 +178,40 @@ class AuthService {
     return findUser;
   }
 
-  public createTokensFromUser(user: User, stayLoggedIn: boolean): { userToken: TokenData; refreshToken: TokenData } {
-    const dataStoredInToken: DataStoredInToken = {
+  public createTokensFromUser(user: User, stayLoggedIn: boolean): { userToken: TokenData; refreshToken: TokenData; imageToken: TokenData } {
+    return this.createTokens({
       user_id: user.user_id,
       is_admin: user.is_admin,
       stay_logged_in: stayLoggedIn,
-    };
-
-    return this.createTokens(dataStoredInToken);
+    });
   }
 
-  public createTokens(dataStoredInToken: DataStoredInToken): { userToken: TokenData; refreshToken: TokenData } {
+  public createTokens(dataStoredInToken: Omit<DataStoredInToken, 'token_type' | 'secret'>): {
+    userToken: TokenData;
+    refreshToken: TokenData;
+    imageToken: TokenData;
+  } {
     const token_expiration: number = 5 * 60;
     const refresh_expiration: number = (dataStoredInToken.stay_logged_in ? 30 * 24 * 60 : 30) * 60;
+    const image_expiration: number = 30 * 24 * 60 * 60;
+    const secret = Math.random().toString(36).substring(2, 15);
 
     return {
-      userToken: { expiresIn: token_expiration, token: sign(dataStoredInToken, SECRET_KEY, { expiresIn: token_expiration }) },
-      refreshToken: { expiresIn: refresh_expiration, token: sign(dataStoredInToken, SECRET_KEY, { expiresIn: refresh_expiration }) },
+      userToken: {
+        expiresIn: token_expiration,
+        token: sign({ ...dataStoredInToken, secret, token_type: 'user' }, SECRET_KEY, { expiresIn: token_expiration }),
+        secret,
+      },
+      refreshToken: {
+        expiresIn: refresh_expiration,
+        token: sign({ ...dataStoredInToken, secret, token_type: 'refresh' }, SECRET_KEY, { expiresIn: refresh_expiration }),
+        secret,
+      },
+      imageToken: {
+        expiresIn: image_expiration,
+        token: sign({ ...dataStoredInToken, secret, token_type: 'image' }, SECRET_KEY, { expiresIn: image_expiration }),
+        secret,
+      },
     };
   }
 }

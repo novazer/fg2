@@ -31,7 +31,7 @@ function binaryToString(binary) {
 class ImageController {
   public getDeviceImage = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
-      if (await isUserDeviceMiddelware(req, res, req.params.device_id)) {
+      if (await isUserDeviceMiddelware(req, res, req.params.device_id, 'image')) {
         const image = await imageService.getDeviceImage(
           req.params.device_id,
           String(req.query.format),
