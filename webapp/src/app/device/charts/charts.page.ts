@@ -309,6 +309,11 @@ export class ChartsPage implements OnInit, OnDestroy {
         color: severity == 2 ? 'crimson' : (severity == 1 ? 'orange' : 'dodgerblue'),
         visible: true,
         grouping: true,
+        states: {
+          inactive: {
+            opacity: 0.6,
+          }
+        }
       });
 
       yAxis.push({
@@ -342,7 +347,7 @@ export class ChartsPage implements OnInit, OnDestroy {
 
     this.currentImageTimestamp = series?.[0]?.data?.[(series?.[0]?.data?.length ?? 1) - 1]?.[0];
     void this.loadDeviceImage(this.currentImageTimestamp);
-    if (this.showLightOffsetControls() && !this.selectedTimespan.imageIntervalMs) {
+    if (this.showLightOffsetControls() && this.showImage && !this.selectedTimespan.imageIntervalMs) {
       this.selectedTimespan = this.getAvailableTimespans()[0];
     }
   }
