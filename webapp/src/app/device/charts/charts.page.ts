@@ -113,6 +113,8 @@ export class ChartsPage implements OnInit, OnDestroy {
 
   public currentImageTimestamp: number | undefined = undefined;
 
+  private currentDataLoadStartTime: number = 0;
+
   @ViewChild(BaseChartDirective) chart?: BaseChartDirective;
   @ViewChild('spacer') spacer? : ElementRef;
 
@@ -217,6 +219,8 @@ export class ChartsPage implements OnInit, OnDestroy {
   }
 
   private async loadData() {
+    const thisDataLoadStartTime = this.currentDataLoadStartTime = Date.now();
+
     const toValue = this.offset * this.selectedTimespan.durationValue;
     const fromValue = -this.selectedTimespan.durationValue + toValue;
     const from = String(fromValue) + this.selectedTimespan.durationUnit;
@@ -239,13 +243,12 @@ export class ChartsPage implements OnInit, OnDestroy {
     }
 
     // @ts-ignore
-    this.chartOptions.chart.animation = !this.autoUpdate;
 
-    this.chartOptions.yAxis = [];
+    const yAxis: YAxisOptions[] = [];
     for(let axis = 0; axis < this.filtered_measures.length; axis++) {
       let measure = this.filtered_measures[axis]
 
-      this.chartOptions.yAxis.push({
+      yAxis.push({
         labels: {
           format: '{value}' + measure.unit,
           style: {
@@ -263,7 +266,7 @@ export class ChartsPage implements OnInit, OnDestroy {
       measure.axis = axis;
     }
 
-    let series = await Promise.all(this.filtered_measures.map(async (measure:any):Promise<Highcharts.SeriesOptionsType & { data: [[number, number]] }> => {
+    const series = await Promise.all(this.filtered_measures.map(async (measure:any):Promise<Highcharts.SeriesOptionsType & { data: [[number, number]] }> => {
       const requestedMeasure = measure.name + (measure.name === 'vpd' && this.vpdMode !== 'all' ? `_${this.vpdMode}` : '');
       let data = measure.enabled ? await this.data.getSeries(this.device_id, requestedMeasure, from, this.selectedInterval, to) : []
 
@@ -290,30 +293,11 @@ export class ChartsPage implements OnInit, OnDestroy {
       };
     }));
 
-    this.deviceLogs = this.showLogs ? await this.devices.getLogs(this.device_id, fromMs, toMs, true) : [];
-    this.deviceLogCategories.clear();
-    this.deviceLogs.forEach(log =>
-      log.categories?.forEach(category => this.deviceLogCategories.add(category))
-    );
+    const deviceLogs = this.showLogs ? await this.devices.getLogs(this.device_id, fromMs, toMs, true) : [];
 
-    [2, 1, 0].forEach(severity => {
-      (this.chartOptions?.yAxis as YAxisOptions[] ?? []).push({
-        labels: {
-          format: severity == 2 ? '!!' : (severity == 1 ? '!' : ''),
-          style: {
-            color: severity == 2 ? 'crimson' : (severity == 1 ? 'orange' : 'dodgerblue'),
-            fontSize: '10px',
-          },
-        },
-        softMin: 0,
-        softMax: 1,
-        visible: false,
-      });
-    });
 
-    let onHide: (() => void) | undefined;
-    [0,1,2].forEach(severity => {
-      const logs = this.deviceLogs
+    [0, 1, 2].forEach(severity => {
+      const logs = deviceLogs
         .filter(log => log.severity === severity)
         .filter(log => !this.selectedLogCategory || this.selectedLogCategory === 'all' || log.categories?.includes(this.selectedLogCategory));
 
@@ -321,14 +305,33 @@ export class ChartsPage implements OnInit, OnDestroy {
         name: severity == 2 ? 'Critical logs' : (severity == 1 ? 'Warning logs' : 'Info logs'),
         type: 'column',
         data: logs.map(log => [Date.parse(log.time), 1]) as [[number, number]],
-        yAxis: (this.chartOptions?.yAxis as YAxisOptions[] ?? []).length - 1 - severity,
+        yAxis: yAxis.length,
         color: severity == 2 ? 'crimson' : (severity == 1 ? 'orange' : 'dodgerblue'),
         visible: true,
         grouping: true,
-        groupPadding: 0.15,
+      });
+
+      yAxis.push({
+        min: 0,
+        softMax: 1,
+        visible: false,
+        zoomEnabled: false,
       });
     });
 
+    if (this.currentDataLoadStartTime !== thisDataLoadStartTime) {
+      return;
+    }
+
+    this.deviceLogs = deviceLogs;
+    this.deviceLogCategories.clear();
+    this.deviceLogs.forEach(log =>
+      log.categories?.forEach(category => this.deviceLogCategories.add(category))
+    );
+
+    // @ts-ignore
+    this.chartOptions.chart.animation = !this.autoUpdate;
+    this.chartOptions.yAxis = yAxis;
     this.chartOptions.series = series;
     this.updateFlag = true;
     this.loaded = true;

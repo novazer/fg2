@@ -188,6 +188,7 @@
                   <ion-select
                     [(ngModel)]="selectedLogCategory"
                     (ionChange)="logCategoryChanged()"
+                    [interfaceOptions]="{'cssClass': 'wider-popover'}"
                   >
                     <ion-select-option value="all">all</ion-select-option>
                     <ion-select-option *ngFor="let category of deviceLogCategories" [value]="category">{{ category }}</ion-select-option>
