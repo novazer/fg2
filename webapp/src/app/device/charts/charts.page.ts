@@ -461,7 +461,7 @@ export class ChartsPage implements OnInit, OnDestroy {
   }
 
   getFilteredLogs(ignoreSelection?: boolean): DeviceLog[] {
-    return this.deviceLogs.filter(log => {
+    let result = this.deviceLogs.filter(log => {
 
       const anyLogSelected = ignoreSelection ? false : this.selectedLogs.length > 0;
       const anyCategorySelected = this.selectedLogCategory && this.selectedLogCategory !== 'all'
@@ -474,6 +474,12 @@ export class ChartsPage implements OnInit, OnDestroy {
 
       return !anyLogSelected && (!anyCategorySelected || thisCategorySelected);
     });
+
+    if (this.autoUpdate) {
+      return result.reverse();
+    } else {
+      return result;
+    }
   }
 
   logCategoryChanged() {
