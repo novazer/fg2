@@ -301,7 +301,7 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
 
     for (let i = this.recipe.activeStepIndex; i <= (lastStepIndex ?? this.recipe.steps.length - 1); i++) {
       const step = this.recipe.steps[i];
-      remainingMs += this.getStepRemainingMs(step);
+      remainingMs += Math.max(this.getStepRemainingMs(step), 0);
     }
 
     return remainingMs;
@@ -318,10 +318,12 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
     } else if (this.recipe.loop) {
       this.recipe.activeStepIndex = 0;
     } else {
-      this.setRunning(false);
+      this.recipe.activeStepIndex = 0;
+      this.recipe.activeSince = 0;
+      this.stopTimer();
     }
 
-    void this.showSavingReminderToast();
+    this.onActiveStepChanged();
   }
 
   msToDuration(milliSeconds: number): string {
