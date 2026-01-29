@@ -2,11 +2,9 @@
 
 # Einbau des KS-Fix auf dem Mainboard
 
-Falls du das Problem hast das der Kühlschrank dauerhaft läuft und er keine Ein- und Ausschaltsignale mehr vom Modul 
-annimmt, dann ist der TriAC defekt.
-
-Erkennen kann man dies daran, dass das Modul im Portal anzeigt, dass der Kühlschrank ausgeschaltet wäre, obwohl er 
-tatsächlich eingeschaltet ist.
+Falls bei dir das Problem besteht, dass der Kühlschrank dauerhaft läuft, er keine Ein- und Ausschaltsignale vom Modul 
+annimmt, dann ist der Triac defekt. Erkennbar ist dies, wenn die Rückwand vereist ist und im "Graph Dashbord" die 
+Luftfeuchtigkeit über Stunden konstant bleibt und unter dem eingestellten Sollwert liegt.
 
 ## Overview
 
@@ -15,11 +13,10 @@ ausgelegt und wird über kurz oder lang defekt werden.
 
 ### Details
 
-Der KS-Fix Dateien kann man über den Hardwarebereich auf der Github Plantalytix Seite z.B. bei Aisler fertigen lassen. 
-Günstiger ist es aber, diese über die Community Admins in größerer Stückzahl fertigen zu lassen.
+Mittels der KS-Fix Dateien, die über den Hardwarebereich auf der Github Plantalytix Seite zu finden sind, ist eine 
+Fertigung z.B. bei Aisler möglich. Günstiger ist es aber über die Community in größerer Stückzahl fertigen zu lassen.
 
-Das Auslöten des defekten TirAC geht am Besten mit Heißluft. Das Einlöten des TriAC-Fix Boards dann mit einem normalen 
-Lötkolben. Es folgen zwei Bilder: 
+Das Auslöten den defekten TirAC funktioniert am besten mit Heißluft. Das Einlöten des TriAC-Fix-Boards mit einem normalen Lötkolben. Hier 2 Screenshots mit einer Vorher-Nachher Sicht:
 
 #### Vorher
 ![VORHER](docs/TriAC-FIX_before.jpeg)

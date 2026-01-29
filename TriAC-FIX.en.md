@@ -1,25 +1,24 @@
 ([find German version here](TriAC-FIX.de.md))
 
-# Installing the KS-Fix on the mainboard
+# Installing the KS-Fix on the Mainboard
 
-If you have the problem that the refrigerator runs continuously and no longer accepts switch-on and switch-off signals 
-from the module, then the TriAC is defective.
-
-This is best recognized by the portal displaying that the refrigerator is switched off, although it is actually 
-switched on.
+If your refrigerator is running continuously and not receiving on/off signals from the module, then the TriAC is 
+defective. This is noticeable if the back panel is iced up and the humidity reading on the dashboard remains constant 
+for hours and is below the set target value.
 
 ## Overview
 
-Unfortunately, there is a serial error in modules with serial numbers below 13115. In this error, a component is too 
-weak and will eventually become defective.
+Unfortunately, there is a known manufacturing defect in modules prior to serial number 13115. In this case, a component 
+is under-rated and will eventually fail.
 
 ### Details
 
-The KS-Fix files can be produced via the hardware section on the Github Plantalytix page, e.g., at Aisler. However, it 
-is cheaper to have them produced in larger quantities via the community admins.
+The KS-Fix files, which can be found in the hardware section of the Plantalytix GitHub page, can be used for 
+manufacturing, for example, at Aisler. However, it is more cost-effective to have them manufactured in larger quantities 
+through the community.
 
-The defective TirAC is best desoldered with hot air. The TriAC-Fix board can then be soldered in with a normal soldering 
-iron. Here are two pictures:
+Desoldering the defective TriAC works best with hot air. Soldering the TriAC-Fix board in place can be done with a 
+standard soldering iron. Here are two screenshots showing a before-and-after view:
 
 #### Before
 ![BEFORE](docs/TriAC-FIX_before.jpeg)
