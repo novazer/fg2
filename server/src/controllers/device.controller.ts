@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { Device } from '@interfaces/device.interface';
+import { Device, Recipe } from '@interfaces/device.interface';
 import { deviceService } from '@services/device.service';
 import { RequestWithUser } from '@/interfaces/auth.interface';
 import { AddDeviceClassDto, TestDeviceDto } from '@dtos/device.dto';
@@ -399,13 +399,18 @@ class DeviceController {
         return; // middleware already handled response if unauthorized
       }
 
-      recipePayload.steps?.forEach((step: any) => {
-        step.lastTimeApplied = 0;
-        step.notified = false;
-      });
+      const oldRecipe = (await deviceModel.findOne({ device_id }).select('recipe'))?.recipe ?? ({} as Recipe);
+      const activeStepChanged =
+        oldRecipe?.activeStepIndex !== recipePayload?.activeStepIndex || oldRecipe?.activeSince !== recipePayload?.activeSince;
 
-      const oldRecipe = await deviceModel.findOne({ device_id }).select('recipe');
-      if (oldRecipe?.recipe?.activeStepIndex !== recipePayload?.activeStepIndex || oldRecipe?.recipe?.activeSince !== recipePayload?.activeSince) {
+      for (let i = 0; i < (recipePayload.steps?.length || 0); i++) {
+        if (i !== recipePayload.activeStepIndex || activeStepChanged) {
+          recipePayload.steps[i].lastTimeApplied = 0;
+          recipePayload.steps[i].notified = false;
+        }
+      }
+
+      if (activeStepChanged) {
         await deviceService.logMessage(device_id, {
           title: `Recipe step ${recipePayload.activeStepIndex + 1} manually activated`,
           message: `Recipe step ${recipePayload.activeStepIndex + 1} (${
