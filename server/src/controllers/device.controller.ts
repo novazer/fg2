@@ -405,9 +405,9 @@ class DeviceController {
 
       for (let i = 0; i < (recipePayload.steps?.length || 0); i++) {
         if (i !== recipePayload.activeStepIndex || activeStepChanged) {
-          recipePayload.steps[i].lastTimeApplied = 0;
           recipePayload.steps[i].notified = false;
         }
+        recipePayload.steps[i].lastTimeApplied = 0;
       }
 
       if (activeStepChanged) {
