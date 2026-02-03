@@ -2,7 +2,7 @@ const process = require('node:process');
 const fs = require('node:fs');
 
 process.on('uncaughtException', (err, origin) => {
-  fs.writeSync(process.stderr.fd, `Caught exception: ${err}\n` + `Exception origin: ${origin}\n`);
+  fs.writeSync(process.stderr.fd, `Caught exception: ${err}\n` + `Exception origin: ${origin}\n${err.stack}\n`);
 });
 
 import App from '@/app';

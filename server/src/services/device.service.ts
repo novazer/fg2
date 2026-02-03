@@ -13,6 +13,7 @@ import { ENABLE_SELF_REGISTRATION, SELF_REGISTRATION_PASSWORD, SMTP_SENDER } fro
 import { alarmService } from '@services/alarm.service';
 import { isNumeric } from 'influx/lib/src/grammar';
 import { mailTransport } from '@services/auth.service';
+import { imageService } from '@services/image.service';
 
 export type StatusMessage = {
   sensors: {
@@ -120,6 +121,10 @@ class DeviceService {
             case 'configuration':
               await this.settingsMessage(device, JSON.parse(message.message));
               break;
+            case 'rtsp_read':
+              await imageService.onRtspReadDataReceived(device.device_id, message.message);
+              break;
+            case 'rtsp_write':
             case 'command':
             case 'firmware':
               break;

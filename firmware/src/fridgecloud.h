@@ -9,10 +9,12 @@
 #include "settings.h"
 #include "observeable.h"
 #include "ArduinoJson.h"
+#include <array>
 
 #define NVS_PART "nvs_ro"
 
 #define UUID_LEN 128
+#define TUNNEL_PAYLOAD_LEN 512
 
 namespace fg {
 
@@ -34,6 +36,8 @@ namespace fg {
     String topic_fwupdate;
     String topic_command;
     String topic_control;
+    String topic_rtsp_read;
+    String topic_rtsp_write;
 
 
     std::string device_id;
@@ -56,6 +60,15 @@ namespace fg {
 
     bool connected = false;
     unsigned int current_sample = 0;
+
+    static constexpr int TUNNEL_COUNT = 3;
+    struct Tunnel {
+      WiFiClient client;
+      std::string connectionId = "";
+      unsigned int sequence = 0;
+      TickType_t openedAt = 0;
+    };
+    std::array<Tunnel, TUNNEL_COUNT> tunnels;
 
   public:
     Fridgecloud(UserInterface& ui) : ui(ui) {}
@@ -87,6 +100,8 @@ namespace fg {
     void updateFirmware(std::string fw_id);
     void updateFirmwareFromUrl(std::string update_url);
     bool registerWithCloud(std::string url, std::string password);
+    void handleTunnelCloses();
+    void handleTunnelReads();
     inline bool directMode() { return custom_mqtt; }
   };
 

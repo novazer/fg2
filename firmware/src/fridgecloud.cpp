@@ -3,12 +3,15 @@
 #include <sstream>
 #include <EspMQTTClient.h>
 #include <HTTPClient.h>
+#include <WiFiClient.h>
 #include <esp_task_wdt.h>
 
 #include "fridgecloud.h"
 #include "observeable.h"
 #include "ArduinoJson.h"
 #include "time.h"
+
+#include "cppcodec/base64_rfc4648.hpp"
 
 #ifndef FIRMWARE_VERSION
   #warning Firmware version undefinded!
@@ -18,6 +21,7 @@
 
 
 namespace fg {
+  using base64 = cppcodec::base64_rfc4648;
 
   static unsigned long getTime() {
     time_t now;
@@ -61,6 +65,8 @@ namespace fg {
     topic_fwupdate = String() + "/devices/" + device_id.c_str() + "/fwupdate";
     topic_command = String() + "/devices/" + device_id.c_str() + "/command";
     topic_control = String() + "/devices/" + device_id.c_str() + "/control/#";
+    topic_rtsp_read = String() + "/devices/" + device_id.c_str() + "/rtsp_read";
+    topic_rtsp_write = String() + "/devices/" + device_id.c_str() + "/rtsp_write";
 
     Serial.print("api url:\t");
     Serial.println(api_url.c_str());
@@ -142,10 +148,96 @@ namespace fg {
       control_subject.next(std::pair<std::string, std::string>(output.c_str(), payload.c_str()));
     });
 
+    client->subscribe(topic_rtsp_write.c_str(), [&](const String & topic, const String & payload) {
+      DynamicJsonDocument doc(1024);
+      DeserializationError error = deserializeJson(doc, payload);
+      if (error) {
+        return;
+      }
+
+      std::string incomingId = doc["connection_id"].as<std::string>();
+
+      handleTunnelCloses();
+
+      // NEW: selection logic using tunnel array (no log statements here)
+      int useIndex = -1;
+
+      // 1) find a connected tunnel that matches the incoming id (reuse)
+      for (int i = 0; i < Fridgecloud::TUNNEL_COUNT; ++i) {
+        if (tunnels[i].client.connected() && tunnels[i].connectionId == incomingId) {
+          useIndex = i;
+          tunnels[i].openedAt = xTaskGetTickCount();
+          break;
+        }
+      }
+
+      // 1.5) Check if we have to disconnect anyways
+      if (doc["disconnected"]) {
+        if (useIndex == -1) {
+            return;
+        }
+
+        tunnels[useIndex].client.stop();
+        tunnels[useIndex].openedAt = 0;
+        return;
+      }
+
+      // 2) if none found, find a non-connected tunnel to use
+      if (useIndex == -1) {
+        for (int i = 0; i < Fridgecloud::TUNNEL_COUNT; ++i) {
+          if (!tunnels[i].client.connected()) {
+            useIndex = i;
+            tunnels[i].connectionId = incomingId;
+            tunnels[i].sequence = 0;
+            tunnels[i].openedAt = xTaskGetTickCount();
+            break;
+          }
+        }
+      }
+
+      // 3) if still none, find the oldest open tunnel, close it and reuse
+      if (useIndex == -1) {
+        int oldestIndex = 0;
+        unsigned long oldestTime = tunnels[0].openedAt;
+        for (int i = 1; i < Fridgecloud::TUNNEL_COUNT; ++i) {
+          if (tunnels[i].openedAt < oldestTime) {
+            oldestTime = tunnels[i].openedAt;
+            oldestIndex = i;
+          }
+        }
+        tunnels[oldestIndex].client.stop();
+        handleTunnelCloses();
+
+        useIndex = oldestIndex;
+        tunnels[useIndex].connectionId = incomingId;
+        tunnels[useIndex].sequence = 0;
+        tunnels[useIndex].openedAt = xTaskGetTickCount();
+      }
+
+      auto &tunnel = tunnels[useIndex];
+
+      if (!tunnel.client.connected()) {
+        // ensure host pointer is stable and port uses full 16-bit range
+        const char* host = doc["host"].as<const char*>();
+        uint16_t port = static_cast<uint16_t>(doc["port"].as<int>());
+        if (!tunnel.client.connect(host, port)) {
+          return;
+        }
+        tunnel.openedAt = xTaskGetTickCount();
+      }
+
+      if (tunnel.client.connected()) {
+        // decode into a vector and write all bytes at once
+        std::vector<uint8_t> decoded = base64::decode(doc["payload"].as<std::string>());
+        if (!decoded.empty()) {
+          tunnel.client.write(reinterpret_cast<const uint8_t*>(decoded.data()), decoded.size());
+        }
+      }
+    });
+
     client->publish(topic_fetch.c_str(), "hello");
 
     Serial.println("Connected to mqtt server");
-
   }
 
   void Fridgecloud::log(std::string message, unsigned int severity) {
@@ -171,6 +263,9 @@ namespace fg {
       }
     }
     if(connected) {
+      handleTunnelCloses();
+      handleTunnelReads();
+
       while(log_queue.size()) {
         StaticJsonDocument<1024> message_json;
         message_json["severity"] = log_queue.front().second;
@@ -418,6 +513,60 @@ namespace fg {
       }
     }
     return false;
+  }
+
+
+  void Fridgecloud::handleTunnelCloses() {
+      for (int i = 0; i < Fridgecloud::TUNNEL_COUNT; ++i) {
+        auto &t = tunnels[i];
+        if (!t.client.connected() && t.openedAt > 0) {
+          t.openedAt = 0;
+          StaticJsonDocument<1024> message_json;
+          message_json["connection_id"] = t.connectionId.c_str();
+          message_json["sequence"] = t.sequence++;
+          message_json["disconnected"] = true;
+
+          std::stringstream stream;
+          serializeJson(message_json, stream);
+
+          client->publish(topic_rtsp_read.c_str(), stream.str().c_str());
+        }
+      }
+  }
+
+  void Fridgecloud::handleTunnelReads() {
+    for (int i = 0; i < Fridgecloud::TUNNEL_COUNT; ++i) {
+        auto &t = tunnels[i];
+        if (t.client.connected()) {
+          char buffer[TUNNEL_PAYLOAD_LEN];
+          size_t len = 0;
+          while (t.client.available() && log_queue.size() <= (MAX_BUFFER_LEN * 3 / 4)) {
+            int c = t.client.read();
+            if (c < 0) break;
+            if (len < TUNNEL_PAYLOAD_LEN) buffer[len++] = static_cast<char>(c);
+
+            if (len >= TUNNEL_PAYLOAD_LEN || (!t.client.available() && len > 0)) {
+              std::string payloadEncoded = base64::encode(reinterpret_cast<const uint8_t*>(buffer), len);
+
+              StaticJsonDocument<1024> message_json;
+              message_json["connection_id"] = t.connectionId.c_str();
+              message_json["length"] = static_cast<int>(len);
+              message_json["sequence"] = t.sequence++;
+              message_json["payload"] = payloadEncoded.c_str();
+
+              std::stringstream stream;
+              serializeJson(message_json, stream);
+
+              if (!client->publish(topic_rtsp_read.c_str(), stream.str().c_str())) {
+                t.client.stop();
+                break;
+              }
+
+              len = 0;
+            }
+          }
+        }
+      }
   }
 }
 

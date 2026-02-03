@@ -46,7 +46,6 @@
         (ngModelChange)="cloudSettingsChange.emit(cloudSettings)"
         class="ion-text-right">
         <ion-select-option value="tcp">tcp</ion-select-option>
-        <ion-select-option value="udp">udp</ion-select-option>
         <ion-select-option value="http">http</ion-select-option>
         <ion-select-option value="https">https</ion-select-option>
       </ion-select>
@@ -55,6 +54,25 @@
           <ion-content>
             {{'settings.rtspStreamHint' | translate}}
             <a href="https://www.ffmpeg.org/ffmpeg-protocols.html" target="_blank">FFMPEG Documentation</a>
+          </ion-content>
+        </ng-template>
+      </ion-popover>
+    </ion-item>
+    <ion-item lines="none" *ngIf="cloudSettings?.rtspStream?.startsWith('rtsp://') && cloudSettings.betaFeatures">
+      <ion-label>
+        {{ 'settings.tunnelRtspStream' | translate}}
+        <ion-button fill="clear" id="cloudSettings-tunnelRtspStream-popover">
+          <ion-icon name="help-circle-outline"></ion-icon>
+        </ion-button>
+      </ion-label>
+      <ion-checkbox
+        [(ngModel)]="cloudSettings.tunnelRtspStream"
+        (ngModelChange)="cloudSettingsChange.emit(cloudSettings)"
+      ></ion-checkbox>
+      <ion-popover trigger="cloudSettings-tunnelRtspStream-popover" [dismissOnSelect]="true">
+        <ng-template>
+          <ion-content>
+            {{'settings.tunnelRtspStreamHint' | translate}}
           </ion-content>
         </ng-template>
       </ion-popover>

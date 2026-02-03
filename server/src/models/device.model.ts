@@ -107,6 +107,7 @@ const deviceSchema: Schema = new Schema({
       rtspStream: { type: String, required: false },
       logRtspStreamErrors: { type: Boolean, required: false },
       rtspStreamTransport: { type: String, required: false },
+      tunnelRtspStream: { type: Boolean, required: false },
     },
     required: false,
   },

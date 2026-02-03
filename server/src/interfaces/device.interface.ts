@@ -36,6 +36,7 @@ export interface CloudSettings {
   rtspStream?: string;
   rtspStreamTransport?: string;
   logRtspStreamErrors?: boolean;
+  tunnelRtspStream?: boolean;
 }
 
 export interface RecipeStep {
