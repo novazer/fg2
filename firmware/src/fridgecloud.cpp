@@ -540,7 +540,7 @@ namespace fg {
         if (t.client.connected()) {
           char buffer[TUNNEL_PAYLOAD_LEN];
           size_t len = 0;
-          while (t.client.available() && packetCount <= 10) {
+          while (t.client.available() && packetCount <= TUNNEL_PACKET_PER_LOOP_COUNT) {
             int c = t.client.read();
             buffer[len++] = static_cast<char>(c);
 
