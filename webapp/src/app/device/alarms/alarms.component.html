@@ -137,7 +137,7 @@
           </ion-popover>
         </ion-item>
 
-        <ion-item lines="none" [hidden]="!cloud_settings?.betaFeatures">
+        <ion-item lines="none" [hidden]="!cloud_settings?.betaFeatures || alarm.actionType !== 'webhook'">
           <ion-label>
             {{ 'settings.alarms.tunnelWebhook' | translate }}
             <ion-button fill="clear" id="tunnelWebhook-popover-{{alarm.alarmId}}">
