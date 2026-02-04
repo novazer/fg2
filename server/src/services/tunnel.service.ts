@@ -24,6 +24,7 @@ import { deviceService } from '@services/device.service';
 import { createServer } from 'node:net';
 
 const TUNNEL_CHUNK_SIZE = 512;
+const MAX_PACKET_LENGTH = 1000;
 
 type TunnelStreamTxData = {
   connection_id: string;
@@ -133,7 +134,12 @@ class TunnelService {
                 host: streamUrl.hostname,
                 port,
               };
-              mqttclient.publish('/devices/' + device_id + '/tunnel_write', JSON.stringify(message));
+              const rawMessage = JSON.stringify(message);
+              if (rawMessage.length > MAX_PACKET_LENGTH) {
+                client.destroy(new Error(`Packet length (${rawMessage.length}) exceeds the maximum of length of ${MAX_PACKET_LENGTH}`));
+                return;
+              }
+              mqttclient.publish('/devices/' + device_id + '/tunnel_write', rawMessage);
             }
           }
         });
