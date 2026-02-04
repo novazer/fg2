@@ -98,7 +98,7 @@
       "webhookResolvedPayload": "Resolved payload",
       "webhookResolvedPayloadHint": "Custom payload sent when the alarm is resolved (for POST/PUT). Leave empty to send the default payload.",
       "tunnelWebhook": "Tunnel requests through module",
-      "tunnelWebhookHint": "If enabled, webhook requests will be tunneled through the module. This is helpful if your webhook URL is not directly reachable from the internet."
+      "tunnelWebhookHint": "If enabled, webhook requests will be tunneled through the module. This is helpful if your webhook URL is not directly reachable from the internet. WARNING: HTTPS may not work properly when tunneling is enabled."
     },
     "edit-value": "Edit Value",
     "cloudSettings": "Cloud settings",
