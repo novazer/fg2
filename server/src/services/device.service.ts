@@ -641,6 +641,7 @@ class DeviceService {
   public async configureDevice(device_id: string, user_id: string, config: string) {
     await deviceModel.findOneAndUpdate({ device_id: device_id, owner_id: user_id }, { configuration: config });
     mqttclient.publish('/devices/' + device_id + '/configuration', config);
+    await claimCodeModel.deleteMany({ device_id: device_id });
   }
 
   public async setDeviceAlarms(device_id: string, user_id: string, alarms: Alarm[]): Promise<void> {
