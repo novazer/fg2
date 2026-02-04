@@ -539,7 +539,7 @@ namespace fg {
         if (t.client.connected()) {
           char buffer[TUNNEL_PAYLOAD_LEN];
           size_t len = 0;
-          while (t.client.available() && log_queue.size() <= (MAX_BUFFER_LEN * 3 / 4)) {
+          while (t.client.available() && log_queue.size() <= (MAX_BUFFER_LEN / 4)) {
             int c = t.client.read();
             if (c < 0) break;
             if (len < TUNNEL_PAYLOAD_LEN) buffer[len++] = static_cast<char>(c);
