@@ -37,8 +37,8 @@ namespace fg {
     String topic_fwupdate;
     String topic_command;
     String topic_control;
-    String topic_rtsp_read;
-    String topic_rtsp_write;
+    String topic_tunnel_read;
+    String topic_tunnel_write;
 
 
     std::string device_id;

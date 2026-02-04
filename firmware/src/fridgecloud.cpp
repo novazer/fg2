@@ -65,8 +65,8 @@ namespace fg {
     topic_fwupdate = String() + "/devices/" + device_id.c_str() + "/fwupdate";
     topic_command = String() + "/devices/" + device_id.c_str() + "/command";
     topic_control = String() + "/devices/" + device_id.c_str() + "/control/#";
-    topic_rtsp_read = String() + "/devices/" + device_id.c_str() + "/rtsp_read";
-    topic_rtsp_write = String() + "/devices/" + device_id.c_str() + "/rtsp_write";
+    topic_tunnel_read = String() + "/devices/" + device_id.c_str() + "/tunnel_read";
+    topic_tunnel_write = String() + "/devices/" + device_id.c_str() + "/tunnel_write";
 
     Serial.print("api url:\t");
     Serial.println(api_url.c_str());
@@ -147,7 +147,7 @@ namespace fg {
       control_subject.next(std::pair<std::string, std::string>(output.c_str(), payload.c_str()));
     });
 
-    client->subscribe(topic_rtsp_write.c_str(), [&](const String & topic, const String & payload) {
+    client->subscribe(topic_tunnel_write.c_str(), [&](const String & topic, const String & payload) {
       DynamicJsonDocument doc(1024);
       DeserializationError error = deserializeJson(doc, payload);
       if (error) {
@@ -528,7 +528,7 @@ namespace fg {
           std::stringstream stream;
           serializeJson(message_json, stream);
 
-          client->publish(topic_rtsp_read.c_str(), stream.str().c_str());
+          client->publish(topic_tunnel_read.c_str(), stream.str().c_str());
         }
       }
   }
@@ -556,7 +556,7 @@ namespace fg {
               std::stringstream stream;
               serializeJson(message_json, stream);
 
-              if (!client->publish(topic_rtsp_read.c_str(), stream.str().c_str())) {
+              if (!client->publish(topic_tunnel_read.c_str(), stream.str().c_str())) {
                 t.client.stop();
                 break;
               }

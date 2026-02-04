@@ -14,6 +14,7 @@ import { alarmService } from '@services/alarm.service';
 import { isNumeric } from 'influx/lib/src/grammar';
 import { mailTransport } from '@services/auth.service';
 import { imageService } from '@services/image.service';
+import { tunnelService } from '@services/tunnel.service';
 
 export type StatusMessage = {
   sensors: {
@@ -121,8 +122,8 @@ class DeviceService {
             case 'configuration':
               await this.settingsMessage(device, JSON.parse(message.message));
               break;
-            case 'rtsp_read':
-              await imageService.onRtspReadDataReceived(device.device_id, message.message);
+            case 'tunnel_read':
+              await tunnelService.onTunnelReadDataReceived(device.device_id, message.message);
               break;
             case 'rtsp_write':
             case 'command':

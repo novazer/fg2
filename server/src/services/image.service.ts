@@ -22,6 +22,7 @@ import { mkdtemp, readFile, unlink, writeFile } from 'node:fs/promises';
 import { Image } from '@interfaces/images.interface';
 import { deviceService } from '@services/device.service';
 import { createServer } from 'node:net';
+import { tunnelService } from '@services/tunnel.service';
 
 export type StatusMessage = {
   sensors: {
@@ -44,8 +45,6 @@ const IMAGE_RETENTION_DAYS = 3 * 365;
 
 const TIMELAPSE_DAY_FRAMEINTERVAL_MS = 2 * 60 * 1000;
 const TIMELAPSE_FRAME_RATE = 25;
-
-const TUNNEL_CHUNK_SIZE = 512;
 
 type RtspStreamTxData = {
   connection_id: string;
@@ -263,7 +262,7 @@ class ImageService {
   private async readRtspStreamImage(cloudSettings: CloudSettings, deviceId: string): Promise<Buffer> {
     let streamUrl = cloudSettings.rtspStream;
     if (cloudSettings.tunnelRtspStream) {
-      streamUrl = await this.createRtspProxyServer(new URL(cloudSettings.rtspStream), deviceId);
+      streamUrl = await tunnelService.createTunnelProxyServer(new URL(cloudSettings.rtspStream), deviceId);
     }
 
     return new Promise((resolve, reject) => {
@@ -304,167 +303,6 @@ class ImageService {
           }
         },
       );
-    });
-  }
-
-  public onRtspReadDataReceived(device_id: string, data: string): Promise<void> {
-    try {
-      const parsed: RtspStreamRxData = JSON.parse(data);
-
-      const connection = this.deviceIdToRtspClient.get(device_id)?.get(parsed.connection_id);
-      if (!connection) {
-        return;
-      }
-
-      connection.queue.push(parsed);
-
-      let nextData: RtspStreamRxData;
-      while ((nextData = connection.queue.find(d => d.sequence === connection.nextSequence))) {
-        if (nextData.disconnected) {
-          connection.handleDisconnect();
-          break;
-        } else {
-          connection.lastActivityTime = Date.now();
-          connection.queue = connection.queue.filter(d => d.sequence > nextData.sequence);
-          connection.handler(nextData.payload);
-        }
-        connection.nextSequence++;
-      }
-    } catch (e) {
-      console.log('Error parsing RTSP data received:', e);
-    }
-
-    return Promise.resolve();
-  }
-
-  private reportTunnelActivity(device_id: string, connection_id: string): void {
-    const connection = this.deviceIdToRtspClient.get(device_id)?.get(connection_id);
-    if (connection) {
-      connection.lastActivityTime = Date.now();
-    }
-  }
-
-  private moduleHasDisconnected(device_id: string, connection_id: string): boolean {
-    return (
-      this.deviceIdToRtspClient
-        .get(device_id)
-        ?.get(connection_id)
-        ?.queue?.find(d => d.disconnected)?.disconnected || false
-    );
-  }
-
-  private async createRtspProxyServer(streamUrl: URL, device_id: string): Promise<string> {
-    const port = streamUrl.port
-      ? parseInt(streamUrl.port)
-      : streamUrl.protocol === 'rtsp:'
-      ? 554
-      : streamUrl.protocol === 'rtsps:'
-      ? 322
-      : streamUrl.protocol === 'rtmp:'
-      ? 1935
-      : ['rtmps:', 'https:'].includes(streamUrl.protocol)
-      ? 443
-      : 80;
-
-    return new Promise<string>((resolve, reject) => {
-      const server = createServer(client => {
-        const connectionId = uuidv4();
-        const dataCallback: RtspConnectionData['handler'] = payload => {
-          if (client.destroyed) {
-            return;
-          }
-
-          this.reportTunnelActivity(device_id, connectionId);
-
-          client.write(new Uint8Array(Buffer.from(payload, 'base64')), err => {
-            if (err) {
-              client.destroy(err);
-            }
-          });
-        };
-
-        client.once('close', () => {
-          if (!this.moduleHasDisconnected(device_id, connectionId)) {
-            const message: RtspStreamTxData = {
-              connection_id: connectionId,
-              disconnected: true,
-              host: streamUrl.hostname,
-              port,
-            };
-            mqttclient.publish('/devices/' + device_id + '/rtsp_write', JSON.stringify(message));
-          }
-
-          this.deviceIdToRtspClient.get(device_id)?.delete(connectionId);
-        });
-        client.setEncoding('binary');
-        client.on('data', data => {
-          this.reportTunnelActivity(device_id, connectionId);
-
-          if (!this.moduleHasDisconnected(device_id, connectionId)) {
-            while (data.length > 0) {
-              const chunk = Buffer.from(data.slice(0, TUNNEL_CHUNK_SIZE));
-              data = Buffer.from(data.slice(TUNNEL_CHUNK_SIZE));
-              const message: RtspStreamTxData = {
-                connection_id: connectionId,
-                payload: chunk.toString('base64'),
-                host: streamUrl.hostname,
-                port,
-              };
-              mqttclient.publish('/devices/' + device_id + '/rtsp_write', JSON.stringify(message));
-            }
-          }
-        });
-        client.on('error', err => {
-          console.log('RTSP proxy client error from', client.remoteAddress, client.remotePort, err);
-        });
-
-        if (!this.deviceIdToRtspClient.has(device_id)) {
-          this.deviceIdToRtspClient.set(device_id, new Map());
-        }
-        this.deviceIdToRtspClient.get(device_id).set(connectionId, {
-          handler: dataCallback,
-          lastActivityTime: Date.now(),
-          nextSequence: 0,
-          queue: [],
-          handleDisconnect: () => client.destroy(),
-        });
-
-        const timeoutAfterActivity = () =>
-          setTimeout(() => {
-            if (Date.now() - (this.deviceIdToRtspClient.get(device_id)?.get(connectionId)?.lastActivityTime || 0) >= 15000) {
-              client.destroy();
-            } else {
-              timeoutAfterActivity();
-            }
-          }, 1000);
-        timeoutAfterActivity();
-      });
-
-      server.listen(
-        {
-          port: 0,
-          host: '127.0.0.1',
-        },
-        () => {
-          const url = new URL(streamUrl.toString());
-          url.hostname = '127.0.0.1';
-          url.port = String((server.address() as any).port);
-          console.log('RTSP proxy server listening on ', (server.address() as any).port, url.toString(), 'to', streamUrl.hostname + ':' + port);
-          resolve(url.toString());
-        },
-      );
-      server.on('error', (err: any) => {
-        reject(err);
-      });
-
-      setTimeout(() => {
-        server.close(err => {
-          if (err) {
-            console.log('Error closing RTSP proxy server on timeout:', err);
-          }
-        });
-        reject(new Error('Timeout creating RTSP proxy server'));
-      }, 300_000);
     });
   }
 
