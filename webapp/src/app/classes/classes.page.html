@@ -61,8 +61,26 @@
           <ion-col>{{fw.failed}}</ion-col>
           <ion-col>{{fw.avgtime / 1000}}</ion-col>
           <ion-col>{{fw.maxtime / 1000}}</ion-col>
-          <ion-col><ion-button *ngIf="fw.fw.firmware_id" color="secondary" (click)="rollout(cls.class, fw.fw.firmware_id);">rollout</ion-button></ion-col>
-          <ion-col><ion-button *ngIf="fw.fw.firmware_id && fw.total <= 0 && fw.fw.firmware_id !== cls.class.firmware_id" color="danger" (click)="delete(fw.fw.firmware_id);">delete</ion-button></ion-col>
+          <ion-col>
+            <ion-button
+              *ngIf="fw.fw.firmware_id"
+              color="secondary"
+              (click)="rollout(cls.class, fw.fw.firmware_id);"
+              [disabled]="fw.fw.deleted"
+            >
+              rollout
+            </ion-button>
+          </ion-col>
+          <ion-col>
+            <ion-button
+              *ngIf="fw.fw.firmware_id && fw.total <= 0 && fw.fw.firmware_id !== cls.class.firmware_id"
+              color="danger"
+              (click)="delete(fw.fw);"
+              [disabled]="fw.fw.deleted"
+            >
+              {{ fw.fw.deleted ? 'deleted' : 'delete' }}
+            </ion-button>
+          </ion-col>
         </ion-row>
       </ion-grid>
     </div>

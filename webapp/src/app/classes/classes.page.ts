@@ -25,10 +25,10 @@ export class ClassesPage implements OnInit {
     }
   }
 
-  async delete(firmware_id: string) {
-    if(confirm("delete firmware " + firmware_id + "?")) {
-      await this.device.deleteFirmware(firmware_id);
-      await this.device.fetch()
+  async delete(fw: any) {
+    if(confirm("delete firmware " + fw.firmware_id + "?")) {
+      await this.device.deleteFirmware(fw.firmware_id);
+      fw.deleted = true;
     }
   }
 
