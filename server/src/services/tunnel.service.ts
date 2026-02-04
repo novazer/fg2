@@ -138,6 +138,10 @@ class TunnelService {
           }
         });
 
+        client.on('error', err => {
+          // Ignore errors, as they are handled in 'close' event
+        });
+
         if (!this.deviceIdToTunnelConnection.has(device_id)) {
           this.deviceIdToTunnelConnection.set(device_id, new Map());
         }
