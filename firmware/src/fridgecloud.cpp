@@ -89,8 +89,7 @@ namespace fg {
       device_id.c_str()     // Client name that uniquely identify your device
     ));
 
-    //log("message-device-booted");
-
+    log("message-device-booted");
   }
 
   void Fridgecloud::connect() {

@@ -351,7 +351,7 @@
   "message-lost-connection-title": "Connection problem",
   "message-lost-connection-text": "The connection between your device and our sever was lost and has been reestablished. If this messages appeares regulary please check your wifi and internet connection",
   "message-device-booted-title": "Device rebooted",
-  "message-device-booted-text": "Your device has rebooted. If this messages appeares regulary please check your power connection",
+  "message-device-booted-text": "Your device has rebooted. If this messages appears regularly please check your power connection.",
   "message-buffer-overflow-title": "Connection problem",
   "message-buffer-overflow-text": "Data could not be transfered to the server and was lost. Please check your internet connection or wifi.",
   "message-co2-low-title": "Low CO2",

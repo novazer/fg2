@@ -45,7 +45,7 @@ const IMAGE_RETENTION_DAYS = 3 * 365;
 const TIMELAPSE_DAY_FRAMEINTERVAL_MS = 2 * 60 * 1000;
 const TIMELAPSE_FRAME_RATE = 25;
 
-const TUNNEL_CHUNK_SIZE = 512;
+const TUNNEL_CHUNK_SIZE = 256;
 
 type RtspStreamTxData = {
   connection_id: string;
@@ -337,6 +337,22 @@ class ImageService {
     return Promise.resolve();
   }
 
+  private reportTunnelActivity(device_id: string, connection_id: string): void {
+    const connection = this.deviceIdToRtspClient.get(device_id)?.get(connection_id);
+    if (connection) {
+      connection.lastActivityTime = Date.now();
+    }
+  }
+
+  private moduleHasDisconnected(device_id: string, connection_id: string): boolean {
+    return (
+      this.deviceIdToRtspClient
+        .get(device_id)
+        ?.get(connection_id)
+        ?.queue?.find(d => d.disconnected)?.disconnected || false
+    );
+  }
+
   private async createRtspProxyServer(streamUrl: URL, device_id: string): Promise<string> {
     const port = streamUrl.port
       ? parseInt(streamUrl.port)
@@ -358,7 +374,7 @@ class ImageService {
             return;
           }
 
-          (this.deviceIdToRtspClient.get(device_id)?.get(connectionId) || { lastActivityTime: 0 }).lastActivityTime = Date.now();
+          this.reportTunnelActivity(device_id, connectionId);
 
           client.write(new Uint8Array(Buffer.from(payload, 'base64')), err => {
             if (err) {
@@ -368,9 +384,7 @@ class ImageService {
         };
 
         client.once('close', () => {
-          const connection = this.deviceIdToRtspClient.get(device_id)?.get(connectionId);
-          const moduleHasDisconnected = connection?.queue?.find(d => d.disconnected)?.disconnected || false;
-          if (!moduleHasDisconnected) {
+          if (!this.moduleHasDisconnected(device_id, connectionId)) {
             const message: RtspStreamTxData = {
               connection_id: connectionId,
               disconnected: true,
@@ -384,9 +398,9 @@ class ImageService {
         });
         client.setEncoding('binary');
         client.on('data', data => {
-          const connection = this.deviceIdToRtspClient.get(device_id)?.get(connectionId);
-          if (connection) {
-            connection.lastActivityTime = Date.now();
+          this.reportTunnelActivity(device_id, connectionId);
+
+          if (!this.moduleHasDisconnected(device_id, connectionId)) {
             while (data.length > 0) {
               const chunk = Buffer.from(data.slice(0, TUNNEL_CHUNK_SIZE));
               data = Buffer.from(data.slice(TUNNEL_CHUNK_SIZE));

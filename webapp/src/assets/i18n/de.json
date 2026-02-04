@@ -335,8 +335,8 @@
 
   "message-lost-connection-title": "Verbindungsproblem",
   "message-lost-connection-text": "Die Verbindung zwischen deinem Gerät und unserem Server ist abgebrochen und wurde wiederhergestellt. Wenn dieser Fehler oft auftritt überprüfe bitte dein WLAN und deine Internetverbindung.",
-  "message-device-booted-title": "Gerät ist neu gestarted",
-  "message-device-booted-text": "Dein Gerät ist neu gestarted. Wenn dieser Fehler oft auftritt überprüfe bitte die Stromversorgung.",
+  "message-device-booted-title": "Gerät hat neu gestartet",
+  "message-device-booted-text": "Dein Gerät hat neu gestartet. Wenn diese Meldung oft auftritt, überprüfe bitte die Stromversorgung.",
   "message-buffer-overflow-title": "Verbindungsproblem.",
   "message-buffer-overflow-text": "Daten konnten nicht zum Server übertragen werden. Bitte Internetverbindung und WLAN überprüfen.",
   "message-co2-low-title": "Niedriger CO2 Wert",

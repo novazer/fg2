@@ -14,7 +14,7 @@
 #define NVS_PART "nvs_ro"
 
 #define UUID_LEN 128
-#define TUNNEL_PAYLOAD_LEN 512
+#define TUNNEL_PAYLOAD_LEN 256
 
 namespace fg {
 
