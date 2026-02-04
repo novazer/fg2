@@ -1,30 +1,11 @@
-import { Alarm, CloudSettings, Device, DeviceClass, DeviceFirmware, DeviceFirmwareBinary } from '@interfaces/device.interface';
-import deviceModel from '@models/device.model';
-import deviceLogModel from '@models/devicelog.model';
-import deviceClassModel from '@/models/deviceclass.model';
-import { deviceFirmwareBinaryModel, deviceFirmwareModel } from '@/models/devicefirmware.model';
-import claimCodeModel from '@/models/claimcode.model';
 import { v4 as uuidv4 } from 'uuid';
-import { AddDeviceDto, RegisterDeviceDto, TestDeviceDto } from '@/dtos/device.dto';
 import { mqttclient } from '../databases/mqttclient';
-import { dataService } from './data.service';
-import { HttpException } from '@/exceptions/HttpException';
-import { ENABLE_SELF_REGISTRATION, SELF_REGISTRATION_PASSWORD, SMTP_SENDER } from '@/config';
-import { alarmService } from '@services/alarm.service';
-import { isNumeric } from 'influx/lib/src/grammar';
-import { mailTransport } from '@services/auth.service';
-import { execFile } from 'node:child_process';
-import imageModel from '@models/images.model';
-import pLimit from 'p-limit';
-import { tmpdir } from 'node:os';
-import { join } from 'path';
-import { mkdtemp, readFile, unlink, writeFile } from 'node:fs/promises';
-import { Image } from '@interfaces/images.interface';
-import { deviceService } from '@services/device.service';
 import { createServer } from 'node:net';
+import { Mutex, MutexInterface, Semaphore, SemaphoreInterface, withTimeout } from 'async-mutex';
 
 const TUNNEL_CHUNK_SIZE = 512;
 const MAX_PACKET_LENGTH = 1000;
+const PARALLEL_TUNNEL_CONNECTIONS = 1;
 
 type TunnelStreamTxData = {
   connection_id: string;
@@ -41,11 +22,14 @@ type TunnelConnectionData = {
   lastActivityTime: number;
   handler: (payload: TunnelStreamRxData['payload']) => void;
   queue: TunnelStreamRxData[];
-  handleDisconnect: () => void;
+  handleDisconnect: (error?: Error) => void;
+  acquire: Promise<[number, SemaphoreInterface.Releaser]>;
+  release?: SemaphoreInterface.Releaser;
 };
 
 class TunnelService {
   private deviceIdToTunnelConnection = new Map<string, Map<string, TunnelConnectionData>>();
+  private deviceIdToSemaphore = new Map<string, SemaphoreInterface>();
 
   public onTunnelReadDataReceived(device_id: string, data: string): Promise<void> {
     try {
@@ -64,7 +48,7 @@ class TunnelService {
           connection.handleDisconnect();
           break;
         } else {
-          connection.lastActivityTime = Date.now();
+          this.reportTunnelActivity(device_id, parsed.connection_id);
           connection.queue = connection.queue.filter(d => d.sequence > nextData.sequence);
           connection.handler(nextData.payload);
         }
@@ -93,18 +77,53 @@ class TunnelService {
     return new Promise<string>((resolve, reject) => {
       const server = createServer(client => {
         const connectionId = uuidv4();
-        const dataCallback: TunnelConnectionData['handler'] = payload => {
-          if (client.destroyed) {
-            return;
+
+        if (!this.deviceIdToSemaphore.has(device_id)) {
+          this.deviceIdToSemaphore.set(
+            device_id,
+            withTimeout(new Semaphore(PARALLEL_TUNNEL_CONNECTIONS), 300_000, new Error('Tunnel device mutex timeout')),
+          );
+        }
+        if (!this.deviceIdToTunnelConnection.has(device_id)) {
+          this.deviceIdToTunnelConnection.set(device_id, new Map());
+        }
+
+        const connection: TunnelConnectionData = {
+          handler: payload => {
+            if (client.destroyed) {
+              return;
+            }
+
+            this.reportTunnelActivity(device_id, connectionId);
+
+            client.write(new Uint8Array(Buffer.from(payload, 'base64')), err => {
+              if (err) {
+                client.destroy(err);
+              }
+            });
+          },
+          lastActivityTime: Date.now(),
+          nextSequence: 0,
+          queue: [],
+          handleDisconnect: error => client.destroy(error),
+          acquire: this.deviceIdToSemaphore.get(device_id).acquire(),
+        };
+
+        this.deviceIdToTunnelConnection.get(device_id).set(connectionId, connection);
+
+        let timeoutHandle: NodeJS.Timeout;
+        const timeoutAfterActivity = () => {
+          if (timeoutHandle) {
+            clearTimeout(timeoutHandle);
           }
 
-          this.reportTunnelActivity(device_id, connectionId);
-
-          client.write(new Uint8Array(Buffer.from(payload, 'base64')), err => {
-            if (err) {
-              client.destroy(err);
+          timeoutHandle = setTimeout(() => {
+            if (Date.now() - (connection.lastActivityTime || 0) >= 15000) {
+              client.destroy();
+            } else {
+              timeoutAfterActivity();
             }
-          });
+          }, 1000);
         };
 
         client.once('close', () => {
@@ -118,56 +137,19 @@ class TunnelService {
             mqttclient.publish('/devices/' + device_id + '/tunnel_write', JSON.stringify(message));
           }
 
+          connection.release?.();
           this.deviceIdToTunnelConnection.get(device_id)?.delete(connectionId);
         });
         client.setEncoding('binary');
         client.on('data', data => {
-          this.reportTunnelActivity(device_id, connectionId);
-
-          if (!this.moduleHasDisconnected(device_id, connectionId)) {
-            while (data.length > 0) {
-              const chunk = Buffer.from(data.slice(0, TUNNEL_CHUNK_SIZE));
-              data = Buffer.from(data.slice(TUNNEL_CHUNK_SIZE));
-              const message: TunnelStreamTxData = {
-                connection_id: connectionId,
-                payload: chunk.toString('base64'),
-                host: streamUrl.hostname,
-                port,
-              };
-              const rawMessage = JSON.stringify(message);
-              if (rawMessage.length > MAX_PACKET_LENGTH) {
-                client.destroy(new Error(`Packet length (${rawMessage.length}) exceeds the maximum length of ${MAX_PACKET_LENGTH}`));
-                return;
-              }
-              mqttclient.publish('/devices/' + device_id + '/tunnel_write', rawMessage);
-            }
-          }
+          this.onClientDataReceived(device_id, { connection_id: connectionId, host: streamUrl.hostname, port }, data).then(() =>
+            timeoutAfterActivity(),
+          );
         });
 
         client.on('error', err => {
           // Ignore errors, as they are handled in 'close' event
         });
-
-        if (!this.deviceIdToTunnelConnection.has(device_id)) {
-          this.deviceIdToTunnelConnection.set(device_id, new Map());
-        }
-        this.deviceIdToTunnelConnection.get(device_id).set(connectionId, {
-          handler: dataCallback,
-          lastActivityTime: Date.now(),
-          nextSequence: 0,
-          queue: [],
-          handleDisconnect: () => client.destroy(),
-        });
-
-        const timeoutAfterActivity = () =>
-          setTimeout(() => {
-            if (Date.now() - (this.deviceIdToTunnelConnection.get(device_id)?.get(connectionId)?.lastActivityTime || 0) >= 15000) {
-              client.destroy();
-            } else {
-              timeoutAfterActivity();
-            }
-          }, 1000);
-        timeoutAfterActivity();
       });
 
       server.listen(
@@ -219,6 +201,44 @@ class TunnelService {
         ?.get(connection_id)
         ?.queue?.find(d => d.disconnected)?.disconnected || false
     );
+  }
+
+  private onClientDataReceived(
+    device_id: string,
+    metadata: Pick<TunnelStreamTxData, 'connection_id' | 'host' | 'port'>,
+    data: Buffer,
+  ): Promise<void> {
+    data = Buffer.from(data);
+
+    const connection = this.deviceIdToTunnelConnection.get(device_id)?.get(metadata.connection_id);
+
+    return connection?.acquire?.then(([number, release]) => {
+      if (this.deviceIdToTunnelConnection.get(device_id)?.has(metadata.connection_id)) {
+        connection.release = release;
+      } else {
+        release();
+        return;
+      }
+
+      if (!this.moduleHasDisconnected(device_id, metadata.connection_id)) {
+        while (data.length > 0) {
+          const chunk = Buffer.from(data.slice(0, TUNNEL_CHUNK_SIZE));
+          data = Buffer.from(data.slice(TUNNEL_CHUNK_SIZE));
+          const message: TunnelStreamTxData = {
+            ...metadata,
+            payload: chunk.toString('base64'),
+          };
+          const rawMessage = JSON.stringify(message);
+          if (rawMessage.length > MAX_PACKET_LENGTH) {
+            connection.handleDisconnect(new Error(`Packet length (${rawMessage.length}) exceeds the maximum length of ${MAX_PACKET_LENGTH}`));
+            return;
+          }
+
+          this.reportTunnelActivity(device_id, metadata.connection_id);
+          mqttclient.publish('/devices/' + device_id + '/tunnel_write', rawMessage);
+        }
+      }
+    });
   }
 }
 
