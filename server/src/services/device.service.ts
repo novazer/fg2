@@ -125,7 +125,7 @@ class DeviceService {
             case 'tunnel_read':
               await tunnelService.onTunnelReadDataReceived(device.device_id, message.message);
               break;
-            case 'rtsp_write':
+            case 'tunnel_write':
             case 'command':
             case 'firmware':
               break;
