@@ -23,7 +23,7 @@ import { Image } from '@interfaces/images.interface';
 import { deviceService } from '@services/device.service';
 import { createServer } from 'node:net';
 
-const TUNNEL_CHUNK_SIZE = 256;
+const TUNNEL_CHUNK_SIZE = 512;
 
 type TunnelStreamTxData = {
   connection_id: string;
