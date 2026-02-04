@@ -541,10 +541,9 @@ namespace fg {
           size_t len = 0;
           while (t.client.available() && log_queue.size() <= (MAX_BUFFER_LEN / 4)) {
             int c = t.client.read();
-            if (c < 0) break;
-            if (len < TUNNEL_PAYLOAD_LEN) buffer[len++] = static_cast<char>(c);
+            buffer[len++] = static_cast<char>(c);
 
-            if (len >= TUNNEL_PAYLOAD_LEN || (!t.client.available() && len > 0)) {
+            if (len >= TUNNEL_PAYLOAD_LEN - 1 || (!t.client.available() && len > 0)) {
               std::string payloadEncoded = base64::encode(reinterpret_cast<const uint8_t*>(buffer), len);
 
               StaticJsonDocument<1024> message_json;

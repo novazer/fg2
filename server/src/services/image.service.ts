@@ -45,7 +45,7 @@ const IMAGE_RETENTION_DAYS = 3 * 365;
 const TIMELAPSE_DAY_FRAMEINTERVAL_MS = 2 * 60 * 1000;
 const TIMELAPSE_FRAME_RATE = 25;
 
-const TUNNEL_CHUNK_SIZE = 256;
+const TUNNEL_CHUNK_SIZE = 512;
 
 type RtspStreamTxData = {
   connection_id: string;
