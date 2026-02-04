@@ -89,7 +89,11 @@ class DeviceController {
 
   public claimDevice = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
-      await deviceService.claimDevice(req.body.claim_code, req.user_id);
+      const success = await deviceService.claimDevice(req.body.claim_code, req.user_id);
+
+      if (!success) {
+        return res.status(400).json({ status: 'invalid claim code or device not found' });
+      }
 
       res.status(200).json({ status: 'ok' });
     } catch (error) {
