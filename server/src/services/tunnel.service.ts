@@ -136,7 +136,7 @@ class TunnelService {
               };
               const rawMessage = JSON.stringify(message);
               if (rawMessage.length > MAX_PACKET_LENGTH) {
-                client.destroy(new Error(`Packet length (${rawMessage.length}) exceeds the maximum of length of ${MAX_PACKET_LENGTH}`));
+                client.destroy(new Error(`Packet length (${rawMessage.length}) exceeds the maximum length of ${MAX_PACKET_LENGTH}`));
                 return;
               }
               mqttclient.publish('/devices/' + device_id + '/tunnel_write', rawMessage);
@@ -179,7 +179,14 @@ class TunnelService {
           const url = new URL(streamUrl.toString());
           url.hostname = '127.0.0.1';
           url.port = String((server.address() as any).port);
-          console.log('Tunnel proxy server listening on ', (server.address() as any).port, url.toString(), 'to', streamUrl.hostname + ':' + port);
+          console.log(
+            'Tunnel proxy server listening on',
+            (server.address() as any).port,
+            'proxying to',
+            streamUrl.hostname + ':' + port,
+            'for device',
+            device_id,
+          );
           resolve(url.toString());
         },
       );
