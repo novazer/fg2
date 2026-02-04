@@ -802,6 +802,11 @@ class DeviceService {
     });
   }
 
+  public async deleteFirmware(firmware_id: string): Promise<void> {
+    await deviceFirmwareBinaryModel.deleteMany({ firmware_id: firmware_id });
+    await deviceFirmwareModel.deleteOne({ firmware_id: firmware_id });
+  }
+
   public async createFirmwareBinary(fw_id: string, name: string, data: Buffer): Promise<DeviceFirmwareBinary> {
     return await deviceFirmwareBinaryModel.create({
       firmware_id: fw_id,

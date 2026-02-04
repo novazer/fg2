@@ -313,6 +313,15 @@ class DeviceController {
     }
   };
 
+  public deleteFirmware = async (req: any, res: Response, next: NextFunction) => {
+    try {
+      await deviceService.deleteFirmware(req.params.firmware_id);
+      res.status(200).json({ status: 'ok' });
+    } catch (error) {
+      next(error);
+    }
+  };
+
   public getDeviceLogs = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
       if (await isUserDeviceMiddelware(req, res, req.params.device_id)) {

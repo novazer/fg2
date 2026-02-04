@@ -8,7 +8,8 @@ fi
 docker build -t plantalytix-buildcontainer fw-buildcontainer
 
 # copy firmware to docker volume (for mac os/windows compatibility)
-docker rm -f fw-temp-container || true
+docker rm -f fw-temp-container 2>/dev/null || true
+docker volume rm -f fg2_firmware 2>/dev/null || true
 docker run -d --name fw-temp-container -v fg2_firmware:/firmware -e API_URL_EXTERNAL=${API_URL_EXTERNAL} debian sleep 3600
 docker cp ./firmware/. fw-temp-container:/firmware
 docker exec -i fw-temp-container cp /firmware/src/wifi.cpp /firmware/src/wifi.cpp.tmpl

@@ -193,6 +193,7 @@ class DeviceRoute implements Routes {
     this.router.get(`${this.path}/firmware`, authAdminMiddleware, this.deviceController.listFirmware);
     this.router.get(`${this.path}/firmware/find`, authAdminMiddleware, this.deviceController.findFirmware);
     this.router.get(`${this.path}/firmware/:firmware_id/:binary`, this.deviceController.getFirmware);
+    this.router.delete(`${this.path}/firmware/:firmware_id`, authAdminMiddleware, this.deviceController.deleteFirmware);
     this.router.get(`/auth/v0.0.1/device/firmware/:firmware_id/:binary`, this.deviceController.getFirmware);
     this.router.post(`${this.path}/firmware/:firmware_id/:binary`, authAdminMiddleware, this.deviceController.createFirmwareBinary);
     this.router.post(

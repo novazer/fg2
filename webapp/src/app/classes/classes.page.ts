@@ -18,9 +18,16 @@ export class ClassesPage implements OnInit {
     })
   }
 
-  async rollout(cls:any, firmware:any) {
-    if(confirm("roll out " + firmware + " on " + cls.name + "?")) {
-      await this.device.updateClass(cls.class_id, cls.name, cls.description, cls.concurrent, cls.maxfails, firmware)
+  async rollout(cls:any, firmware_id: string) {
+    if(confirm("roll out " + firmware_id + " on " + cls.name + "?")) {
+      await this.device.updateClass(cls.class_id, cls.name, cls.description, cls.concurrent, cls.maxfails, firmware_id)
+      await this.device.fetch()
+    }
+  }
+
+  async delete(firmware_id: string) {
+    if(confirm("delete firmware " + firmware_id + "?")) {
+      await this.device.deleteFirmware(firmware_id);
       await this.device.fetch()
     }
   }
