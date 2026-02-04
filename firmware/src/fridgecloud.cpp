@@ -534,12 +534,13 @@ namespace fg {
   }
 
   void Fridgecloud::handleTunnelReads() {
+    int packetCount = 0;
     for (int i = 0; i < Fridgecloud::TUNNEL_COUNT; ++i) {
         auto &t = tunnels[i];
         if (t.client.connected()) {
           char buffer[TUNNEL_PAYLOAD_LEN];
           size_t len = 0;
-          while (t.client.available() && log_queue.size() <= (MAX_BUFFER_LEN / 4)) {
+          while (t.client.available() && packetCount <= 10) {
             int c = t.client.read();
             buffer[len++] = static_cast<char>(c);
 
@@ -560,6 +561,7 @@ namespace fg {
                 break;
               }
 
+              packetCount++;
               len = 0;
             }
           }
