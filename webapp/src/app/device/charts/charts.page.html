@@ -220,6 +220,8 @@
                       ? (log.title + '-title' | translate)
                       : (log.title?.split(':')?.[0] + '-title' | translate: {value: log.title?.split(':')?.[1]})
                     }}
+
+                    {{ (log.count ?? 0) > 1 ? '(' + log.count + 'x)' : '' }}
                   </h3>
                 </ion-col>
                 <ion-col class="ion-text-right">
@@ -234,6 +236,8 @@
                     ? (log.message + '-text' | translate)
                     : (log.message?.split(':')?.[0] + '-text' | translate: {value: log.message?.split(':')?.[1]})
                   }}
+
+                  <p [hidden]="(log.count ?? 0) <= 1">{{ '(Message appeared ' + log.count + ' times consecutively)' }}</p>
                 </ion-col>
               </ion-row>
             </ion-label>

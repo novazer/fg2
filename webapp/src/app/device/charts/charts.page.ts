@@ -460,8 +460,8 @@ export class ChartsPage implements OnInit, OnDestroy {
     );
   }
 
-  getFilteredLogs(ignoreSelection?: boolean): DeviceLog[] {
-    let result = this.deviceLogs.filter(log => {
+  getFilteredLogs(ignoreSelection?: boolean): (DeviceLog & { count?: number; })[] {
+    let result: (DeviceLog & { count?: number; })[] = this.deviceLogs.filter(log => {
 
       const anyLogSelected = ignoreSelection ? false : this.selectedLogs.length > 0;
       const anyCategorySelected = this.selectedLogCategory && this.selectedLogCategory !== 'all'
@@ -474,6 +474,24 @@ export class ChartsPage implements OnInit, OnDestroy {
 
       return !anyLogSelected && (!anyCategorySelected || thisCategorySelected);
     });
+
+    const originalResult = result;
+    result = [];
+    let count = 0;
+    for (let i = 0; i < originalResult.length; i++) {
+      const thisLog = originalResult[i];
+      const nextLog = i < originalResult.length - 1 ? originalResult[i + 1] : undefined;
+      count++;
+
+      // de-duplicate lines
+      if (thisLog?.title !== nextLog?.title || thisLog?.message !== nextLog?.message || thisLog?.severity !== nextLog?.severity || thisLog?.raw !== nextLog?.raw) {
+        result.push({
+          ...thisLog,
+          count,
+        });
+        count = 0;
+      }
+    }
 
     if (this.autoUpdate) {
       return result.reverse();
