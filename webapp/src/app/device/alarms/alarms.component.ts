@@ -8,6 +8,7 @@ import {Component, EventEmitter, Input, OnDestroy, OnInit, Output} from "@angula
 export class AlarmsComponent {
   @Input() availableSensorTypes: string[] = [];
   @Input() alarms: any;
+  @Input() cloud_settings:any = {};
   @Output() alarmsChange = new EventEmitter<any>();
 
   addAlarm() {

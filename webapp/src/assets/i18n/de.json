@@ -96,7 +96,9 @@
       "webhookTriggeredPayload": "Payload Auslösung",
       "webhookTriggeredPayloadHint": "Benutzerdefinierte Payload, die beim Auslösen des Alarms gesendet wird (für POST/PUT). Leer lassen, um die Standard-Payload zu verwenden.",
       "webhookResolvedPayload": "Payload Behebung",
-      "webhookResolvedPayloadHint": "Benutzerdefinierte Payload, die bei Behebung des Alarms gesendet wird (für POST/PUT). Leer lassen, um die Standard-Payload zu verwenden."
+      "webhookResolvedPayloadHint": "Benutzerdefinierte Payload, die bei Behebung des Alarms gesendet wird (für POST/PUT). Leer lassen, um die Standard-Payload zu verwenden.",
+      "tunnelWebhook": "Webhook durch Modul tunneln",
+      "tunnelWebhookHint": "Falls aktiviert, wird der Webhook durch das Modul getunnelt, was hilfreich sein kann wenn dein Modul hinter einem NAT oder einer Firewall ist."
     },
     "cloudSettings": "Cloud Einstellungen",
     "vpdLeafTempOffsetDay": "Tages VPD Blatt Temp. Offset",

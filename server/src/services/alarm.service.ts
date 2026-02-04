@@ -7,6 +7,7 @@ import { request as httpRequest } from 'http';
 import { request as httpsRequest } from 'https';
 import * as console from 'node:console';
 import { dataService } from '@services/data.service';
+import { tunnelService } from '@services/tunnel.service';
 
 const CACHE_EXPIRATION_SECONDS = 600;
 const MAINTENANCE_MODE_COOLDOWN_MILLIS = 10 * 60 * 1000;
@@ -207,16 +208,18 @@ class AlarmService {
       webhookPayload = alarm.webhookResolvedPayload || defaultPayload;
     }
 
-    const url = new URL(actionTarget);
-    const isHttps = url.protocol?.startsWith('https');
+    const originalUrl = new URL(actionTarget);
+    const targetUrl = alarm.tunnelWebhook ? new URL(await tunnelService.createTunnelProxyServer(originalUrl, deviceId)) : originalUrl;
+    const isHttps = originalUrl.protocol?.startsWith('https');
     const requestFn = isHttps ? httpsRequest : httpRequest;
 
     const options = {
-      hostname: url.hostname,
-      port: url.port || (isHttps ? 443 : 80),
-      path: url.pathname + url.search,
+      hostname: targetUrl.hostname,
+      port: targetUrl.port || (isHttps ? 443 : 80),
+      path: targetUrl.pathname + targetUrl.search,
       method: alarm.webhookMethod ?? 'POST',
       headers: {
+        Host: originalUrl.host,
         'Content-Type': 'application/json',
         'Content-Length': Buffer.byteLength(webhookPayload),
         ...(alarm.webhookHeaders ?? {}),
