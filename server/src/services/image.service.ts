@@ -36,12 +36,13 @@ export type StatusMessage = {
 
 const MS_IN_A_DAY = 24 * 60 * 60 * 1000;
 
-const READ_IMAGE_CHECK_INTERVAL_MS = 5000;
-const IMAGE_LOAD_INTERVAL_MS = 30000;
+const READ_IMAGE_CHECK_INTERVAL_MS = 5_000;
+const IMAGE_LOAD_INTERVAL_MS = 30_000;
+const IMAGE_LOAD_MAX_BACKOFF_INTERVAL_MS = 15 * 60_000;
 const COMPRESS_INTERVAL_MS = 60 * 60 * 1000;
 
-const FFMPEG_THROTTLE_MS = 1000;
-const FFMPEG_TIMEOUT_MS = 90000;
+const FFMPEG_THROTTLE_MS = 1_000;
+const FFMPEG_TIMEOUT_MS = 90_000;
 const IMAGE_RETENTION_DAYS = 3 * 365;
 
 const TIMELAPSE_DAY_FRAMEINTERVAL_MS = 2 * 60 * 1000;
@@ -67,8 +68,7 @@ type RtspConnectionData = {
 
 class ImageService {
   private ffmpegLimit = pLimit(10);
-  private deviceIdToLastRtspImageTimestamps = new Map<string, number>();
-  private deviceIdToRtspClient = new Map<string, Map<string, RtspConnectionData>>();
+  private deviceIdToLastRtspState = new Map<string, { lastTry: number; failureCount: number }>();
 
   constructor() {
     setTimeout(() => {
@@ -97,7 +97,15 @@ class ImageService {
 
     const promises: Promise<void>[] = [];
     for (const device of devices) {
-      if ((this.deviceIdToLastRtspImageTimestamps.get(device.device_id) ?? 0) <= Date.now() - IMAGE_LOAD_INTERVAL_MS) {
+      if (!this.deviceIdToLastRtspState.has((await device).device_id)) {
+        this.deviceIdToLastRtspState.set(device.device_id, { lastTry: 0, failureCount: 0 });
+      }
+
+      const state = this.deviceIdToLastRtspState.get(device.device_id);
+      if (
+        (state?.lastTry ?? 0) <=
+        Date.now() - Math.min(IMAGE_LOAD_INTERVAL_MS * (1 + (state?.failureCount ?? 0)), IMAGE_LOAD_MAX_BACKOFF_INTERVAL_MS)
+      ) {
         promises.push(
           this.ffmpegLimit(() =>
             this.readRtspStreamImage(device.cloudSettings, device.device_id)
@@ -111,11 +119,15 @@ class ImageService {
                     data: image,
                   }),
               )
+              .then(() => (state.failureCount = 0))
               .catch(e => {
                 console.log(`Error reading RTSP stream ${device.cloudSettings.rtspStream}:`, e?.message);
+                state.failureCount = (state.failureCount ?? 0) + 1;
                 return Promise.resolve();
               })
-              .finally(() => void this.deviceIdToLastRtspImageTimestamps.set(device.device_id, Date.now())),
+              .finally(() => {
+                state.lastTry = Date.now();
+              }),
           ),
         );
       }
