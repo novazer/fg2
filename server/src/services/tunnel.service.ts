@@ -3,7 +3,7 @@ import { mqttclient } from '../databases/mqttclient';
 import { createServer } from 'node:net';
 import { Mutex, MutexInterface, Semaphore, SemaphoreInterface, withTimeout } from 'async-mutex';
 
-const TUNNEL_CHUNK_SIZE = 512;
+const TUNNEL_CHUNK_SIZE = 128;
 const MAX_PACKET_LENGTH = 1000;
 const PARALLEL_TUNNEL_CONNECTIONS = 1;
 const TUNNEL_SERVER_TIMEOUT_MS = 300_000;
