@@ -6,6 +6,8 @@ import { Mutex, MutexInterface, Semaphore, SemaphoreInterface, withTimeout } fro
 const TUNNEL_CHUNK_SIZE = 512;
 const MAX_PACKET_LENGTH = 1000;
 const PARALLEL_TUNNEL_CONNECTIONS = 1;
+const TUNNEL_SERVER_TIMEOUT_MS = 300_000;
+const TUNNEL_INACTIVITY_TIMEOUT_MS = 30_000;
 
 type TunnelStreamTxData = {
   connection_id: string;
@@ -81,7 +83,7 @@ class TunnelService {
         if (!this.deviceIdToSemaphore.has(device_id)) {
           this.deviceIdToSemaphore.set(
             device_id,
-            withTimeout(new Semaphore(PARALLEL_TUNNEL_CONNECTIONS), 300_000, new Error('Tunnel device mutex timeout')),
+            withTimeout(new Semaphore(PARALLEL_TUNNEL_CONNECTIONS), TUNNEL_SERVER_TIMEOUT_MS, new Error('Tunnel device mutex timeout')),
           );
         }
         if (!this.deviceIdToTunnelConnection.has(device_id)) {
@@ -118,7 +120,7 @@ class TunnelService {
           }
 
           timeoutHandle = setTimeout(() => {
-            if (Date.now() - (connection.lastActivityTime || 0) >= 15000) {
+            if (Date.now() - (connection.lastActivityTime || 0) >= TUNNEL_INACTIVITY_TIMEOUT_MS) {
               client.destroy();
             } else {
               timeoutAfterActivity();
@@ -183,7 +185,7 @@ class TunnelService {
           }
         });
         reject(new Error('Timeout creating tunnel proxy server'));
-      }, 300_000);
+      }, TUNNEL_SERVER_TIMEOUT_MS);
     });
   }
 

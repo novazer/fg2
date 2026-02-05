@@ -36,6 +36,7 @@ export type StatusMessage = {
 
 const MS_IN_A_DAY = 24 * 60 * 60 * 1000;
 
+const READ_IMAGE_CHECK_INTERVAL_MS = 5000;
 const IMAGE_LOAD_INTERVAL_MS = 30000;
 const COMPRESS_INTERVAL_MS = 60 * 60 * 1000;
 
@@ -126,7 +127,7 @@ class ImageService {
 
     setTimeout(() => {
       void this.readFromRtspStreams();
-    }, FFMPEG_THROTTLE_MS);
+    }, READ_IMAGE_CHECK_INTERVAL_MS);
   }
 
   private async compressRtspStreams(): Promise<void> {
