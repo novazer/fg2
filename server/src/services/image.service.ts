@@ -211,7 +211,7 @@ class ImageService {
     }
   }
 
-  private async compressRtspStreamImages(device: Device, images: Omit<Image, 'data'>[], minFrameIntervalMs: number): Promise<Buffer> {
+  private async compressRtspStreamImages(device: Device, images: Omit<Image, 'data'>[], minFrameIntervalMs: number): Promise<Buffer | undefined> {
     const filesWritten = [];
     const tmpDir = await mkdtemp(join(tmpdir(), device.device_id));
     let lastImageTimestamp = 0;
@@ -236,7 +236,7 @@ class ImageService {
         }
       }
 
-      if (filesWritten.length > TIMELAPSE_FRAME_RATE) {
+      if (filesWritten.length >= TIMELAPSE_FRAME_RATE / 2) {
         return await this.convertRtspStreamImagesToVideo(tmpDir);
       }
     } catch (e) {
@@ -271,6 +271,8 @@ class ImageService {
         [
           '-loglevel',
           'error',
+          '-threads',
+          '1',
           '-y',
           ...(cloudSettings.rtspStream.startsWith('rtsp://') ? ['-rtsp_transport', cloudSettings.rtspStreamTransport ?? 'tcp'] : []),
           '-i',
@@ -315,6 +317,8 @@ class ImageService {
         [
           '-loglevel',
           'error',
+          '-threads',
+          '1',
           '-y',
           '-framerate',
           String(TIMELAPSE_FRAME_RATE),
