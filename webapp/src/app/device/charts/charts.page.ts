@@ -103,6 +103,10 @@ export class ChartsPage implements OnInit, OnDestroy {
 
   public deviceLogs: DeviceLog[] = [];
 
+  public filteredLogs: (DeviceLog & { count?: number; })[] = [];
+
+  public filteredLogsSelectionFiltered: boolean = false;
+
   public deviceLogCategories: Set<string> = new Set<string>();
 
   public selectedLogCategory: string = 'all';
@@ -350,6 +354,8 @@ export class ChartsPage implements OnInit, OnDestroy {
     if (this.showLightOffsetControls() && this.showImage && !this.selectedTimespan.imageIntervalMs) {
       this.selectedTimespan = this.getAvailableTimespans()[0];
     }
+
+    this.filterLogs();
   }
 
   public hasEnabledMeasures() {
@@ -460,44 +466,49 @@ export class ChartsPage implements OnInit, OnDestroy {
     );
   }
 
-  getFilteredLogs(ignoreSelection?: boolean): (DeviceLog & { count?: number; })[] {
-    let result: (DeviceLog & { count?: number; })[] = this.deviceLogs.filter(log => {
+  filterLogs() {
+    const getFilteredLogs = (ignoreSelection?: boolean): (DeviceLog & { count?: number; })[] => {
+      let result: (DeviceLog & { count?: number; })[] = this.deviceLogs.filter(log => {
 
-      const anyLogSelected = ignoreSelection ? false : this.selectedLogs.length > 0;
-      const anyCategorySelected = this.selectedLogCategory && this.selectedLogCategory !== 'all'
-      const thisLogSelected = anyLogSelected && this.selectedLogs.find(selectedLog => selectedLog._id === log._id);
-      const thisCategorySelected = anyCategorySelected && log.categories?.includes(this.selectedLogCategory);
+        const anyLogSelected = ignoreSelection ? false : this.selectedLogs.length > 0;
+        const anyCategorySelected = this.selectedLogCategory && this.selectedLogCategory !== 'all'
+        const thisLogSelected = anyLogSelected && this.selectedLogs.find(selectedLog => selectedLog._id === log._id);
+        const thisCategorySelected = anyCategorySelected && log.categories?.includes(this.selectedLogCategory);
 
-      if (thisLogSelected) {
-        return true;
+        if (thisLogSelected) {
+          return true;
+        }
+
+        return !anyLogSelected && (!anyCategorySelected || thisCategorySelected);
+      });
+
+      const originalResult = result;
+      result = [];
+      let count = 0;
+      for (let i = 0; i < originalResult.length; i++) {
+        const thisLog = originalResult[i];
+        const nextLog = i < originalResult.length - 1 ? originalResult[i + 1] : undefined;
+        count++;
+
+        // de-duplicate lines
+        if (thisLog?.title !== nextLog?.title || thisLog?.message !== nextLog?.message || thisLog?.severity !== nextLog?.severity || thisLog?.raw !== nextLog?.raw) {
+          result.push({
+            ...thisLog,
+            count,
+          });
+          count = 0;
+        }
       }
 
-      return !anyLogSelected && (!anyCategorySelected || thisCategorySelected);
-    });
-
-    const originalResult = result;
-    result = [];
-    let count = 0;
-    for (let i = 0; i < originalResult.length; i++) {
-      const thisLog = originalResult[i];
-      const nextLog = i < originalResult.length - 1 ? originalResult[i + 1] : undefined;
-      count++;
-
-      // de-duplicate lines
-      if (thisLog?.title !== nextLog?.title || thisLog?.message !== nextLog?.message || thisLog?.severity !== nextLog?.severity || thisLog?.raw !== nextLog?.raw) {
-        result.push({
-          ...thisLog,
-          count,
-        });
-        count = 0;
+      if (this.autoUpdate) {
+        return result.reverse();
+      } else {
+        return result;
       }
     }
 
-    if (this.autoUpdate) {
-      return result.reverse();
-    } else {
-      return result;
-    }
+    this.filteredLogs = getFilteredLogs();
+    this.filteredLogsSelectionFiltered = this.filteredLogs.length < getFilteredLogs(true).length;
   }
 
   logCategoryChanged() {
