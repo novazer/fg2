@@ -222,6 +222,7 @@ namespace fg {
         if (!tunnel.client.connect(host, port)) {
           return;
         }
+        tunnel.client.setTimeout(50);
         tunnel.openedAt = xTaskGetTickCount();
       }
 
