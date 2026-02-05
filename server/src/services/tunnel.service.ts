@@ -138,7 +138,7 @@ class TunnelService {
         };
 
         client.once('close', () => {
-          if (!this.moduleHasDisconnected(device_id, connectionId, true)) {
+          if (!this.moduleHasDisconnected(device_id, connectionId)) {
             const message: TunnelStreamTxData = {
               connection_id: connectionId,
               disconnected: true,
@@ -226,7 +226,7 @@ class TunnelService {
       while (data.length > 0) {
         if (
           !this.deviceIdToTunnelConnection.get(device_id)?.has(metadata.connection_id) ||
-          this.moduleHasDisconnected(device_id, metadata.connection_id, false)
+          this.moduleHasDisconnected(device_id, metadata.connection_id)
         ) {
           return;
         }
