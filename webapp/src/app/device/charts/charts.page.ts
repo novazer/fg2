@@ -166,6 +166,7 @@ export class ChartsPage implements OnInit, OnDestroy {
                   const timestamps = dataGroup ? [...target.series.xData].splice(dataGroup.start, dataGroup.length) : [category];
                   this.selectedLogs.splice(0, this.selectedLogs.length);
                   this.selectedLogs.push(...this.deviceLogs.filter(log => timestamps.includes(Date.parse(log.time))));
+                  this.filterLogs();
                 }
               },
             }
