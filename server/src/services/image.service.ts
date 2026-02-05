@@ -76,7 +76,7 @@ class ImageService {
     }, 30_000);
     setTimeout(() => {
       void this.compressRtspStreams();
-    }, 300_000);
+    }, 60_000);
   }
 
   public async getDeviceImage(device_id: string, format: string, timestamp?: number, duration?: string): Promise<Image | undefined> {
