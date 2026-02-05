@@ -18,7 +18,7 @@ import imageModel from '@models/images.model';
 import pLimit from 'p-limit';
 import { tmpdir } from 'node:os';
 import { join } from 'path';
-import { mkdtemp, readFile, unlink, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rmdir, unlink, writeFile } from 'node:fs/promises';
 import { Image } from '@interfaces/images.interface';
 import { deviceService } from '@services/device.service';
 import { createServer } from 'node:net';
@@ -202,17 +202,16 @@ class ImageService {
             format: 'mp4',
             duration: targetDuration,
           });
-          endTimestamp -= timeStep;
-        } else {
-          return;
         }
+
+        endTimestamp -= timeStep;
       } else {
         return;
       }
     }
   }
 
-  private async compressRtspStreamImages(device: Device, images: Omit<Image, 'data'>[], minFrameIntervalMs: number): Promise<Buffer | undefined> {
+  private async compressRtspStreamImages(device: Device, images: Omit<Image, 'data'>[], minFrameIntervalMs: number): Promise<Buffer> {
     const filesWritten = [];
     const tmpDir = await mkdtemp(join(tmpdir(), device.device_id));
     let lastImageTimestamp = 0;
@@ -237,12 +236,12 @@ class ImageService {
         }
       }
 
-      if (filesWritten.length > 0) {
+      if (filesWritten.length > TIMELAPSE_FRAME_RATE) {
         return await this.convertRtspStreamImagesToVideo(tmpDir);
       }
     } catch (e) {
       console.log('Error compressing RTSP images for device ' + device.device_id + ':', e);
-
+    } finally {
       for (const file of filesWritten) {
         try {
           await unlink(file);
@@ -251,7 +250,7 @@ class ImageService {
         }
       }
       try {
-        await unlink(tmpDir);
+        await rmdir(tmpDir);
       } catch (e) {
         console.log('Error deleting temp dir ' + tmpDir + ':', e);
       }
