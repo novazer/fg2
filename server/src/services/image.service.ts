@@ -24,16 +24,6 @@ import { deviceService } from '@services/device.service';
 import { createServer } from 'node:net';
 import { tunnelService } from '@services/tunnel.service';
 
-export type StatusMessage = {
-  sensors: {
-    [key: string]: number;
-  };
-  outputs: {
-    [key: string]: number;
-  };
-  timestamp: number;
-};
-
 const MS_IN_A_DAY = 24 * 60 * 60 * 1000;
 
 const READ_IMAGE_CHECK_INTERVAL_MS = 5_000;
@@ -47,24 +37,6 @@ const IMAGE_RETENTION_DAYS = 3 * 365;
 
 const TIMELAPSE_DAY_FRAMEINTERVAL_MS = 2 * 60 * 1000;
 const TIMELAPSE_FRAME_RATE = 25;
-
-type RtspStreamTxData = {
-  connection_id: string;
-  host: string;
-  port: number;
-} & ({ disconnected: true; payload?: string } | { disconnected?: false; payload: string });
-
-type RtspStreamRxData = Pick<RtspStreamTxData, 'connection_id' | 'payload' | 'disconnected'> & {
-  sequence: number;
-};
-
-type RtspConnectionData = {
-  nextSequence: number;
-  lastActivityTime: number;
-  handler: (payload: RtspStreamRxData['payload']) => void;
-  queue: RtspStreamRxData[];
-  handleDisconnect: () => void;
-};
 
 class ImageService {
   private ffmpegLimit = pLimit(10);
@@ -104,7 +76,7 @@ class ImageService {
       const state = this.deviceIdToLastRtspState.get(device.device_id);
       if (
         (state?.lastTry ?? 0) <=
-        Date.now() - Math.min(IMAGE_LOAD_INTERVAL_MS * (1 + (state?.failureCount ?? 0)), IMAGE_LOAD_MAX_BACKOFF_INTERVAL_MS)
+        Date.now() - Math.min(IMAGE_LOAD_INTERVAL_MS * Math.pow(2, state?.failureCount ?? 0), IMAGE_LOAD_MAX_BACKOFF_INTERVAL_MS)
       ) {
         promises.push(
           this.ffmpegLimit(() =>
@@ -119,7 +91,9 @@ class ImageService {
                     data: image,
                   }),
               )
-              .then(() => (state.failureCount = 0))
+              .then(() => {
+                state.failureCount = 0;
+              })
               .catch(e => {
                 console.log(`Error reading RTSP stream ${device.cloudSettings.rtspStream}:`, e?.message);
                 state.failureCount = (state.failureCount ?? 0) + 1;
@@ -178,27 +152,51 @@ class ImageService {
     let endTimestamp = Math.ceil(Date.now() / timeStep) * timeStep;
 
     while (true) {
-      const compressedImage = await imageModel.findOne({
-        device_id: device.device_id,
-        format: 'mp4',
-        timestamp: endTimestamp - timeStep,
-        duration: targetDuration,
-      });
-
-      const images = await imageModel
-        .find({
+      const startTimestamp = endTimestamp - timeStep;
+      const compressedImage = await imageModel
+        .findOne({
           device_id: device.device_id,
-          format: 'jpeg',
-          timestamp: {
-            $lt: endTimestamp,
-            $gte: endTimestamp - timeStep,
-          },
+          format: 'mp4',
+          timestamp: startTimestamp,
+          duration: targetDuration,
         })
-        .sort({ timestamp: 1 })
-        .select({ image_id: 1, timestamp: 1 });
+        .select({ image_id: 1, timestampEnd: 1 });
 
-      if (images && (!compressedImage || compressedImage.timestampEnd < images[images.length - 1]?.timestamp)) {
-        const video = await this.compressRtspStreamImages(device, images, minFrameIntervalMs);
+      const getImages = (beforeTimestamp: number, limit: number) =>
+        imageModel
+          .find({
+            device_id: device.device_id,
+            format: 'jpeg',
+            timestamp: {
+              $lt: beforeTimestamp,
+              $gte: startTimestamp,
+            },
+          })
+          .sort({ timestamp: -1 })
+          .select({ image_id: 1, timestamp: 1 })
+          .limit(limit);
+
+      const newestImage = (await getImages(endTimestamp, 1))?.[0];
+
+      if (newestImage && (!compressedImage || compressedImage.timestampEnd < newestImage?.timestamp)) {
+        const images = newestImage ? [newestImage] : [];
+
+        let imagesAdded = true;
+        while (imagesAdded) {
+          imagesAdded = false;
+          const moreImages = await getImages(images.length > 0 ? images[0].timestamp : endTimestamp, 500);
+
+          for (const image of moreImages) {
+            if (images.length > 0 && images[0].timestamp - image.timestamp < minFrameIntervalMs) {
+              continue;
+            }
+
+            imagesAdded = true;
+            images.unshift(image);
+          }
+        }
+
+        const video = await this.compressRtspStreamImages(device, images);
 
         if (video) {
           if (compressedImage) {
@@ -208,7 +206,7 @@ class ImageService {
           await imageModel.create({
             image_id: uuidv4(),
             device_id: device.device_id,
-            timestamp: endTimestamp - timeStep,
+            timestamp: startTimestamp,
             timestampEnd: images[images.length - 1]?.timestamp,
             data: video,
             format: 'mp4',
@@ -223,18 +221,13 @@ class ImageService {
     }
   }
 
-  private async compressRtspStreamImages(device: Device, images: Omit<Image, 'data'>[], minFrameIntervalMs: number): Promise<Buffer | undefined> {
+  private async compressRtspStreamImages(device: Device, images: Omit<Image, 'data'>[]): Promise<Buffer | undefined> {
     const filesWritten = [];
     const tmpDir = await mkdtemp(join(tmpdir(), device.device_id));
-    let lastImageTimestamp = 0;
 
     try {
       let sequenceNumber = 1;
       for (const image of images) {
-        if (image.timestamp - lastImageTimestamp < minFrameIntervalMs) {
-          continue;
-        }
-
         const imageData = await imageModel.findOne({
           image_id: image.image_id,
           format: 'jpeg',
@@ -244,7 +237,6 @@ class ImageService {
           const filename = `${tmpDir}/${sequenceNumber++}.jpeg`;
           filesWritten.push(filename);
           await writeFile(filename, imageData.data);
-          lastImageTimestamp = image.timestamp;
         }
       }
 
