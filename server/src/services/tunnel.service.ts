@@ -11,9 +11,7 @@ const TUNNEL_INACTIVITY_TIMEOUT_MS = 30_000;
 
 type TunnelStreamTxData = {
   connection_id: string;
-  host: string;
-  port: number;
-} & ({ disconnected: true; payload?: string } | { disconnected?: false; payload: string });
+} & ({ disconnected: true; payload?: string; host?: string; port?: number } | { disconnected?: false; payload: string; host: string; port: number });
 
 type TunnelStreamRxData = Pick<TunnelStreamTxData, 'connection_id' | 'payload' | 'disconnected'> & {
   sequence: number;
@@ -39,6 +37,13 @@ class TunnelService {
 
       const connection = this.deviceIdToTunnelConnection.get(device_id)?.get(parsed.connection_id);
       if (!connection) {
+        if (!parsed.disconnected) {
+          const message: TunnelStreamTxData = {
+            connection_id: parsed.connection_id,
+            disconnected: true,
+          };
+          mqttclient.publish('/devices/' + device_id + '/tunnel_write', JSON.stringify(message));
+        }
         return;
       }
 
@@ -212,7 +217,7 @@ class TunnelService {
 
   private onClientDataReceived(
     device_id: string,
-    metadata: Pick<TunnelStreamTxData, 'connection_id' | 'host' | 'port'>,
+    metadata: Pick<Required<TunnelStreamTxData>, 'connection_id' | 'host' | 'port'>,
     data: Buffer,
   ): Promise<void> {
     data = Buffer.from(data);
