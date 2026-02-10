@@ -44,6 +44,7 @@ export class ChartsPage implements OnInit, OnDestroy {
     { name: '1d', durationValue: 24, durationUnit: 'h', defaultInterval:'20s', highlight: true, imageIntervalMs: 86400000 },
     { name: '3d', durationValue: 3, durationUnit: 'd', defaultInterval:'1m', highlight: true },
     { name: '1w', durationValue: 7, durationUnit: 'd', defaultInterval:'15m', highlight: true, imageIntervalMs: 7 * 86400000 },
+    { name: '2w', durationValue: 14, durationUnit: 'd', defaultInterval:'30m' },
     { name: '1m', durationValue: 30, durationUnit: 'd', defaultInterval:'1h', highlight: true, imageIntervalMs: 30 * 86400000 },
     { name: '3m', durationValue: 90, durationUnit: 'd', defaultInterval:'4h' },
     { name: '6m', durationValue: 180, durationUnit: 'd', defaultInterval:'1d' },
