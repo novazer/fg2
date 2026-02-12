@@ -1,5 +1,5 @@
 import {Component, ElementRef, Input, OnDestroy, OnInit, Renderer2, ViewChild} from '@angular/core';
-import {ActivatedRoute} from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import {AlertController, IonModal, ToastController} from '@ionic/angular';
 import {combineLatest} from 'rxjs';
 import {DataService} from 'src/app/services/data.service';
@@ -60,7 +60,7 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
 
   public deviceImageUrl: string | undefined = '';
 
-  constructor(private devices: DeviceService, public data: DataService, private route: ActivatedRoute, private renderer: Renderer2, private alertController: AlertController, private toastController: ToastController) { }
+  constructor(private devices: DeviceService, public data: DataService, private route: ActivatedRoute, private router: Router, private renderer: Renderer2, private alertController: AlertController, private toastController: ToastController) { }
 
   editName() {
     this.editingName = true;
@@ -354,5 +354,9 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
       ]
     });
     await alert.present();
+  }
+
+  measureSelected(measure:string) {
+    return this.router.navigate(['device', this.device_id, 'charts'], { queryParams: { measures: measure } });
   }
 }

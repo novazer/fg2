@@ -4,7 +4,7 @@ import { ChartConfiguration, ChartEvent, ChartType } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
 import { firstValueFrom } from 'rxjs';
 import 'chartjs-adapter-luxon';
-import { ActivatedRoute } from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import { environment } from 'src/environments/environment';
 import { DataService } from 'src/app/services/data.service';
 import * as Highcharts from 'highcharts/highstock';
@@ -127,7 +127,7 @@ export class ChartsPage implements OnInit, OnDestroy {
 
   public selectedLogs: DeviceLog[] = [];
 
-  constructor(private route: ActivatedRoute, private data: DataService, private devices: DeviceService) {
+  constructor(private route: ActivatedRoute, private router: Router, private data: DataService, private devices: DeviceService) {
     this.chartOptions = {
       chart: {
         animation: true,
@@ -193,6 +193,31 @@ export class ChartsPage implements OnInit, OnDestroy {
 
   ngOnInit(){
     this.device_id = this.route.snapshot.paramMap.get('device_id') || '';
+    if (this.route.snapshot.queryParams?.['measures']) {
+      const selectedMeasures = String(this.route.snapshot.queryParams['measures']).split(',');
+      this.measures.forEach(measure => measure.enabled = selectedMeasures.includes(measure.name));
+      this.showImage = selectedMeasures.includes('image');
+      this.showLogs = selectedMeasures.includes('logs');
+    }
+    if (this.route.snapshot.queryParams?.['offset']) {
+      this.offset = parseInt(this.route.snapshot.queryParams['offset']);
+    }
+    if (this.route.snapshot.queryParams?.['vpdMode']) {
+      this.vpdMode = this.route.snapshot.queryParams['vpdMode'] as 'all' | 'day' | 'night';
+    }
+    if (this.route.snapshot.queryParams?.['autoUpdate']) {
+      this.autoUpdate = this.route.snapshot.queryParams['autoUpdate'] === 'true';
+    }
+    if (this.route.snapshot.queryParams?.['useCustom']) {
+      this.useCustom = this.route.snapshot.queryParams['useCustom'] === 'true';
+    }
+    if (this.route.snapshot.queryParams?.['timespan']) {
+      this.selectedTimespan = this.timespans.find(ts => ts.name === this.route.snapshot.queryParams['timespan'])!;
+      this.selectedInterval = this.selectedTimespan.defaultInterval;
+    }
+    if (this.route.snapshot.queryParams?.['interval']) {
+      this.selectedInterval = this.route.snapshot.queryParams['interval'];
+    }
     this.devices.devices.subscribe((devices) => {
       const device = devices.find((device) => device.device_id == this.device_id);
       this.device_type = device?.device_type || '';
@@ -358,6 +383,21 @@ export class ChartsPage implements OnInit, OnDestroy {
     }
 
     this.filterLogs();
+
+    const queryParams = {
+      measures: [
+        ...this.filtered_measures.filter(m => m.enabled).map(m => m.name),
+        ...(this.showImage ? ['image'] : []),
+        ...(this.showLogs ? ['logs'] : []),
+      ].join(','),
+      offset: this.offset?.toString() ?? '',
+      vpdMode: this.vpdMode ?? '',
+      autoUpdate: this.autoUpdate?.toString() ?? '',
+      useCustom: this.useCustom?.toString() ?? '',
+      timespan: this.selectedTimespan?.name ?? '',
+      interval: this.selectedInterval ?? '',
+    };
+    await this.router.navigate(['device', this.device_id, 'charts'], { queryParams, replaceUrl: true });
   }
 
   public hasEnabledMeasures() {

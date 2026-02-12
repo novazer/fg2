@@ -79,6 +79,8 @@
   <ion-row class="ion-justify-content-center">
     <ion-col size="6" size-sm="3" size-xl="2">
       <value-display
+        style="cursor: pointer;"
+        (click)="measureSelected('temperature')"
         name="Temperature"
         icon="temperature_neutral"
         unit="°C"
@@ -93,6 +95,8 @@
     </ion-col>
     <ion-col size="6" size-sm="3" size-xl="2">
       <value-display
+        style="cursor: pointer;"
+        (click)="measureSelected('humidity')"
         name="humidity"
         icon="humidity_neutral"
         unit="%"
@@ -109,6 +113,8 @@
   <ion-row> -->
     <ion-col size="6" size-sm="3" size-xl="2">
       <value-display
+        style="cursor: pointer;"
+        (click)="measureSelected('vpd')"
         name="VPD"
         icon="vpd_neutral"
         unit="kPa"
@@ -122,6 +128,8 @@
     </ion-col>
     <ion-col size="6" size-sm="3" size-xl="2">
       <value-display
+        style="cursor: pointer;"
+        (click)="measureSelected('co2')"
         name="CO2"
         icon="co2_neutral"
         unit="PPM"
@@ -135,12 +143,22 @@
       ></value-display>
     </ion-col>
     <ion-col *ngIf="deviceImageUrl">
-      <img [src]="deviceImageUrl" fill="fill" alt="Device Image" style="width: 100%"/>
+      <img
+        [src]="deviceImageUrl"
+        (click)="measureSelected('image')"
+        fill="fill"
+        alt="Device Image"
+        style="width: 100%; cursor: pointer;" />
     </ion-col>
   </ion-row>
   <ion-row class="ion-justify-content-center">
     <ion-col size="6" size-sm="2" size-xl="1">
-      <div class="onoff heating" [class.on]="(data.measure(device_id, 'out_heater') | async) ?? 0 >= 0.5">
+      <div
+        class="onoff heating"
+        [class.on]="(data.measure(device_id, 'out_heater') | async) ?? 0 >= 0.5"
+        style="cursor: pointer;"
+        (click)="measureSelected('out_heater')"
+      >
         <img class="icon-on" src="assets/icon/heating.svg" />
         <img class="icon-off" src="assets/icon/heating_off.svg" />
         <!-- <div class="name">{{'outputs.heating' | translate}}</div> -->
@@ -148,7 +166,12 @@
       </div>
     </ion-col>
     <ion-col size="6" size-sm="2" size-xl="1">
-      <div class="onoff cooling" [class.on]="(data.measure(device_id, 'out_dehumidifier') | async) != 0">
+      <div
+        class="onoff cooling"
+        [class.on]="(data.measure(device_id, 'out_dehumidifier') | async) != 0"
+        style="cursor: pointer;"
+        (click)="measureSelected('out_dehumidifier')"
+      >
         <img class="icon-on" src="assets/icon/dehumidify.svg" />
         <img class="icon-off" src="assets/icon/dehumidify_off.svg" />
         <!-- <div class="name">{{'outputs.dehumidify' | translate}}</div> -->
@@ -156,7 +179,12 @@
       </div>
     </ion-col>
     <ion-col size="6" size-sm="2" size-xl="1">
-      <div class="onoff co2" [class.on]="(data.measure(device_id, 'out_co2') | async) != 0">
+      <div
+        class="onoff co2"
+        [class.on]="(data.measure(device_id, 'out_co2') | async) != 0"
+        style="cursor: pointer;"
+        (click)="measureSelected('out_co2')"
+      >
         <img class="icon-on" src="assets/icon/co2_valve.svg" />
         <img class="icon-off" src="assets/icon/co2_valve_off.svg" />
         <!-- <div class="name">{{'outputs.co2' | translate}}</div> -->
@@ -164,7 +192,12 @@
       </div>
     </ion-col>
     <ion-col size="6" size-sm="2" size-xl="1">
-      <div class="onoff lights" [class.on]="(data.measure(device_id, 'out_light') | async) ?? 0 >= 0.5">
+      <div
+        class="onoff lights"
+        [class.on]="(data.measure(device_id, 'out_light') | async) ?? 0 >= 0.5"
+        style="cursor: pointer;"
+        (click)="measureSelected('out_light')"
+      >
         <img class="icon-on" src="assets/icon/light.svg" />
         <img class="icon-off" src="assets/icon/light_off.svg" />
         <!-- <div class="name">{{'outputs.lights' | translate}}</div> -->
