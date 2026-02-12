@@ -56,7 +56,7 @@
     "internalfan": "Interne lüfter (Minimalgeschwindigkeit)",
     "maxDehumidifySeconds": "Max. Kühlschrank AN Sekunden",
     "targetHumidityDiff": "Ziel RLF Differenz",
-    "useLongHumidityAvg": "Lange RLF Durchschnittswerte verwenden",
+    "useLongHumidityAvg": "Lange RLF Durchschnittswerte verwenden (240 statt 100 Werte)",
     "use-daynight": "Tag/Nacht Zyklus verwenden",
     "timer": "Timer",
     "timer-ontime": "Einschaltzeitpunkt",

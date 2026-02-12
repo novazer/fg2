@@ -56,7 +56,7 @@
     "internalfan": "Internal fans (minimum)",
     "maxDehumidifySeconds": "Max. dehumidifier ON seconds",
     "targetHumidityDiff": "Target humidity difference",
-    "useLongHumidityAvg": "Use long humidity average",
+    "useLongHumidityAvg": "Use long humidity average (240 instead of 100 values)",
     "use-daynight": "Use Day/Night Cycle",
     "timer": "Timer",
     "timer-ontime": "Turn-ON Time",
