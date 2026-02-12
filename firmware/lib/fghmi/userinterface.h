@@ -75,6 +75,7 @@ namespace fg {
     void next() { current_action = UiAction::NEXT; }
     void enter() { current_action = UiAction::ENTER; }
     void hold() { current_action = UiAction::HOLD; }
+    bool isIdle() const { return idle_ticks >= MAX_IDLE_TICKS; }
   };
 
   void printCentered(const char* text, uint8_t y);

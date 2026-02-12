@@ -517,7 +517,11 @@ namespace fg {
 
 
   void Fridgecloud::handleTunnelCloses() {
-      for (int i = 0; i < Fridgecloud::TUNNEL_COUNT; ++i) {
+    if (!ui.isIdle()) {
+      return;
+    }
+
+    for (int i = 0; i < Fridgecloud::TUNNEL_COUNT; ++i) {
         auto &t = tunnels[i];
         if (!t.client.connected() && t.openedAt > 0) {
           t.openedAt = 0;
@@ -531,10 +535,14 @@ namespace fg {
 
           client->publish(topic_tunnel_read.c_str(), stream.str().c_str());
         }
-      }
+    }
   }
 
   void Fridgecloud::handleTunnelReads() {
+    if (!ui.isIdle()) {
+      return;
+    }
+
     int packetCount = 0;
     for (int i = 0; i < Fridgecloud::TUNNEL_COUNT; ++i) {
         auto &t = tunnels[i];
