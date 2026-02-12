@@ -264,15 +264,18 @@ namespace fg {
   }
 
   void FridgeController::controlDehumidifier() {
-    humidity_avg.push(state.humidity);
+    humidity_avg_short.push(state.humidity);
+    humidity_avg_long.push(state.humidity);
 
     float target_humidity = state.is_day ? settings.day.humidity : settings.night.humidity;
     float target_temperature = state.is_day ? settings.day.temperature : settings.night.temperature;
     float temp_limit = target_temperature - 1;
+    float humidity_avg = settings.daynight.useLongHumidityAvg > 0 ? humidity_avg_long.avg() : humidity_avg_short.avg();
 
     static uint8_t dehumidify = 0;
     static uint8_t temperature_override = 1;
     static uint32_t turn_off_time = 0;
+	static uint32_t dehumidify_start_time = 0;
 
     if(state.temperature < temp_limit) {
       temperature_override = 0;
@@ -282,14 +285,16 @@ namespace fg {
     }
 
     if(dehumidify) {
-      if(humidity_avg.avg() < target_humidity) {
+      if((humidity_avg < target_humidity) || (settings.daynight.maxDehumidifySeconds > 0 && (state.timeofday - dehumidify_start_time) > settings.daynight.maxDehumidifySeconds)) {
         dehumidify = 0;
       }
     }
     else {
-      if(state.humidity > (target_humidity + 5.0)) {
+      if(state.humidity > (target_humidity + settings.daynight.targetHumidityDiff)) {
         dehumidify = 1;
-        humidity_avg.clear();
+		dehumidify_start_time = state.timeofday;
+		humidity_avg_short.clear();
+		humidity_avg_long.clear();
       }
     }
 
@@ -307,7 +312,7 @@ namespace fg {
       }
       state.out_dehumidifier = 0;
     }
-
+	
     if(state.out_dehumidifier) {
       out_dehumidifier.set(1);
       out_fan_backwall.set(fridge_on_fanspeed);
@@ -316,8 +321,7 @@ namespace fg {
       out_dehumidifier.set(0);
       out_fan_backwall.set(fridge_off_fanspeed);
     }
-  }
-
+ }
 
   void FridgeController::controlCooling() {
 
@@ -437,6 +441,9 @@ namespace fg {
       loadIfAvaliable(new_settings.workmode, doc["workmode"]);
       loadIfAvaliable(new_settings.daynight.day, doc["daynight"]["day"]);
       loadIfAvaliable(new_settings.daynight.night, doc["daynight"]["night"]);
+      loadIfAvaliable(new_settings.daynight.maxDehumidifySeconds, doc["daynight"]["maxDehumidifySeconds"]);
+      loadIfAvaliable(new_settings.daynight.targetHumidityDiff, doc["daynight"]["targetHumidityDiff"]);
+      loadIfAvaliable(new_settings.daynight.useLongHumidityAvg, doc["daynight"]["useLongHumidityAvg"]);
       loadIfAvaliable(new_settings.co2.target, doc["co2"]["target"]);
       loadIfAvaliable(new_settings.co2.sunsetOff, doc["co2"]["sunsetOff"]);
       loadIfAvaliable(new_settings.day.temperature, doc["day"]["temperature"]);
@@ -455,6 +462,9 @@ namespace fg {
     Serial.printf("new_settings.workmode: %s\n\r", new_settings.workmode);
     Serial.printf("new_settings.daynight.day: %lu\n\r", new_settings.daynight.day);
     Serial.printf("new_settings.daynight.night: %lu\n\r", new_settings.daynight.night);
+    Serial.printf("new_settings.daynight.maxDehumidifySeconds: %lu\n\r", new_settings.daynight.maxDehumidifySeconds);
+    Serial.printf("new_settings.daynight.targetHumidityDiff: %f\n\r", new_settings.daynight.targetHumidityDiff);
+    Serial.printf("new_settings.daynight.useLongHumidityAvg: %f\n\r", new_settings.daynight.useLongHumidityAvg);
     Serial.printf("new_settings.co2.target: %.0f\n\r", new_settings.co2.target);
     Serial.printf("new_settings.co2.sunsetOff: %.0f\n\r", new_settings.co2.sunsetOff);
     Serial.printf("new_settings.day.temperature: %.2f\n\r", new_settings.day.temperature);
@@ -478,6 +488,9 @@ namespace fg {
     doc["workmode"] = settings.workmode;
     doc["daynight"]["day"] = settings.daynight.day;
     doc["daynight"]["night"] = settings.daynight.night;
+    doc["daynight"]["maxDehumidifySeconds"] = settings.daynight.maxDehumidifySeconds;
+    doc["daynight"]["targetHumidityDiff"] = settings.daynight.targetHumidityDiff;
+    doc["daynight"]["useLongHumidityAvg"] = settings.daynight.useLongHumidityAvg;
     doc["co2"]["target"] = settings.co2.target;
     doc["co2"]["sunsetOff"] = settings.co2.sunsetOff;
     doc["day"]["temperature"] = settings.day.temperature;

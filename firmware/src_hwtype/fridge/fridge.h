@@ -27,6 +27,9 @@ namespace fg {
     struct {
       uint32_t day = 21600;
       uint32_t night = 79200;
+      float maxDehumidifySeconds = 0;
+      float targetHumidityDiff = 5.0;
+      float useLongHumidityAvg = 1.0;
     } daynight;
 
     struct {
@@ -141,7 +144,8 @@ namespace fg {
 
     TickType_t directmode_timer = 0;
 
-    Avg<100> humidity_avg;
+    Avg<100> humidity_avg_short;
+    Avg<240> humidity_avg_long;
     Avg<20> co2_avg;
     Avg<10> heater_avg;
 

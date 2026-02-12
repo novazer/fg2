@@ -46,6 +46,8 @@ export class FridgeSettingsConfigurationComponent implements OnChanges {
   public daybreakEditMode:boolean = false;
   public floatingDayDurationEditMode:boolean = false;
   public floatingLightDurationEditMode:boolean = false;
+  public maxDehumidifySecondsEditMode:boolean = false;
+  public targetHumidityDiffEditMode:boolean = false;
 
   public changeWorkmode() {
     switch(this.settings.workmode) {
@@ -121,6 +123,9 @@ export class FridgeSettingsConfigurationComponent implements OnChanges {
         "float_start": this.secondsToTimeString(device_settings?.daynight?.float_start || Math.floor((new Date()).getTime() / 3600000) * 3600, true),
         "day_duration": device_settings?.daynight?.day_duration / 3600 || 24,
         "light_duration": device_settings?.daynight?.light_duration / 3600 || 12,
+        "maxDehumidifySeconds": device_settings?.daynight?.maxDehumidifySeconds ?? 0,
+        "targetHumidityDiff": device_settings?.daynight?.targetHumidityDiff ?? 5,
+        "useLongHumidityAvg": device_settings?.daynight?.useLongHumidityAvg || false,
       },
       "day": {
         "humidity": device_settings?.day?.humidity ?? 60,
@@ -167,6 +172,9 @@ export class FridgeSettingsConfigurationComponent implements OnChanges {
         float_start: this.dateTimeStringToSeconds(this.settings.daynight.float_start),
         day_duration: this.settings.daynight.day_duration * 3600,
         light_duration: this.settings.daynight.light_duration * 3600,
+        maxDehumidifySeconds: this.settings.daynight.maxDehumidifySeconds,
+        targetHumidityDiff: this.settings.daynight.targetHumidityDiff,
+        useLongHumidityAvg: this.settings.daynight.useLongHumidityAvg,
       },
 
       co2: {
