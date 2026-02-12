@@ -239,7 +239,7 @@
       <ion-item>
         <ion-label>{{'settings.targetHumidityDiff' | translate}}</ion-label>
         <ion-button size="small" fill="clear" [hidden]="targetHumidityDiffEditMode" (click)="targetHumidityDiffEditMode = true">{{'settings.edit-value' | translate}}</ion-button>
-        <ion-item lines="none">{{settings.daynight.targetHumidityDiff}} %</ion-item>
+        <ion-item lines="none">{{(settings.daynight.targetHumidityDiff > 0 ? '+' : '') + settings.daynight.targetHumidityDiff}} %</ion-item>
       </ion-item>
       <ion-item [hidden]="!targetHumidityDiffEditMode">
         <ion-button size="small" fill="clear" (click)="settings.daynight.targetHumidityDiff = settings.daynight.targetHumidityDiff - 1" [disabled]="settings.daynight.targetHumidityDiff <= -10"><ion-icon name="remove-circle"></ion-icon></ion-button>
