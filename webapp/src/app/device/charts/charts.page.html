@@ -196,7 +196,7 @@
               </ion-row>
               <ion-row *ngIf="selectedLogs.length > 0 && filteredLogsSelectionFiltered">
                 <ion-col>
-                  <ion-button expand="block" color="primary" (click)="selectedLogs.splice(0, selectedLogs.length)">{{'charts.logsShowAll' | translate}}</ion-button>
+                  <ion-button expand="block" color="primary" (click)="selectedLogs.splice(0, selectedLogs.length); this.filterLogs()">{{'charts.logsShowAll' | translate}}</ion-button>
                 </ion-col>
               </ion-row>
             </ion-label>
