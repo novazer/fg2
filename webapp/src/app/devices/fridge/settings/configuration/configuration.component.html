@@ -225,7 +225,7 @@
       </ion-item>
     </ng-container>
 
-    <ng-container *ngIf="cloudSettings?.betaFeatures && settings.workmode !== 'off'">
+    <ng-container *ngIf="cloudSettings?.betaFeatures && has_humidity">
       <ion-item>
         <ion-label>{{'settings.maxDehumidifySeconds' | translate}}</ion-label>
         <ion-button size="small" fill="clear" [hidden]="maxDehumidifySecondsEditMode" (click)="maxDehumidifySecondsEditMode = true">{{'settings.edit-value' | translate}}</ion-button>
@@ -236,8 +236,6 @@
         <ion-range [(ngModel)]="settings.daynight.maxDehumidifySeconds" min="0" max="7200" step="10" (ionChange)="onSettingsChanged()"></ion-range>
         <ion-button size="small" fill="clear" (click)="settings.daynight.maxDehumidifySeconds = settings.daynight.maxDehumidifySeconds + 10" [disabled]="settings.daynight.maxDehumidifySeconds >= 1200"><ion-icon name="add-circle"></ion-icon></ion-button>
       </ion-item>
-    </ng-container>
-    <ng-container *ngIf="cloudSettings?.betaFeatures && has_humidity">
       <ion-item>
         <ion-label>{{'settings.targetHumidityDiff' | translate}}</ion-label>
         <ion-button size="small" fill="clear" [hidden]="targetHumidityDiffEditMode" (click)="targetHumidityDiffEditMode = true">{{'settings.edit-value' | translate}}</ion-button>
@@ -248,11 +246,11 @@
         <ion-range [(ngModel)]="settings.daynight.targetHumidityDiff" min="-10" max="10" step="1" (ionChange)="onSettingsChanged()"></ion-range>
         <ion-button size="small" fill="clear" (click)="settings.daynight.targetHumidityDiff = settings.daynight.targetHumidityDiff + 1" [disabled]="settings.daynight.targetHumidityDiff >= 10"><ion-icon name="add-circle"></ion-icon></ion-button>
       </ion-item>
+      <ion-item>
+        <ion-label>{{'settings.useLongHumidityAvg' | translate}}</ion-label>
+        <ion-checkbox [(ngModel)]="settings.daynight.useLongHumidityAvg" (ionChange)="onSettingsChanged()">{{'settings.useLongHumidityAvg' | translate}}</ion-checkbox>
+      </ion-item>
     </ng-container>
-    <ion-item *ngIf="cloudSettings?.betaFeatures && has_humidity">
-      <ion-label>{{'settings.useLongHumidityAvg' | translate}}</ion-label>
-      <ion-checkbox [(ngModel)]="settings.daynight.useLongHumidityAvg" (ionChange)="onSettingsChanged()">{{'settings.useLongHumidityAvg' | translate}}</ion-checkbox>
-    </ion-item>
 
   </ion-card-content>
 </ion-card>
