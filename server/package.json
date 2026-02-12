@@ -41,6 +41,7 @@
     "nodemailer": "^6.9.3",
     "swagger-jsdoc": "^6.0.0",
     "swagger-ui-express": "^4.1.6",
+    "uuid": "^13.0.0",
     "winston": "^3.3.3",
     "winston-daily-rotate-file": "^4.5.5"
   },
