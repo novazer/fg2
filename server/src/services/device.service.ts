@@ -671,6 +671,7 @@ class DeviceService {
     device.cloudSettings = settings;
 
     await deviceModel.updateOne({ device_id: device_id }, { cloudSettings: settings, firmwareSettings: {} });
+    imageService.reportDeviceConfigured(device_id);
   }
 
   public async setDeviceName(device_id: string, user_id: string, name: string) {

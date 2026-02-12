@@ -116,6 +116,14 @@ class ImageService {
     }, READ_IMAGE_CHECK_INTERVAL_MS);
   }
 
+  public reportDeviceConfigured(device_id: string): void {
+    const state = this.deviceIdToLastRtspState.get(device_id);
+    if (state) {
+      state.lastTry = 0;
+      state.failureCount = 0;
+    }
+  }
+
   private async compressRtspStreams(): Promise<void> {
     try {
       const devices = await deviceModel.find({ 'cloudSettings.rtspStream': { $exists: true, $ne: '' } });
