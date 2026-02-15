@@ -95,7 +95,7 @@ class ImageService {
                 state.failureCount = 0;
               })
               .catch(e => {
-                console.log(`Error reading RTSP stream ${device.cloudSettings.rtspStream}:`, e?.message);
+                console.log(`Error reading RTSP stream ${device.cloudSettings.rtspStream} for device ${device.device_id}:`, e?.message);
                 state.failureCount = (state.failureCount ?? 0) + 1;
                 return Promise.resolve();
               })

@@ -494,11 +494,7 @@ class DeviceService {
 
     serial = serial + 1;
 
-    console.log(serial);
-
     const device_class = await deviceClassModel.findOne({ name: info.device_type });
-
-    console.log(device_class);
 
     const device: Device = {
       device_id: info.device_id,
