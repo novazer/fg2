@@ -897,11 +897,11 @@ namespace fg {
     status["outputs"]["heater"] = state.out_heater;
     status["outputs"]["light"] = state.out_light;
 
-    if(cloud.directMode()) {
+//    if(cloud.directMode()) {
       status["outputs"]["fan-internal"] = out_fan_internal.get() / 255.0f;
       status["outputs"]["fan-external"] = out_fan_external.get() / 255.0f;
       status["outputs"]["fan-backwall"] = out_fan_backwall.get() / 255.0f;
-    }
+//    }
 
     cloud.updateStatus(status);
 
