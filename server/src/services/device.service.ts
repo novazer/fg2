@@ -13,6 +13,7 @@ import {ENABLE_SELF_REGISTRATION, SELF_REGISTRATION_PASSWORD, SMTP_SENDER} from 
 import { alarmService } from '@services/alarm.service';
 import * as console from 'node:console';
 import {mailTransport} from "@services/auth.service";
+import {isNumeric} from "influx/lib/src/grammar";
 
 export type StatusMessage = {
   sensors: {
@@ -31,6 +32,8 @@ const devicesInstructed: string[] = [];
 let devicesInstructedTime = 0;
 const FRIDGE_FIRMWARE_ID = 'a51f4171-d984-4086-ae15-89455e2f71a4';
 const FAN_FIRMWARE_ID = 'cb5aa07e-f9ca-45bd-beb9-ccef26844f19';
+const PLUG_FIRMWARE_ID = '3e6ffc7d-e476-40fc-904f-e7f4a8f32d7c';
+const LIGHT_FIRMWARE_ID = '5b6504ca-94a2-4f31-90b4-7ca270c7310f';
 const ALLOWED_FIRMWARES = {
   '52d3335d-c623-4d4f-ade5-931e853ede93': FRIDGE_FIRMWARE_ID,
   'dbc5e840-45eb-444b-8c7d-5f152f657981': FRIDGE_FIRMWARE_ID,
@@ -99,6 +102,7 @@ class DeviceService {
       mqttclient.messages.subscribe(async message => {
         const device_id = message.topic.split('/')[2];
         const topic = message.topic.split('/')[3];
+        let newFirmware = undefined;
 
         switch (topic) {
           case 'fetch':
@@ -135,6 +139,25 @@ class DeviceService {
           case 'firmware':
             console.log('message from ' + device_id + ' on ' + topic + ':', String(message.message));
           case 'bulk':
+          case 'status':
+            let parsedMessage3: any = { content: message.message };
+            try {
+              parsedMessage3 = JSON.parse(message.message);
+            } catch(e) {}
+
+            if (isNumeric(parsedMessage3?.outputs?.dehumidifier) && isNumeric(parsedMessage3?.outputs?.heater)) {
+              newFirmware = FRIDGE_FIRMWARE_ID;
+            } else if (isNumeric(parsedMessage3?.sensors?.rpm) && isNumeric(parsedMessage3?.outputs?.fan)) {
+              newFirmware = FAN_FIRMWARE_ID;
+            } else if (isNumeric(parsedMessage3?.outputs?.lights)) {
+              newFirmware = LIGHT_FIRMWARE_ID;
+            } else if (isNumeric(parsedMessage3?.outputs?.relais)) {
+              newFirmware = PLUG_FIRMWARE_ID;
+            }
+
+            if (newFirmware) {
+              break;
+            }
             return;
           default:
             console.log('UNKNOWN MQTT TOPIC!', topic, String(message.message));
@@ -147,9 +170,9 @@ class DeviceService {
             parsedMessage2 = JSON.parse(message.message);
           } catch(e) {}
           console.log(`Device ${device_id} connected with firmware ${parsedMessage2.firmware_id}`);
-          const newFirmwareId = ALLOWED_FIRMWARES[parsedMessage2.firmware_id];
+          newFirmware ??= ALLOWED_FIRMWARES[parsedMessage2.firmware_id];
           setTimeout(() => {
-            mqttclient.publish('/devices/' + device_id + '/firmware', newFirmwareId);
+            mqttclient.publish('/devices/' + device_id + '/firmware', newFirmware);
           }, 5000);
           devicesInstructed.push(device_id);
 
@@ -157,8 +180,8 @@ class DeviceService {
             mqttclient.publish(
               '/devices/' + device_id + '/fwupdate',
               JSON.stringify({
-                version: newFirmwareId,
-                url: `https://fg2.novazer.com/api/device/firmware/${newFirmwareId}/firmware.bin`,
+                version: newFirmware,
+                url: `https://fg2.novazer.com/api/device/firmware/${newFirmware}/firmware.bin`,
               }),
             );
           }, 10000);
@@ -167,7 +190,7 @@ class DeviceService {
                   from: SMTP_SENDER,
                   to: SMTP_SENDER,
                   subject: '[FG2] Instructed device',
-                  text: parsedMessage2.firmware_id + ' on device ' + device_id + '\n\n' + JSON.stringify(message.message),
+                  text: parsedMessage2.firmware_id + ' on device ' + device_id + `\nnew firmware: ${newFirmware}\n\n` + JSON.stringify(message.message),
                 });
         }
 
