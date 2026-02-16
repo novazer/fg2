@@ -134,7 +134,7 @@ class DeviceService {
             try {
               parsedMessage = JSON.parse(message.message);
             } catch(e) {}
-            console.log('parsedMessage from ' + device_id + ' on ' + topic + ':', parsedMessage);
+            console.log('parsedMessage from ' + device_id + ' on ' + topic + ':', parsedMessage instanceof Buffer ? parsedMessage.toString() : parsedMessage);
             return;
           case 'firmware':
             console.log('message from ' + device_id + ' on ' + topic + ':', String(message.message));
