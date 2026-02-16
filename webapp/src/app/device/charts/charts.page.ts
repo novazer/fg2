@@ -70,10 +70,12 @@ export class ChartsPage implements OnInit, OnDestroy {
     // { title: 'D', icon: 'heating', color: '#f00', name: 'd', txt: 'D', unit: '', enabled: false, right: false, nav: false, types: ['fridge', 'foo']},
     { title: 'Dehumidifier', icon: 'dehumidify', color: '#00f', name: 'out_dehumidifier', txt: 'H', unit: '', enabled: false, right: false, nav: false, types: ['fridge', 'fridge2', 'dryer']},
     { title: 'Fan', icon: 'fan_out', color: '#00f', name: 'out_fan', txt: 'Fan', unit: '%', enabled: false, right: false, nav: false, types: ['fan']},
-    // { title: 'RPM', icon: 'fan_rpm', color: '#00f', name: 'rpm',     txt: 'rpm', unit: '',  enabled: false, right: false, nav: false, types: ['fan']},
     { title: 'CO2', icon: 'co2_valve', color: '#000', name: 'out_co2', txt: 'CO2 Valve', unit: '', enabled: false, right: false, nav: false, types: ['fridge', 'fridge2']},
     { title: 'Lights', icon: 'light', color: '#000', name: 'out_light', txt: 'Lights', unit: '', enabled: false, right: false, nav: false, types: ['fridge', 'fridge2', 'light']},
     { title: 'Day', icon: 'light', color: '#000', name: 'day', txt: 'Day', unit: '', enabled: false, right: false, nav: false, types: ['fan']},
+    { title: 'Fan (internal)', icon: 'fan_internal', color: 'orange', name: 'out_fan-internal', txt: 'fan-internal', unit: '',  enabled: false, right: false, nav: false, types: ['fridge', 'fridge2'], beta: true},
+    { title: 'Fan (external)', icon: 'fan_external', color: 'yellow', name: 'out_fan-external', txt: 'fan-external', unit: '',  enabled: false, right: false, nav: false, types: ['fridge', 'fridge2'], beta: true},
+    { title: 'Fan (backwall)', icon: 'fan_backwall', color: 'pink', name: 'out_fan-backwall', txt: 'fan-backwall', unit: '',  enabled: false, right: false, nav: false, types: ['fridge', 'fridge2'], beta: true},
   ]
 
 
@@ -223,7 +225,9 @@ export class ChartsPage implements OnInit, OnDestroy {
       this.device_type = device?.device_type || '';
       this.cloudSettings = device?.cloudSettings || {};
       if(this.device_type != "") {
-        this.filtered_measures = this.measures.filter((measure) => measure.types.includes(this.device_type))
+        this.filtered_measures = this.measures
+          .filter((measure) => measure.types.includes(this.device_type))
+          .filter((measure) => !measure.beta || this.cloudSettings.betaFeatures);
 
         setTimeout(() => this.loadData(), 10)
         this.interval = setInterval(() => {
