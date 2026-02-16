@@ -205,7 +205,9 @@ class DeviceService {
       });
     } catch (exception) {
       console.log(exception);
-      this.connectMqtt();
+      setTimeout(() => {
+        this.connectMqtt();
+      }, 10000);
     }
   }
 
