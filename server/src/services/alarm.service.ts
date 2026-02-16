@@ -1,4 +1,4 @@
-import { deviceService, StatusMessage } from '@services/device.service';
+import { deviceService, ONLINE_TIMEOUT, StatusMessage } from '@services/device.service';
 import deviceModel from '@models/device.model';
 import { Alarm, Device } from '@interfaces/device.interface';
 import { SMTP_SENDER } from '@config';
@@ -19,12 +19,14 @@ class AlarmService {
   private alarmCache: Map<string, { deviceJson: string; expiresAt: number }> = new Map();
   private lastTimeNotExceededCache: Map<string, number> = new Map();
   private deviceIdToMutex = new Map<string, MutexInterface>();
+  private lastDataTimestamp: Map<string, number> = new Map();
 
   async onDataReceived(deviceId: string, data: StatusMessage) {
     if (!this.deviceIdToMutex.has(deviceId)) {
       this.deviceIdToMutex.set(deviceId, withTimeout(new Mutex(), 300000, new Error('onDataReceived mutex timeout for device ' + deviceId)));
     }
     const releaser = await this.deviceIdToMutex.get(deviceId).acquire();
+    const timestamp = data.timestamp ? data.timestamp * 1000 : Date.now();
 
     try {
       const device = await this.getDeviceAlarms(deviceId);
@@ -34,7 +36,6 @@ class AlarmService {
 
       for (const alarm of device.alarms) {
         const sensorValue = this.getSensorValue(alarm, data);
-        const timestamp = data.timestamp ? data.timestamp * 1000 : Date.now();
         if (sensorValue !== undefined && !alarm.disabled && (alarm.latestDataPointTime ?? 0) < timestamp) {
           const thresholdExceeded = await this.isThresholdExceeded(deviceId, alarm, sensorValue, timestamp);
           const inMaintenanceMode = device.maintenance_mode_until && device.maintenance_mode_until + MAINTENANCE_MODE_COOLDOWN_MILLIS > Date.now();
@@ -59,6 +60,7 @@ class AlarmService {
         }
       }
     } finally {
+      this.lastDataTimestamp.set(deviceId, Math.max(this.lastDataTimestamp.get(deviceId) ?? 0, timestamp));
       releaser();
     }
   }
@@ -381,6 +383,10 @@ class AlarmService {
           } else {
             this.lastTimeNotExceededCache.set(alarm.alarmId, Date.now() - 5000);
           }
+        }
+
+        if (timestamp - (this.lastDataTimestamp.get(deviceId) ?? 0) >= ONLINE_TIMEOUT) {
+          this.lastTimeNotExceededCache.set(alarm.alarmId, timestamp - 5000);
         }
 
         if (Date.now() - this.lastTimeNotExceededCache.get(alarm.alarmId) < alarm.thresholdSeconds * 1000) {

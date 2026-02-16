@@ -27,7 +27,7 @@ export type StatusMessage = {
 };
 
 const UPGRADE_TIMEOUT: number = 10 * 60 * 1000;
-const ONLINE_TIMEOUT: number = 10 * 60 * 1000;
+export const ONLINE_TIMEOUT: number = 10 * 60 * 1000;
 
 const minimal_classes = [
   {
