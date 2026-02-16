@@ -155,45 +155,59 @@ class DeviceService {
   private async findUpgradeableDevices() {
     const classes = await deviceClassModel.find();
     for (const device_class of classes) {
-      const currently_upgrading = await deviceModel
-        .where({
-          pending_firmware: device_class.firmware_id,
-          class_id: device_class.class_id,
-          current_firmware: { $ne: device_class.firmware_id },
-          fwupdate_start: { $gte: Date.now() - UPGRADE_TIMEOUT },
-        })
-        .countDocuments();
-
-      const failed = await deviceModel
-        .where({
-          pending_firmware: device_class.firmware_id,
-          class_id: device_class.class_id,
-          current_firmware: { $ne: device_class.firmware_id },
-          fwupdate_start: { $lte: Date.now() - UPGRADE_TIMEOUT },
-        })
-        .countDocuments();
-
-      if (currently_upgrading < device_class.concurrent && failed < device_class.maxfails) {
-        const devices: Device[] = await deviceModel
-          .find({
-            lastseen: { $gte: Date.now() - ONLINE_TIMEOUT },
-            class_id: device_class.class_id,
-            pending_firmware: { $ne: device_class.firmware_id },
-            $or: [{ 'firmwareSettings.autoUpdate': true }, { 'cloudSettings.autoFirmwareUpdate': true }],
-          })
-          .limit(device_class.concurrent - currently_upgrading);
-
-        for (const device of devices) {
-          console.log('upgrading device ' + device.device_id);
-          await deviceModel.findByIdAndUpdate(device._id, { pending_firmware: device_class.firmware_id, fwupdate_start: Date.now() });
-        }
+      await this.findUpgradeableDevicesByClass(device_class, device_class.firmware_id, { 'cloudSettings.betaFeatures': { $ne: true } });
+      if (device_class.beta_firmware_id) {
+        await this.findUpgradeableDevicesByClass(device_class, device_class.beta_firmware_id, { 'cloudSettings.betaFeatures': true });
       }
-      // const stuck_devices: Device[] = await deviceModel.find({
-      //   lastseen: {$gte: Date.now() - ONLINE_TIMEOUT},
-      //   class_id: device_class.class_id,
-      //   pending_firmware: {$ne: device_class.firmware_id}
-      // })
     }
+  }
+
+  private async findUpgradeableDevicesByClass(
+    device_class: Omit<DeviceClass, 'firmware_id' | 'beta_firmware_id'>,
+    firmwareId: string,
+    addtionalQueryConditions?: object,
+  ) {
+    const currently_upgrading = await deviceModel
+      .where({
+        pending_firmware: firmwareId,
+        class_id: device_class.class_id,
+        current_firmware: { $ne: firmwareId },
+        fwupdate_start: { $gte: Date.now() - UPGRADE_TIMEOUT },
+        ...addtionalQueryConditions,
+      })
+      .countDocuments();
+
+    const failed = await deviceModel
+      .where({
+        pending_firmware: firmwareId,
+        class_id: device_class.class_id,
+        current_firmware: { $ne: firmwareId },
+        fwupdate_start: { $lte: Date.now() - UPGRADE_TIMEOUT },
+        ...addtionalQueryConditions,
+      })
+      .countDocuments();
+
+    if (currently_upgrading < device_class.concurrent && failed < device_class.maxfails) {
+      const devices: Device[] = await deviceModel
+        .find({
+          lastseen: { $gte: Date.now() - ONLINE_TIMEOUT },
+          class_id: device_class.class_id,
+          pending_firmware: { $ne: firmwareId },
+          $or: [{ 'firmwareSettings.autoUpdate': true }, { 'cloudSettings.autoFirmwareUpdate': true }],
+          ...addtionalQueryConditions,
+        })
+        .limit(device_class.concurrent - currently_upgrading);
+
+      for (const device of devices) {
+        console.log('upgrading device ' + device.device_id + ' to firmware ' + firmwareId);
+        await deviceModel.findByIdAndUpdate(device._id, { pending_firmware: firmwareId, fwupdate_start: Date.now() });
+      }
+    }
+    // const stuck_devices: Device[] = await deviceModel.find({
+    //   lastseen: {$gte: Date.now() - ONLINE_TIMEOUT},
+    //   class_id: device_class.class_id,
+    //   pending_firmware: {$ne: device_class.firmware_id}
+    // })
   }
 
   private async runRecipes() {
@@ -777,15 +791,17 @@ class DeviceService {
     concurrent: number,
     maxfails: number,
     firmware_id: string,
+    beta_firmware_id: string,
   ): Promise<DeviceClass> {
     const update = await deviceClassModel.findOneAndUpdate(
       { class_id: class_id },
       {
-        name: name,
-        description: description,
-        concurrent: concurrent,
-        maxfails: maxfails,
-        firmware_id: firmware_id,
+        name,
+        description,
+        concurrent,
+        maxfails,
+        firmware_id,
+        beta_firmware_id,
       },
     );
 

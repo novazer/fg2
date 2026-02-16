@@ -1,4 +1,5 @@
-import { IsEmail, IsNumber, IsString } from 'class-validator';
+import { IsBoolean, IsEmail, IsNumber, IsOptional, IsString } from 'class-validator';
+import exp from 'node:constants';
 
 export class AddDeviceDto {
   @IsString()
@@ -35,6 +36,10 @@ export class AddDeviceClassDto {
 
   @IsNumber()
   public maxfails: number;
+
+  @IsString()
+  @IsOptional()
+  public beta_firmware_id: string;
 }
 
 export class AddDeviceFirmwareDto {

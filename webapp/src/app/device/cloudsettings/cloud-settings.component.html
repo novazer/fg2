@@ -88,14 +88,14 @@
       <ion-label>{{'settings.autoFirmwareUpdate' | translate}}</ion-label>
       <ion-checkbox
         [(ngModel)]="cloudSettings.autoFirmwareUpdate"
-        (ngModelChange)="cloudSettingsChange.emit(cloudSettings)"
+        (ngModelChange)="cloudSettingsChange.emit(cloudSettings); onFirmwareUpdateChanged()"
       ></ion-checkbox>
     </ion-item>
     <ion-item lines="none">
       <ion-label>{{'settings.betaFeatures' | translate}}</ion-label>
       <ion-checkbox
         [(ngModel)]="cloudSettings.betaFeatures"
-        (ngModelChange)="cloudSettingsChange.emit(cloudSettings)"
+        (ngModelChange)="cloudSettingsChange.emit(cloudSettings); onFirmwareUpdateChanged()"
       ></ion-checkbox>
     </ion-item>
   </ion-card-content>

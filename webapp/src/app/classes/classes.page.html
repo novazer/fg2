@@ -52,7 +52,9 @@
           <ion-col>max</ion-col>
           <ion-col>rollout</ion-col>
         </ion-row>
-        <ion-row *ngFor="let fw of cls.versions" [class.active]="fw.fw.firmware_id == cls.class.firmware_id">
+        <ion-row *ngFor="let fw of cls.versions"
+                 [class.active]="fw.fw.firmware_id == cls.class.firmware_id"
+                 [class.beta]="fw.fw.firmware_id != cls.class.firmware_id && fw.fw.firmware_id == cls.class.beta_firmware_id">
           <ion-col size="3">{{fw.fw.firmware_id || "unknown"}}</ion-col>
           <ion-col>{{fw.fw.version}}</ion-col>
           <ion-col>{{fw.online}}</ion-col>
@@ -65,8 +67,18 @@
             <ion-button
               *ngIf="fw.fw.firmware_id"
               color="secondary"
+              (click)="rollout(cls.class, fw.fw.firmware_id, true);"
+              [disabled]="fw.fw.deleted || fw.fw.firmware_id === cls.class.beta_firmware_id"
+            >
+              beta
+            </ion-button>
+          </ion-col>
+          <ion-col>
+            <ion-button
+              *ngIf="fw.fw.firmware_id"
+              color="secondary"
               (click)="rollout(cls.class, fw.fw.firmware_id);"
-              [disabled]="fw.fw.deleted"
+              [disabled]="fw.fw.deleted || fw.fw.firmware_id === cls.class.firmware_id"
             >
               rollout
             </ion-button>

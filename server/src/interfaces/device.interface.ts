@@ -90,6 +90,7 @@ export interface DeviceClass {
   concurrent: number;
   maxfails: number;
   firmware_id: string;
+  beta_firmware_id?: string;
 }
 
 export interface DeviceClassCount {

@@ -18,10 +18,18 @@ export class ClassesPage implements OnInit {
     })
   }
 
-  async rollout(cls:any, firmware_id: string) {
+  async rollout(cls:any, firmware_id: string, beta = false) {
     if(confirm("roll out " + firmware_id + " on " + cls.name + "?")) {
-      await this.device.updateClass(cls.class_id, cls.name, cls.description, cls.concurrent, cls.maxfails, firmware_id)
-      await this.device.fetch()
+      await this.device.updateClass(
+        cls.class_id,
+        cls.name,
+        cls.description,
+        cls.concurrent,
+        cls.maxfails,
+        beta ? cls.firmware_id : firmware_id,
+        beta ? firmware_id : cls.beta_firmware_id,
+      );
+      await this.device.fetch();
     }
   }
 
@@ -33,7 +41,7 @@ export class ClassesPage implements OnInit {
   }
 
   async updateClass(cls:any) {
-    await this.device.updateClass(cls.class_id, cls.name, cls.description, cls.concurrent, cls.maxfails, cls.firmware_id)
+    await this.device.updateClass(cls.class_id, cls.name, cls.description, cls.concurrent, cls.maxfails, cls.firmware_id, cls.beta_firmware_id)
     await this.device.fetch()
   }
 

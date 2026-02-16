@@ -220,6 +220,7 @@ class DeviceController {
         class_info.concurrent,
         class_info.maxfails,
         class_info.firmware_id,
+        class_info.beta_firmware_id,
       );
       res.status(200).json({ status: 'ok' });
     } catch (error) {

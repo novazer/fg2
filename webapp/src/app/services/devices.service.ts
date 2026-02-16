@@ -77,25 +77,27 @@ export class DeviceAdminService {
     let device_class = await firstValueFrom( this.http.post<DeviceClass>(
       environment.API_URL + '/device/class',
       {
-        name: name,
-        description: description,
+        name,
+        description,
         concurrent: parseInt(concurrent + ''),
         maxfails: parseInt(maxfails + ''),
-        firmware_id: firmware_id
+        firmware_id,
+        beta_firmware_id: firmware_id,
       }
     ))
     return device_class;
   }
 
-  public async updateClass(class_id: string, name:string, description: string, concurrent: number, maxfails: number, firmware_id:string) {
+  public async updateClass(class_id: string, name:string, description: string, concurrent: number, maxfails: number, firmware_id:string, beta_firmware_id:string) {
     let device_class = await firstValueFrom( this.http.post<DeviceClass>(
       environment.API_URL + '/device/class/' + class_id,
       {
-        name: name,
-        description: description,
+        name,
+        description,
         concurrent: parseInt(concurrent + ''),
         maxfails: parseInt(maxfails + ''),
-        firmware_id: firmware_id
+        firmware_id,
+        beta_firmware_id,
       }
     ) )
     return device_class;
