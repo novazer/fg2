@@ -8,6 +8,7 @@ import { request as httpsRequest } from 'https';
 import * as console from 'node:console';
 import { dataService } from '@services/data.service';
 import { tunnelService } from '@services/tunnel.service';
+import { Mutex, MutexInterface, withTimeout } from 'async-mutex';
 
 const CACHE_EXPIRATION_SECONDS = 600;
 const MAINTENANCE_MODE_COOLDOWN_MILLIS = 10 * 60 * 1000;
@@ -17,39 +18,48 @@ const ACTION_TARGET_SEPARATOR = '|';
 class AlarmService {
   private alarmCache: Map<string, { deviceJson: string; expiresAt: number }> = new Map();
   private lastTimeNotExceededCache: Map<string, number> = new Map();
+  private deviceIdToMutex = new Map<string, MutexInterface>();
 
   async onDataReceived(deviceId: string, data: StatusMessage) {
-    // Retrieve alarms from cache or database
-    const device = await this.getDeviceAlarms(deviceId);
-    if (!device?.alarms || device.alarms.length <= 0) {
-      return;
+    if (!this.deviceIdToMutex.has(deviceId)) {
+      this.deviceIdToMutex.set(deviceId, withTimeout(new Mutex(), 300000, new Error('onDataReceived mutex timeout for device ' + deviceId)));
     }
+    const releaser = await this.deviceIdToMutex.get(deviceId).acquire();
 
-    for (const alarm of device.alarms) {
-      const sensorValue = this.getSensorValue(alarm, data);
-      const timestamp = data.timestamp ? data.timestamp * 1000 : Date.now();
-      if (sensorValue !== undefined && !alarm.disabled && (alarm.latestDataPointTime ?? 0) < timestamp) {
-        const thresholdExceeded = await this.isThresholdExceeded(deviceId, alarm, sensorValue, timestamp);
-        const inMaintenanceMode = device.maintenance_mode_until && device.maintenance_mode_until + MAINTENANCE_MODE_COOLDOWN_MILLIS > Date.now();
+    try {
+      const device = await this.getDeviceAlarms(deviceId);
+      if (!device?.alarms || device.alarms.length <= 0) {
+        return;
+      }
 
-        if (thresholdExceeded !== (alarm.isTriggered ?? false) && !inMaintenanceMode) {
-          await this.handleAlarm(alarm, deviceId, sensorValue, timestamp);
-        } else {
-          if (alarm.isTriggered && sensorValue !== null && !isNaN(sensorValue)) {
-            await this.handleAlarmData(alarm, deviceId, sensorValue, timestamp);
-          }
+      for (const alarm of device.alarms) {
+        const sensorValue = this.getSensorValue(alarm, data);
+        const timestamp = data.timestamp ? data.timestamp * 1000 : Date.now();
+        if (sensorValue !== undefined && !alarm.disabled && (alarm.latestDataPointTime ?? 0) < timestamp) {
+          const thresholdExceeded = await this.isThresholdExceeded(deviceId, alarm, sensorValue, timestamp);
+          const inMaintenanceMode = device.maintenance_mode_until && device.maintenance_mode_until + MAINTENANCE_MODE_COOLDOWN_MILLIS > Date.now();
 
-          const lastAlarmAction = Math.max(alarm.lastTriggeredAt || 0, alarm.lastResolvedAt || 0);
-          if (
-            alarm.actionType !== 'email' &&
-            alarm.retriggerSeconds >= 60 &&
-            lastAlarmAction > 0 &&
-            lastAlarmAction + alarm.retriggerSeconds * 1000 < Date.now()
-          ) {
-            await this.handleAlarmRetrigger(alarm, deviceId, sensorValue, timestamp);
+          if (thresholdExceeded !== (alarm.isTriggered ?? false) && !inMaintenanceMode) {
+            await this.handleAlarm(alarm, deviceId, sensorValue, timestamp);
+          } else {
+            if (alarm.isTriggered && sensorValue !== null && !isNaN(sensorValue)) {
+              await this.handleAlarmData(alarm, deviceId, sensorValue, timestamp);
+            }
+
+            const lastAlarmAction = Math.max(alarm.lastTriggeredAt || 0, alarm.lastResolvedAt || 0);
+            if (
+              alarm.actionType !== 'email' &&
+              alarm.retriggerSeconds >= 60 &&
+              lastAlarmAction > 0 &&
+              lastAlarmAction + alarm.retriggerSeconds * 1000 < Date.now()
+            ) {
+              await this.handleAlarmRetrigger(alarm, deviceId, sensorValue, timestamp);
+            }
           }
         }
       }
+    } finally {
+      releaser();
     }
   }
 
@@ -76,17 +86,15 @@ class AlarmService {
       return JSON.parse(cached.deviceJson);
     }
 
-    // Fetch alarms from the database
     const device = await deviceModel.findOne({ device_id: deviceId }).select('alarms').select('maintenance_mode_until').lean();
     const deviceJson = JSON.stringify(device);
 
-    // Cache the alarms with a 5-minute expiration
     this.alarmCache.set(deviceId, {
       deviceJson: deviceJson,
       expiresAt: Date.now() + CACHE_EXPIRATION_SECONDS * 1000,
     });
 
-    return device as unknown;
+    return JSON.parse(deviceJson);
   }
 
   private async handleAlarm(alarm: Alarm, deviceId: string, value: number, timestamp: number) {
