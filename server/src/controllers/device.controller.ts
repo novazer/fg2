@@ -424,7 +424,13 @@ class DeviceController {
         recipePayload.steps[i].lastTimeApplied = 0;
       }
 
-      if (activeStepChanged) {
+      if (
+        activeStepChanged &&
+        recipePayload?.activeStepIndex !== undefined &&
+        recipePayload?.activeStepIndex !== null &&
+        !isNaN(recipePayload.activeStepIndex) &&
+        recipePayload?.additionalInfo
+      ) {
         await deviceService.logMessage(device_id, {
           title: `Recipe step #${recipePayload.activeStepIndex + 1} manually activated`,
           message: `Recipe step #${recipePayload.activeStepIndex + 1} (${
