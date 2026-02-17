@@ -4,7 +4,7 @@ set -e
 DEVICE_TYPE="$1"
 if [ -z "$DEVICE_TYPE" ]; then
     echo "Usage: $0 <device-type>"
-    echo "Device types: plug, light, fan, fridge"
+    echo "Device types: fridge, controller, plug, light, fan"
     exit 1
 fi
 

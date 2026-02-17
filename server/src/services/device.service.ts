@@ -54,6 +54,12 @@ const minimal_classes = [
     concurrent: 5,
     maxfails: 10,
   },
+  {
+    name: 'controller',
+    description: 'FG Controller 2.0',
+    concurrent: 5,
+    maxfails: 10,
+  },
 ];
 
 class DeviceService {
