@@ -2,7 +2,7 @@ import {Component, ElementRef, OnDestroy, OnInit, ViewChild} from '@angular/core
 import { HttpClient } from '@angular/common/http';
 import { ChartConfiguration, ChartEvent, ChartType } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Subscription } from 'rxjs';
 import 'chartjs-adapter-luxon';
 import {ActivatedRoute, Router} from '@angular/router';
 import { environment } from 'src/environments/environment';
@@ -35,6 +35,8 @@ export class ChartsPage implements OnInit, OnDestroy {
   Highcharts: typeof Highcharts = Highcharts;
   updateFlag:boolean = false;
   chartOptions: Highcharts.Options;
+
+  private devicesSub: Subscription | undefined;
 
   public timespans = [
     { name: '20m', durationValue: 20, durationUnit: 'm', defaultInterval:'5s' },
@@ -220,7 +222,7 @@ export class ChartsPage implements OnInit, OnDestroy {
     if (this.route.snapshot.queryParams?.['interval']) {
       this.selectedInterval = this.route.snapshot.queryParams['interval'];
     }
-    this.devices.devices.subscribe((devices) => {
+    this.devicesSub = this.devices.devices.subscribe((devices) => {
       const device = devices.find((device) => device.device_id == this.device_id);
       this.device_type = device?.device_type || '';
       this.cloudSettings = device?.cloudSettings || {};
@@ -245,7 +247,11 @@ export class ChartsPage implements OnInit, OnDestroy {
   ngOnDestroy() {
     if(this.interval) {
       clearInterval(this.interval);
+      this.interval = undefined;
     }
+
+    this.devicesSub?.unsubscribe();
+    this.devicesSub = undefined;
   }
 
   public getAvailableTimespans() {
