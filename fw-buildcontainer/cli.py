@@ -234,6 +234,7 @@ def rollout_id(firmware_id:str, class_name:str):
     "name": device_class.json()["name"],
     "description": device_class.json()["description"],
     "firmware_id": firmware_id,
+    "beta_firmware_id": firmware_id,
     "concurrent": device_class.json()["concurrent"],
     "maxfails": device_class.json()["maxfails"]
   })
