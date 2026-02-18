@@ -11,13 +11,13 @@ namespace fg {
     float* out_heater;
     float* out_dehumidifier;
     float* out_light;
-    float* out_co2;
+    uint32_t* out_co2;
     bool* day;
 
     std::function<void(void)> callback = nullptr;
 
   public:
-    Dashboard(float* temperature, float* humidity, float* co2, float* out_heater, float* out_dehumidifier, float* out_light, float* out_co2, bool* day);
+    Dashboard(float* temperature, float* humidity, float* co2, float* out_heater, float* out_dehumidifier, float* out_light, uint32_t* out_co2, bool* day);
 
     void draw() override;
     void prev() override;

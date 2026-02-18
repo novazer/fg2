@@ -7,7 +7,7 @@
 
 
 namespace fg {
-  Dashboard::Dashboard(float* temperature, float* humidity, float* co2, float* out_heater, float* out_dehumidifier, float* out_light, float* out_co2, bool* day, uint8_t* sensor_type) :
+  Dashboard::Dashboard(float* temperature, float* humidity, float* co2, float* out_heater, float* out_dehumidifier, float* out_light, uint32_t* out_co2, bool* day, uint8_t* sensor_type) :
     temperature(temperature), humidity(humidity), co2(co2), out_heater(out_heater), out_dehumidifier(out_dehumidifier), out_light(out_light), out_co2(out_co2), day(day), sensor_type(sensor_type) {}
 
 

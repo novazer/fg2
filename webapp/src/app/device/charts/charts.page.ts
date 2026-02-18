@@ -61,23 +61,23 @@ export class ChartsPage implements OnInit, OnDestroy {
   public selectedInterval = this.selectedTimespan.defaultInterval;
 
   public measures = [
-    { title: 'Temperature', icon: 'temperature', color: '#f00', name: 'temperature', txt: 'T', unit: '°C', enabled: true, right: false, nav: false, types: ['fridge', 'fridge2', 'fan', 'light', 'plug', 'dryer', 'controller']},
+    { title: 'Temperature', icon: 'temperature', color: '#f00', name: 'temperature', txt: 'T', unit: '°C', enabled: true, right: false, nav: false, types: ['fridge', 'fridge2', 'fan', 'light', 'plug', 'dryer', 'controller'], max: 30},
     // { title: 'AVG', icon: 'temperature', color: '#f00', name: 'avg', txt: 'avg', unit: '°C', enabled: true, right: false, nav: false, types: ['fridge']},
-    { title: 'Humidity', icon: 'humidity', color: '#00f', name: 'humidity', txt: 'H', unit: '%', enabled: false, right: false, nav: false, types: ['fridge', 'fridge2', 'fan', 'light', 'plug', 'dryer', 'controller']},
-    { title: 'VPD', icon: 'vpd', color: '#0f0', name: 'vpd', txt: 'V', unit: 'kPa', enabled: false, right: false, nav: false, types: ['fridge', 'fridge2', 'fan', 'light', 'plug', 'dryer', 'controller']},
-    { title: 'CO2', icon: 'co2', color: '#000', name: 'co2', txt: 'CO2', unit: 'ppm', enabled: false, right: false, nav: false, types: ['fridge', 'fridge2', 'plug', 'controller']},
-    { title: 'Heater', icon: 'heating', color: '#f00', name: 'out_heater', txt: 'T', unit: '', enabled: false, right: false, nav: false, types: ['fridge', 'fridge2', 'dryer', 'controller']},
+    { title: 'Humidity', icon: 'humidity', color: '#00f', name: 'humidity', txt: 'H', unit: '%', enabled: false, right: false, nav: false, types: ['fridge', 'fridge2', 'fan', 'light', 'plug', 'dryer', 'controller'], max: 100},
+    { title: 'VPD', icon: 'vpd', color: '#0f0', name: 'vpd', txt: 'V', unit: 'kPa', enabled: false, right: false, nav: false, types: ['fridge', 'fridge2', 'fan', 'light', 'plug', 'dryer', 'controller'], max: 1.6},
+    { title: 'CO2', icon: 'co2', color: '#000', name: 'co2', txt: 'CO2', unit: 'ppm', enabled: false, right: false, nav: false, types: ['fridge', 'fridge2', 'plug', 'controller'], max: 1},
+    { title: 'Heater', icon: 'heating', color: '#f00', name: 'out_heater', txt: 'T', unit: '', enabled: false, right: false, nav: false, types: ['fridge', 'fridge2', 'dryer', 'controller'], max: 1},
     // { title: 'P', icon: 'heating', color: '#f00', name: 'p', txt: 'P', unit: '', enabled: false, right: false, nav: false, types: ['fridge', 'foo']},
     // { title: 'I', icon: 'heating', color: '#f00', name: 'i', txt: 'I', unit: '', enabled: false, right: false, nav: false, types: ['fridge', 'foo']},
     // { title: 'D', icon: 'heating', color: '#f00', name: 'd', txt: 'D', unit: '', enabled: false, right: false, nav: false, types: ['fridge', 'foo']},
-    { title: 'Dehumidifier', icon: 'dehumidify', color: '#00f', name: 'out_dehumidifier', txt: 'H', unit: '', enabled: false, right: false, nav: false, types: ['fridge', 'fridge2', 'dryer', 'controller']},
-    { title: 'Fan', icon: 'fan_out', color: '#00f', name: 'out_fan', txt: 'Fan', unit: '%', enabled: false, right: false, nav: false, types: ['fan']},
-    { title: 'CO2', icon: 'co2_valve', color: '#000', name: 'out_co2', txt: 'CO2 Valve', unit: '', enabled: false, right: false, nav: false, types: ['fridge', 'fridge2', 'controller']},
-    { title: 'Lights', icon: 'light', color: '#000', name: 'out_light', txt: 'Lights', unit: '', enabled: false, right: false, nav: false, types: ['fridge', 'fridge2', 'light', 'controller']},
-    { title: 'Day', icon: 'light', color: '#000', name: 'day', txt: 'Day', unit: '', enabled: false, right: false, nav: false, types: ['fan']},
-    { title: 'Fan (internal)', icon: 'fan_internal', color: 'orange', name: 'out_fan-internal', txt: 'fan-internal', unit: '',  enabled: false, right: false, nav: false, types: ['fridge', 'fridge2'], beta: true},
-    { title: 'Fan (external)', icon: 'fan_external', color: 'yellow', name: 'out_fan-external', txt: 'fan-external', unit: '',  enabled: false, right: false, nav: false, types: ['fridge', 'fridge2'], beta: true},
-    { title: 'Fan (backwall)', icon: 'fan_backwall', color: 'pink', name: 'out_fan-backwall', txt: 'fan-backwall', unit: '',  enabled: false, right: false, nav: false, types: ['fridge', 'fridge2'], beta: true},
+    { title: 'Dehumidifier', icon: 'dehumidify', color: '#00f', name: 'out_dehumidifier', txt: 'H', unit: '', enabled: false, right: false, nav: false, types: ['fridge', 'fridge2', 'dryer', 'controller'], max: 1},
+    { title: 'Fan', icon: 'fan_out', color: '#00f', name: 'out_fan', txt: 'Fan', unit: '%', enabled: false, right: false, nav: false, types: ['fan'], max: 1},
+    { title: 'CO2 Valve', icon: 'co2_valve', color: '#000', name: 'out_co2', txt: 'CO2 Valve', unit: ' ticks', enabled: false, right: false, nav: false, types: ['fridge', 'fridge2', 'controller']},
+    { title: 'Lights', icon: 'light', color: '#000', name: 'out_light', txt: 'Lights', unit: '', enabled: false, right: false, nav: false, types: ['fridge', 'fridge2', 'light', 'controller'], max: 100},
+    { title: 'Day', icon: 'light', color: '#000', name: 'day', txt: 'Day', unit: '', enabled: false, right: false, nav: false, types: ['fan'], max: 1},
+    { title: 'Fan (internal)', icon: 'fan_internal', color: 'orange', name: 'out_fan-internal', txt: 'fan-internal', unit: '',  enabled: false, right: false, nav: false, types: ['fridge', 'fridge2'], max: 1, beta: true},
+    { title: 'Fan (external)', icon: 'fan_external', color: 'yellow', name: 'out_fan-external', txt: 'fan-external', unit: '',  enabled: false, right: false, nav: false, types: ['fridge', 'fridge2'], max: 1, beta: true},
+    { title: 'Fan (backwall)', icon: 'fan_backwall', color: 'pink', name: 'out_fan-backwall', txt: 'fan-backwall', unit: '',  enabled: false, right: false, nav: false, types: ['fridge', 'fridge2'], max: 1, beta: true},
   ]
 
 
@@ -298,7 +298,7 @@ export class ChartsPage implements OnInit, OnDestroy {
           }
         },
         softMin: 0,
-        softMax: 1,
+        softMax: measure.max,
         opposite: measure.right,
         visible: (this.spacer?.nativeElement.offsetWidth || 0) > 320 ? measure.enabled : false,
         zoomEnabled: false,

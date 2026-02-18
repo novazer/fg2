@@ -182,28 +182,32 @@ namespace fg {
   void FridgeController::controlCo2() {
     const int SECONDS_PER_DAY = 24 * 60 * 60;
 
+    if (out_co2.get()) {
+      state.out_co2 += xTaskGetTickCount() - co2_inject_start;
+    }
+    co2_inject_start = xTaskGetTickCount();
+
     if(state.is_day) {
       if(co2_inject_end < xTaskGetTickCount()) {
         if((co2_avg.avg() < settings.co2.target && xTaskGetTickCount() > pause_until_tick) && !(settings.co2.sunsetOff > 0 && (state.timeofday + SECONDS_PER_DAY) > (settings.daynight.night + SECONDS_PER_DAY - settings.lights.sunset * 60))) {
-          state.out_co2 = 1;
           out_co2.set(1);
-          co2_valve_close = xTaskGetTickCount() + co2_inject_count * CO2_INJECT_DURATION;
+          co2_valve_close = co2_inject_start + co2_inject_count * CO2_INJECT_DURATION;
           co2_inject_count = co2_inject_count < CO2_INJECT_MAX_COUNT ? co2_inject_count * 2 : co2_inject_count;
         }
         else {
-          state.out_co2 = 0;
           co2_inject_count = co2_inject_count >= 2 ? co2_inject_count / 2 : 1;
         }
         co2_inject_end = xTaskGetTickCount() + CO2_INJECT_PERIOD;
       }
     }
     else {
-      state.out_co2 = 0;
       co2_inject_end = xTaskGetTickCount();
+      co2_valve_close = 0;
       out_co2.set(0);
     }
-    //state.out_co2 = co2_inject_count;
+
     if(co2_avg.avg() > settings.co2.target + CO2_OVERSWING_ABORT) {
+      co2_valve_close = 0;
       out_co2.set(0);
     }
   }
@@ -725,7 +729,10 @@ namespace fg {
     if(heater_turn_off < xTaskGetTickCount()) {
       out_heater.set(0);
     }
-    if(testmode_duration == 0) {
+    if(testmode_duration == 0 && out_co2.get()) {
+      state.out_co2 += xTaskGetTickCount() - co2_inject_start;
+      co2_inject_start = xTaskGetTickCount();
+
       if(co2_valve_close < xTaskGetTickCount()) {
         out_co2.set(0);
       }
@@ -779,7 +786,6 @@ namespace fg {
       out_dehumidifier.set(0);
       state.out_dehumidifier = 0;
       out_co2.set(0);
-      state.out_co2 = 0;
       out_light.set(0);
       state.out_light = 0;
     }
@@ -824,7 +830,6 @@ namespace fg {
         controlDehumidifier();
         controlHeater();
         out_co2.set(0);
-        state.out_co2 = 0;
         out_light.set(0);
         state.out_light = 0;
         out_fan_external.set(settings.fans.external * 2.55);
@@ -834,7 +839,6 @@ namespace fg {
         controlHeater();
         controlCooling();
         out_co2.set(0);
-        state.out_co2 = 0;
         out_light.set(0);
         state.out_light = 0;
         out_fan_external.set(settings.fans.external * 2.55);
@@ -846,7 +850,6 @@ namespace fg {
         out_dehumidifier.set(0);
         state.out_dehumidifier = 0;
         out_co2.set(0);
-        state.out_co2 = 0;
         out_light.set(0);
         state.out_light = 0;
 
@@ -886,13 +889,7 @@ namespace fg {
     status["sensors"]["humidity"] = state.humidity;
     status["sensors"]["co2"] = state.co2;
 
-    if(state.out_co2) {
-      status["outputs"]["co2"] = 1;
-      state.out_co2 = 0;
-    }
-    else {
-      status["outputs"]["co2"] = 0;
-    }
+    status["outputs"]["co2"] = state.out_co2;
     status["outputs"]["dehumidifier"] = state.out_dehumidifier;
     status["outputs"]["heater"] = state.out_heater;
     status["outputs"]["light"] = state.out_light;
@@ -904,6 +901,7 @@ namespace fg {
 //    }
 
     cloud.updateStatus(status);
+    state.out_co2 = 0;
 
 
     if (sntp_get_sync_status()) {

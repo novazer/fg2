@@ -138,6 +138,7 @@ namespace fg {
     uint32_t co2_inject_count = 1;
     uint8_t co2_low_count = 0;
 
+    TickType_t co2_inject_start = 0;
     TickType_t co2_inject_end = 0;
     TickType_t co2_valve_close = 0;
     TickType_t pause_until_tick = 0;
@@ -171,7 +172,7 @@ namespace fg {
       float out_heater = 0;
       float out_dehumidifier = 0;
       float out_light = 0;
-      float out_co2 = 0;
+      uint32_t out_co2 = 0;
     } state;
 
     double heater_temp;

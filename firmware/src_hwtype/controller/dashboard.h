@@ -11,7 +11,7 @@ namespace fg {
     float* out_heater;
     float* out_dehumidifier;
     float* out_light;
-    float* out_co2;
+    uint32_t* out_co2;
     bool* day;
 	uint8_t* sensor_type; //plug
 
@@ -23,7 +23,7 @@ namespace fg {
     static constexpr uint8_t SENSOR_TYPE_SCD = 2;
 
   public:
-    Dashboard(float* temperature, float* humidity, float* co2, float* out_heater, float* out_dehumidifier, float* out_light, float* out_co2, bool* day, uint8_t* sensor_type);
+    Dashboard(float* temperature, float* humidity, float* co2, float* out_heater, float* out_dehumidifier, float* out_light, uint32_t* out_co2, bool* day, uint8_t* sensor_type);
 
     void draw() override;
     void prev() override;
