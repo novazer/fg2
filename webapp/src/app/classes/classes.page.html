@@ -50,7 +50,9 @@
           <ion-col>failed</ion-col>
           <ion-col>avg</ion-col>
           <ion-col>max</ion-col>
+          <ion-col>beta</ion-col>
           <ion-col>rollout</ion-col>
+          <ion-col>delete</ion-col>
         </ion-row>
         <ion-row *ngFor="let fw of cls.versions"
                  [class.active]="fw.fw.firmware_id == cls.class.firmware_id"
@@ -85,7 +87,7 @@
           </ion-col>
           <ion-col>
             <ion-button
-              *ngIf="fw.fw.firmware_id && fw.total <= 0 && fw.fw.firmware_id !== cls.class.firmware_id"
+              *ngIf="fw.fw.firmware_id && fw.total <= 0 && fw.updating <= 0 && fw.failed <= 0 && fw.fw.firmware_id !== cls.class.firmware_id"
               color="danger"
               (click)="delete(fw.fw);"
               [disabled]="fw.fw.deleted"
