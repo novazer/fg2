@@ -900,8 +900,9 @@ namespace fg {
       status["outputs"]["fan-backwall"] = out_fan_backwall.get() / 255.0f;
 //    }
 
-    cloud.updateStatus(status);
-    state.out_co2 = 0;
+    if (cloud.updateStatus(status)) {
+      state.out_co2 = 0;
+    }
 
 
     if (sntp_get_sync_status()) {

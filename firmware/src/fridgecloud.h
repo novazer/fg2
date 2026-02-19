@@ -93,7 +93,7 @@ namespace fg {
     std::string requestPairingCode();
     void init();
     void connect();
-    void updateStatus(DynamicJsonDocument status);
+    bool updateStatus(DynamicJsonDocument status);
     void uploadStatus();
     void updateConfig(const char* data);
     void log(std::string message, unsigned int severity = 0);

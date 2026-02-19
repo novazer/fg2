@@ -284,7 +284,7 @@ namespace fg {
     }
   }
 
-  void Fridgecloud::updateStatus(DynamicJsonDocument status) {
+  bool Fridgecloud::updateStatus(DynamicJsonDocument status) {
     time_t now;
     struct tm * ptm;
     struct tm timeinfo;
@@ -319,7 +319,10 @@ namespace fg {
 
         current_sample = 0;
         Serial.println(status_buffer.size());
+
+        return true;
       }
+      return false;
     }
     else {
       for(auto kv : status["sensors"].as<JsonObject>()) {
@@ -330,6 +333,7 @@ namespace fg {
         auto topic = topic_status + "/outputs/" + kv.key().c_str();
         client->publish(topic.c_str(), kv.value());
       }
+      return true;
     }
   }
 
