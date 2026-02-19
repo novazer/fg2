@@ -30,6 +30,7 @@ namespace fg {
       float maxDehumidifySeconds = 0;
       float targetHumidityDiff = 5.0;
       float useLongHumidityAvg = 1.0;
+      float linearChange = 0;
     } daynight;
 
     struct {
@@ -163,10 +164,14 @@ namespace fg {
 
     struct {
       bool is_day;
+      float sunrise_factor;
+      float sunset_factor;
       uint32_t timeofday;
 
       float temperature = 0;
+      float target_temperature = 0;
       float humidity = 0;
+      float target_humidity = 0;
       float co2 = 0;
 
       float out_heater = 0;

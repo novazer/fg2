@@ -184,6 +184,11 @@
         <ion-button size="small" fill="clear" (click)="settings.lights.sunset = settings.lights.sunset + 1" [disabled]="settings.lights.sunset >= 60"><ion-icon name="add-circle"></ion-icon></ion-button>
       </ion-item>
 
+      <ion-item *ngIf="cloudSettings?.betaFeatures">
+        <ion-label>{{'settings.daynightLinearChange' | translate}}</ion-label>
+        <ion-checkbox [(ngModel)]="settings.daynight.linearChange" (ionChange)="onSettingsChanged()">{{'settings.daynightLinearChange' | translate}}</ion-checkbox>
+      </ion-item>
+
       <ion-item>
         <ion-label>{{'settings.lightlimit' | translate}}:</ion-label>
         <ion-button size="small" fill="clear" [hidden]="maxLightEditMode" (click)="maxLightEditMode = true">{{'settings.edit-value' | translate}}</ion-button>

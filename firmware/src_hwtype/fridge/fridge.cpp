@@ -152,6 +152,8 @@ namespace fg {
   }
 
   void FridgeController::checkDayCycle() {
+    const int SECONDS_PER_DAY = 24 * 60 * 60;
+
     time_t now;
     struct tm * ptm;
     struct tm timeinfo;
@@ -177,11 +179,35 @@ namespace fg {
     else {
       state.is_day = false;
     }
+
+    if (state.is_day) {
+      bool is_sunrise = (state.timeofday + SECONDS_PER_DAY) < (settings.daynight.day + SECONDS_PER_DAY + settings.lights.sunrise * 60);
+      bool is_sunset = (state.timeofday + SECONDS_PER_DAY) > (settings.daynight.night + SECONDS_PER_DAY - settings.lights.sunset * 60);
+
+      if (is_sunrise && settings.daynight.linearChange > 0) {
+        state.sunrise_factor = static_cast<float>(state.timeofday - settings.daynight.day) / (settings.lights.sunrise * 60.0f);
+      } else {
+        state.sunrise_factor = 1;
+      }
+
+      if (is_sunset && settings.daynight.linearChange > 0) {
+        state.sunset_factor = static_cast<float>(settings.daynight.night - state.timeofday) / (settings.lights.sunset * 60.0f);
+      } else {
+        state.sunset_factor = 1;
+      }
+
+      float target_factor = (state.sunrise_factor < 1 ? state.sunrise_factor : 0) + (state.sunset_factor < 1 ? 1 - state.sunset_factor : 0);
+      state.target_humidity = settings.day.humidity - (settings.day.humidity - settings.night.humidity) * target_factor;
+      state.target_temperature = settings.day.temperature - (settings.day.temperature - settings.night.temperature) * target_factor;
+    } else {
+      state.sunrise_factor = 0;
+      state.sunset_factor = 0;
+      state.target_humidity = settings.night.humidity;
+      state.target_temperature = settings.night.temperature;
+    }
   }
 
   void FridgeController::controlCo2() {
-    const int SECONDS_PER_DAY = 24 * 60 * 60;
-
     if (out_co2.get()) {
       state.out_co2 += xTaskGetTickCount() - co2_inject_start;
     }
@@ -189,7 +215,7 @@ namespace fg {
 
     if(state.is_day) {
       if(co2_inject_end < xTaskGetTickCount()) {
-        if((co2_avg.avg() < settings.co2.target && xTaskGetTickCount() > pause_until_tick) && !(settings.co2.sunsetOff > 0 && (state.timeofday + SECONDS_PER_DAY) > (settings.daynight.night + SECONDS_PER_DAY - settings.lights.sunset * 60))) {
+        if((co2_avg.avg() < settings.co2.target && xTaskGetTickCount() > pause_until_tick) && (settings.co2.sunsetOff <= 0 || state.sunset_factor >= 1)) {
           out_co2.set(1);
           co2_valve_close = co2_inject_start + co2_inject_count * CO2_INJECT_DURATION;
           co2_inject_count = co2_inject_count < CO2_INJECT_MAX_COUNT ? co2_inject_count * 2 : co2_inject_count;
@@ -219,7 +245,7 @@ namespace fg {
 
       static float light_current = 0.0f;
 
-      float t_min = settings.day.temperature + LIGHT_TEMP_HYST;
+      float t_min = state.target_temperature + LIGHT_TEMP_HYST;
       float t_max = t_min + LIGHT_TEMP_HYST;
 
       float out = 1.0f - (state.temperature - t_min) / (t_max - t_min);
@@ -230,13 +256,11 @@ namespace fg {
       }
       else
       {
-          if((state.timeofday + SECONDS_PER_DAY) < (settings.daynight.day + SECONDS_PER_DAY + settings.lights.sunrise * 60)) {
-            //LOG("TON: %d\n", state.time - settings.daynight.day);
-            max_out = static_cast<float>(state.timeofday - settings.daynight.day) / (settings.lights.sunrise * 60.0f);
+          if(state.sunrise_factor < 1) {
+            max_out = state.sunrise_factor;
           }
-          if((state.timeofday + SECONDS_PER_DAY) > (settings.daynight.night + SECONDS_PER_DAY - settings.lights.sunset * 60)) {
-            //LOG("TOFF: %d\n", state.time - settings.daynight.night);
-            max_out = static_cast<float>(settings.daynight.night - state.timeofday) / (settings.lights.sunset * 60.0f);
+          if(state.sunset_factor < 1) {
+            max_out = state.sunset_factor;
           }
       }
 
@@ -271,9 +295,7 @@ namespace fg {
     humidity_avg_short.push(state.humidity);
     humidity_avg_long.push(state.humidity);
 
-    float target_humidity = state.is_day ? settings.day.humidity : settings.night.humidity;
-    float target_temperature = state.is_day ? settings.day.temperature : settings.night.temperature;
-    float temp_limit = target_temperature - 1;
+    float temp_limit = state.target_temperature - 1;
     float humidity_avg = settings.daynight.useLongHumidityAvg > 0 ? humidity_avg_long.avg() : humidity_avg_short.avg();
 
     static uint8_t dehumidify = 0;
@@ -289,12 +311,12 @@ namespace fg {
     }
 
     if(dehumidify) {
-      if((humidity_avg < target_humidity) || (settings.daynight.maxDehumidifySeconds > 0 && (state.timeofday - dehumidify_start_time) > settings.daynight.maxDehumidifySeconds)) {
+      if((humidity_avg < state.target_humidity) || (settings.daynight.maxDehumidifySeconds > 0 && (state.timeofday - dehumidify_start_time) > settings.daynight.maxDehumidifySeconds)) {
         dehumidify = 0;
       }
     }
     else {
-      if(state.humidity > (target_humidity + settings.daynight.targetHumidityDiff)) {
+      if(state.humidity > (state.target_humidity + settings.daynight.targetHumidityDiff)) {
         dehumidify = 1;
 		dehumidify_start_time = state.timeofday;
 		humidity_avg_short.clear();
@@ -329,15 +351,13 @@ namespace fg {
 
   void FridgeController::controlCooling() {
 
-    float target_temperature = state.is_day ? settings.day.temperature : settings.night.temperature;
-
     static uint8_t cool = 0;
     static uint32_t turn_off_time = 0;
 
-    if(state.temperature > target_temperature + 0.8) {
+    if(state.temperature > state.target_temperature + 0.8) {
       cool = 1;
     }
-    if(state.temperature < target_temperature + 0.3) {
+    if(state.temperature < state.target_temperature + 0.3) {
       cool = 0;
     }
 
@@ -367,10 +387,10 @@ namespace fg {
       state.out_heater = 0;
     }
     else if(state.is_day) {
-      state.out_heater = heater_day_pid.tick(state.temperature, settings.day.temperature);
+      state.out_heater = heater_day_pid.tick(state.temperature, state.target_temperature);
     }
     else {
-      state.out_heater = heater_night_pid.tick(state.temperature, settings.night.temperature);
+      state.out_heater = heater_night_pid.tick(state.temperature, state.target_temperature);
     }
 
     heater_turn_off = (float)xTaskGetTickCount() + (float)configTICK_RATE_HZ * state.out_heater;
@@ -448,6 +468,7 @@ namespace fg {
       loadIfAvaliable(new_settings.daynight.maxDehumidifySeconds, doc["daynight"]["maxDehumidifySeconds"]);
       loadIfAvaliable(new_settings.daynight.targetHumidityDiff, doc["daynight"]["targetHumidityDiff"]);
       loadIfAvaliable(new_settings.daynight.useLongHumidityAvg, doc["daynight"]["useLongHumidityAvg"]);
+      loadIfAvaliable(new_settings.daynight.linearChange, doc["daynight"]["linearChange"]);
       loadIfAvaliable(new_settings.co2.target, doc["co2"]["target"]);
       loadIfAvaliable(new_settings.co2.sunsetOff, doc["co2"]["sunsetOff"]);
       loadIfAvaliable(new_settings.day.temperature, doc["day"]["temperature"]);
@@ -469,6 +490,7 @@ namespace fg {
     Serial.printf("new_settings.daynight.maxDehumidifySeconds: %lu\n\r", new_settings.daynight.maxDehumidifySeconds);
     Serial.printf("new_settings.daynight.targetHumidityDiff: %f\n\r", new_settings.daynight.targetHumidityDiff);
     Serial.printf("new_settings.daynight.useLongHumidityAvg: %f\n\r", new_settings.daynight.useLongHumidityAvg);
+    Serial.printf("new_settings.daynight.linearChange: %f\n\r", new_settings.daynight.linearChange);
     Serial.printf("new_settings.co2.target: %.0f\n\r", new_settings.co2.target);
     Serial.printf("new_settings.co2.sunsetOff: %.0f\n\r", new_settings.co2.sunsetOff);
     Serial.printf("new_settings.day.temperature: %.2f\n\r", new_settings.day.temperature);
@@ -495,6 +517,7 @@ namespace fg {
     doc["daynight"]["maxDehumidifySeconds"] = settings.daynight.maxDehumidifySeconds;
     doc["daynight"]["targetHumidityDiff"] = settings.daynight.targetHumidityDiff;
     doc["daynight"]["useLongHumidityAvg"] = settings.daynight.useLongHumidityAvg;
+    doc["daynight"]["linearChange"] = settings.daynight.linearChange;
     doc["co2"]["target"] = settings.co2.target;
     doc["co2"]["sunsetOff"] = settings.co2.sunsetOff;
     doc["day"]["temperature"] = settings.day.temperature;

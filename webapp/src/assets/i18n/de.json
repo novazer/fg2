@@ -44,6 +44,7 @@
     "lights": "Licht",
     "sunrise": "Sonnenaufgangsperiode",
     "sunset": "Sonnenuntergangsperiode",
+    "daynightLinearChange": "Linearer Übergang zwischen Tag und Nacht",
     "lightlimit": "Maximalleistung",
     "lightsOnMaintenanceMode": "Licht AN im Pflegemodus",
     "speed": "Geschwindigkeit",

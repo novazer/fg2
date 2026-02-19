@@ -126,6 +126,7 @@ export class FridgeSettingsConfigurationComponent implements OnChanges {
         "maxDehumidifySeconds": device_settings?.daynight?.maxDehumidifySeconds ?? 0,
         "targetHumidityDiff": device_settings?.daynight?.targetHumidityDiff ?? 5,
         "useLongHumidityAvg": device_settings?.daynight?.useLongHumidityAvg || false,
+        "linearChange": device_settings?.daynight?.linearChange || false,
       },
       "day": {
         "humidity": device_settings?.day?.humidity ?? 60,
@@ -175,6 +176,7 @@ export class FridgeSettingsConfigurationComponent implements OnChanges {
         maxDehumidifySeconds: this.settings.daynight.maxDehumidifySeconds,
         targetHumidityDiff: this.settings.daynight.targetHumidityDiff,
         useLongHumidityAvg: this.settings.daynight.useLongHumidityAvg,
+        linearChange: this.settings.daynight.linearChange,
       },
 
       co2: {
