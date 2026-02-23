@@ -75,9 +75,9 @@ export class ChartsPage implements OnInit, OnDestroy {
     { title: 'CO2 Valve', icon: 'co2_valve', color: '#000', name: 'out_co2', txt: 'CO2 Valve', unit: ' ticks', enabled: false, right: false, nav: false, types: ['fridge', 'fridge2', 'controller']},
     { title: 'Lights', icon: 'light', color: '#000', name: 'out_light', txt: 'Lights', unit: '', enabled: false, right: false, nav: false, types: ['fridge', 'fridge2', 'light', 'controller'], max: 100},
     { title: 'Day', icon: 'light', color: '#000', name: 'day', txt: 'Day', unit: '', enabled: false, right: false, nav: false, types: ['fan'], max: 1},
-    { title: 'Fan (internal)', icon: 'fan_internal', color: 'orange', name: 'out_fan-internal', txt: 'fan-internal', unit: '',  enabled: false, right: false, nav: false, types: ['fridge', 'fridge2'], max: 1, beta: true},
-    { title: 'Fan (external)', icon: 'fan_external', color: 'yellow', name: 'out_fan-external', txt: 'fan-external', unit: '',  enabled: false, right: false, nav: false, types: ['fridge', 'fridge2'], max: 1, beta: true},
-    { title: 'Fan (backwall)', icon: 'fan_backwall', color: 'pink', name: 'out_fan-backwall', txt: 'fan-backwall', unit: '',  enabled: false, right: false, nav: false, types: ['fridge', 'fridge2'], max: 1, beta: true},
+    { title: 'Fan (internal)', icon: 'fan_internal', color: 'orange', name: 'out_fan-internal', txt: 'fan-internal', unit: '',  enabled: false, right: false, nav: false, types: ['fridge', 'fridge2'], max: 1},
+    { title: 'Fan (external)', icon: 'fan_external', color: 'yellow', name: 'out_fan-external', txt: 'fan-external', unit: '',  enabled: false, right: false, nav: false, types: ['fridge', 'fridge2'], max: 1},
+    { title: 'Fan (backwall)', icon: 'fan_backwall', color: 'pink', name: 'out_fan-backwall', txt: 'fan-backwall', unit: '',  enabled: false, right: false, nav: false, types: ['fridge', 'fridge2'], max: 1},
   ]
 
 
