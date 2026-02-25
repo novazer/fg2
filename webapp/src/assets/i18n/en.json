@@ -156,7 +156,8 @@
     "logsTitle": "Log messages",
     "logsShowAll": "Show all",
     "logsNoEntries": "No log messages for the selected timespan",
-    "logsNoFilteredEntries": "No log messages for the selected filters"
+    "logsNoFilteredEntries": "No log messages for the selected filters",
+    "moreHiddenMessages": "There are {{count}} more messages. Please reduce your selection."
   },
   "diagnostics": {
     "serialnumber": "Device serial number",

@@ -181,7 +181,7 @@
             <ion-label>
               <ion-row>
                 <ion-col>
-                  <h1>{{'charts.logsTitle' | translate}} ({{ filteredLogs.length }})</h1>
+                  <h1>{{'charts.logsTitle' | translate}} ({{ filteredLogsUngroupedCount }})</h1>
                 </ion-col>
                 <ion-col class="ion-text-right" [hidden]="deviceLogCategories.size <= 0 && !selectedLogCategory">
                   <ion-select
@@ -206,7 +206,7 @@
               {{ (selectedLogCategory !== 'all' ? 'charts.logsNoFilteredEntries' : 'charts.logsNoEntries') | translate }}
             </ion-label>
           </ion-item>
-          <ion-item *ngFor="let log of filteredLogs" lines="full">
+          <ion-item *ngFor="let log of filteredLogs.slice(0, LOGS_MAX_DISPLAY_COUNT)" lines="full">
             <ion-label style="white-space: normal">
 <!--              <ion-item slot="header" [color]="log.severity == 1 ? 'warning' : log.severity == 2 ? 'danger' : 'light'">-->
 <!--              </ion-item>-->
@@ -236,9 +236,17 @@
                     : (log.message?.split(':')?.[0] + '-text' | translate: {value: log.message?.split(':')?.[1]})
                   }}
 
-                  <p [hidden]="(log.count ?? 0) <= 1">{{ '(Message appeared ' + log.count + ' times consecutively)' }}</p>
+                  <p [hidden]="(log.count ?? 0) <= 1">
+                    (Message appeared {{ log.count }} times consecutively
+                    - <a href="#" (click)="$event.preventDefault(); disableLogGrouping()">show all</a>)
+                  </p>
                 </ion-col>
               </ion-row>
+            </ion-label>
+          </ion-item>
+          <ion-item lines="full" *ngIf="filteredLogs.length > LOGS_MAX_DISPLAY_COUNT">
+            <ion-label>
+              {{ 'charts.moreHiddenMessages' | translate: { count: filteredLogs.length - LOGS_MAX_DISPLAY_COUNT } }}
             </ion-label>
           </ion-item>
         </ion-list>

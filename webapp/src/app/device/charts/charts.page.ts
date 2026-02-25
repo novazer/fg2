@@ -26,12 +26,16 @@ const IS_TOUCH_DEVICE = window.matchMedia("(pointer: coarse)").matches;
 
 const IMAGE_LOAD_DELAY_MS = 500;
 
+const LOGS_MAX_DISPLAY_COUNT = 100;
+
 @Component({
   selector: 'app-charts',
   templateUrl: './charts.page.html',
   styleUrls: ['./charts.page.scss'],
 })
 export class ChartsPage implements OnInit, OnDestroy {
+  protected readonly LOGS_MAX_DISPLAY_COUNT = LOGS_MAX_DISPLAY_COUNT;
+
   Highcharts: typeof Highcharts = Highcharts;
   updateFlag:boolean = false;
   chartOptions: Highcharts.Options;
@@ -78,7 +82,7 @@ export class ChartsPage implements OnInit, OnDestroy {
     { title: 'Fan (internal)', icon: 'fan_internal', color: 'orange', name: 'out_fan-internal', txt: 'fan-internal', unit: '',  enabled: false, right: false, nav: false, types: ['fridge', 'fridge2'], max: 1},
     { title: 'Fan (external)', icon: 'fan_external', color: 'yellow', name: 'out_fan-external', txt: 'fan-external', unit: '',  enabled: false, right: false, nav: false, types: ['fridge', 'fridge2'], max: 1},
     { title: 'Fan (backwall)', icon: 'fan_backwall', color: 'pink', name: 'out_fan-backwall', txt: 'fan-backwall', unit: '',  enabled: false, right: false, nav: false, types: ['fridge', 'fridge2'], max: 1},
-  ]
+  ];
 
 
   public filtered_measures: any[] = [];
@@ -112,9 +116,13 @@ export class ChartsPage implements OnInit, OnDestroy {
 
   public filteredLogsSelectionFiltered: boolean = false;
 
+  public filteredLogsUngroupedCount: number = 0;
+
   public deviceLogCategories: Set<string> = new Set<string>();
 
   public selectedLogCategory: string = 'all';
+
+  public groupLogs: boolean = true;
 
   public deviceImageUrl: string | undefined = undefined;
 
@@ -222,14 +230,16 @@ export class ChartsPage implements OnInit, OnDestroy {
     if (this.route.snapshot.queryParams?.['interval']) {
       this.selectedInterval = this.route.snapshot.queryParams['interval'];
     }
+    if (this.route.snapshot.queryParams?.['logs']) {
+      this.selectedLogCategory = this.route.snapshot.queryParams['logs'];
+    }
     this.devicesSub = this.devices.devices.subscribe((devices) => {
       const device = devices.find((device) => device.device_id == this.device_id);
       this.device_type = device?.device_type || '';
       this.cloudSettings = device?.cloudSettings || {};
       if(this.device_type != "") {
         this.filtered_measures = this.measures
-          .filter((measure) => measure.types.includes(this.device_type))
-          .filter((measure) => !measure.beta || this.cloudSettings.betaFeatures);
+          .filter((measure) => measure.types.includes(this.device_type));
 
         setTimeout(() => this.loadData(), 10)
         this.interval = setInterval(() => {
@@ -401,11 +411,12 @@ export class ChartsPage implements OnInit, OnDestroy {
         ...(this.showLogs ? ['logs'] : []),
       ].join(','),
       offset: this.offset?.toString() ?? '',
-      vpdMode: this.vpdMode ?? '',
+      vpdMode: this.isMeasureEnabled('vpd') ? this.vpdMode : '',
       autoUpdate: this.autoUpdate?.toString() ?? '',
       useCustom: this.useCustom?.toString() ?? '',
       timespan: this.selectedTimespan?.name ?? '',
       interval: this.selectedInterval ?? '',
+      logs: this.showLogs ? this.selectedLogCategory : '',
     };
     await this.router.navigate(['device', this.device_id, 'charts'], { queryParams, replaceUrl: true });
   }
@@ -519,7 +530,7 @@ export class ChartsPage implements OnInit, OnDestroy {
   }
 
   filterLogs() {
-    const getFilteredLogs = (ignoreSelection?: boolean): (DeviceLog & { count?: number; })[] => {
+    const getFilteredLogs = (ignoreSelection?: boolean, ignoreGrouping?: boolean): (DeviceLog & { count?: number; })[] => {
       let result: (DeviceLog & { count?: number; })[] = this.deviceLogs.filter(log => {
 
         const anyLogSelected = ignoreSelection ? false : this.selectedLogs.length > 0;
@@ -543,7 +554,14 @@ export class ChartsPage implements OnInit, OnDestroy {
         count++;
 
         // de-duplicate lines
-        if (thisLog?.title !== nextLog?.title || thisLog?.message !== nextLog?.message || thisLog?.severity !== nextLog?.severity || thisLog?.raw !== nextLog?.raw) {
+        if (
+          !this.groupLogs
+          || ignoreGrouping
+          || thisLog?.title !== nextLog?.title
+          || thisLog?.message !== nextLog?.message
+          || thisLog?.severity !== nextLog?.severity
+          || thisLog?.raw !== nextLog?.raw
+        ) {
           result.push({
             ...thisLog,
             count,
@@ -560,12 +578,18 @@ export class ChartsPage implements OnInit, OnDestroy {
     }
 
     this.filteredLogs = getFilteredLogs();
+    this.filteredLogsUngroupedCount = getFilteredLogs(undefined, true).length;
     this.filteredLogsSelectionFiltered = this.filteredLogs.length < getFilteredLogs(true).length;
   }
 
   logCategoryChanged() {
     this.selectedLogs.splice(0, this.selectedLogs.length);
     void this.loadData();
+  }
+
+  disableLogGrouping() {
+    this.groupLogs = false;
+    this.filterLogs();
   }
 
   private redrawChart() {
