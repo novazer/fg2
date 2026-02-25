@@ -417,7 +417,15 @@ class DeviceService {
     });
   }
 
-  public async getDeviceLogs(device_id: string, user_id: string, is_admin: boolean, timestampFrom: number, timestampTo: number, deleted: boolean) {
+  public async getDeviceLogs(
+    device_id: string,
+    user_id: string,
+    is_admin: boolean,
+    timestampFrom: number,
+    timestampTo: number,
+    deleted: boolean,
+    categories?: string[],
+  ) {
     let device;
     if (is_admin) {
       device = await deviceModel.findOne({ device_id: device_id }, { device_id: 1 });
@@ -430,9 +438,9 @@ class DeviceService {
           device_id: device_id,
           time: { $gte: new Date(timestampFrom), $lt: new Date(timestampTo) },
           ...(deleted ? {} : { deleted: { $ne: true } }),
+          ...(categories ? { categories: { $in: categories } } : {}),
         })
-        .sort({ time: -1 })
-        .limit(1000);
+        .sort({ time: -1 });
       logs.forEach(log => (log.categories = log.categories?.length > 0 ? log.categories : ['unknown']));
       return logs.reverse();
     }

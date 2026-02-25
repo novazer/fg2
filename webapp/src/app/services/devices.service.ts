@@ -188,8 +188,8 @@ export class DeviceService {
     await firstValueFrom( this.http.post(environment.API_URL + '/device/recipe', payload) );
   }
 
-  public async getLogs(device_id:string, timestampFrom?: number, timestampTo?: number, deleted?: boolean): Promise<DeviceLog[]> {
-    return await firstValueFrom( this.http.get<DeviceLog[]>(environment.API_URL + '/device/logs/' + device_id + '?from=' + Number(timestampFrom ?? 0) + '&to=' + Number(timestampTo ?? Date.now()) + '&deleted=' + (deleted ? '1' : '')) );
+  public async getLogs(device_id:string, timestampFrom?: number, timestampTo?: number, deleted?: boolean, categories?: string[]): Promise<DeviceLog[]> {
+    return await firstValueFrom( this.http.get<DeviceLog[]>(environment.API_URL + '/device/logs/' + device_id + '?from=' + Number(timestampFrom ?? 0) + '&to=' + Number(timestampTo ?? Date.now()) + '&deleted=' + (deleted ? '1' : '') + (categories ? '&categories=' + categories.join(',') : '')) );
   }
 
   public async getDeviceImageUrl(device_id: string, format: 'mp4' | 'jpeg', timestamp?: number, duration?: string): Promise<string | undefined> {

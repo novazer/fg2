@@ -337,6 +337,7 @@ class DeviceController {
           Number(req.query.from ?? 0),
           Number(req.query.to ?? Date.now()),
           Boolean(req.query.deleted ?? false),
+          req.query.categories ? String(req.query.categories).split(',') : undefined,
         );
         res.status(200).json(logs);
       }
