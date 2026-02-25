@@ -402,6 +402,7 @@ export class ChartsPage implements OnInit, OnDestroy {
       this.selectedTimespan = this.getAvailableTimespans()[0];
     }
 
+    this.groupLogs = true;
     this.filterLogs();
 
     const queryParams = {
