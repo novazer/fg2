@@ -115,7 +115,9 @@
     "rtspStreamTransport": "RTSP transport protocol",
     "logRtspStreamErrors": "Log webcam stream errors",
     "tunnelRtspStream": "Tunnel webcam stream",
-    "tunnelRtspStreamHint": "If enabled, the webcam stream will be tunneled through the module. This is helpful if your webcam is not directly reachable from the internet."
+    "tunnelRtspStreamHint": "If enabled, the webcam stream will be tunneled through the module. This is helpful if your webcam is not directly reachable from the internet.",
+    "dangerZone": "Danger zone",
+    "deleteDevice": "Delete device"
   },
 
   "menu": {

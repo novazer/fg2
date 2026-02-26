@@ -231,7 +231,7 @@
 
   <fridge-settings-config *ngIf="settingsmode === 'manual'" [(deviceSettings)]="deviceSettings" [cloudSettings]="cloudSettings" />
 
-  <cloud-settings [(cloudSettings)]="cloudSettings" />
+  <cloud-settings [(cloudSettings)]="cloudSettings" [deviceId]="device_id" />
 
   <alarms [(alarms)]="alarms" [availableSensorTypes]="['temperature', 'humidity', 'co2', 'co2_valve', 'light', 'dehumidifier', 'heater']" [cloud_settings]="cloudSettings" />
 

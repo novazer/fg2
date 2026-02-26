@@ -90,7 +90,7 @@
     </ion-card-content>
   </ion-card>
 
-  <cloud-settings [(cloudSettings)]="cloudSettings" />
+  <cloud-settings [(cloudSettings)]="cloudSettings" [deviceId]="device_id" />
 
   <alarms [(alarms)]="alarms" [availableSensorTypes]="['temperature', 'humidity', 'light']" [cloud_settings]="cloudSettings" />
 

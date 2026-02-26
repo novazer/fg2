@@ -98,5 +98,12 @@
         (ngModelChange)="cloudSettingsChange.emit(cloudSettings); onFirmwareUpdateChanged()"
       ></ion-checkbox>
     </ion-item>
+    <ion-item-divider />
+    <ion-item lines="none">
+      <ion-label>{{'settings.dangerZone' | translate}}</ion-label>
+      <ion-button color="danger" (click)="deleteDevice()" slod="end">
+        {{'settings.deleteDevice' | translate}}
+      </ion-button>
+    </ion-item>
   </ion-card-content>
 </ion-card>

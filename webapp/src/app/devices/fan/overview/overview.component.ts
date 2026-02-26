@@ -88,12 +88,6 @@ export class FanOverviewComponent implements OnInit {
     this.severity = Math.max(...this.logs.map((o: { severity: number; }) => {return isNaN(o.severity) ? 0 : o.severity}))
   }
 
-  unClaimDevice(id:string) {
-    if(confirm("Are you sure you want to remove this device?")) {
-      this.devices.unclaim(id)
-    }
-  }
-
   @ViewChild(IonModal) modal!: IonModal;
 
 

@@ -114,7 +114,9 @@
     "rtspStreamTransport": "RTSP Transportprotokoll",
     "logRtspStreamErrors": "Webcam Stream Fehler loggen",
     "tunnelRtspStream": "Webcam Stream tunneln",
-    "tunnelRtspStreamHint": "Falls aktiviert, wird der Webcam Stream durch das Modul getunnelt, was hilfreich sein kann wenn dein Modul hinter einem NAT oder einer Firewall ist."
+    "tunnelRtspStreamHint": "Falls aktiviert, wird der Webcam Stream durch das Modul getunnelt, was hilfreich sein kann wenn dein Modul hinter einem NAT oder einer Firewall ist.",
+    "dangerZone": "Gefahrenzone",
+    "deleteDevice": "Gerät löschen"
   },
 
   "menu": {

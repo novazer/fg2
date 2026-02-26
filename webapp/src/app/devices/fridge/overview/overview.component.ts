@@ -185,12 +185,6 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
     clearInterval(this.timerId);
   }
 
-  unClaimDevice(id:string) {
-    if(confirm("Are you sure you want to remove this device?")) {
-      this.devices.unclaim(id)
-    }
-  }
-
   showLogs() {
     console.log(this.showDeviceLog)
     this.showDeviceLog = true;
