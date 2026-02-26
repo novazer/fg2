@@ -23,6 +23,7 @@ export class FanOverviewComponent implements OnInit {
   public vpd:number = 0;
   @Input() device_id:string = "";
   @Input() device_name:string = "";
+  @Input() cloud_settings:any = {};
   @ViewChild("nameedit", { read: ElementRef }) private nameInput: ElementRef | undefined;
 
   public t_l:number = NaN;

@@ -90,5 +90,8 @@
     <ion-col size-md="2" size-sm="3" size="12" style="z-index: 1000">
       <ion-button expand="block" [disabled]="device_online == false" [routerLink]="['/device', device_id, 'settings']">{{'devices.button-settings' | translate}}</ion-button>
     </ion-col>
+    <ion-col size-md="2" size-sm="3" size="12" style="z-index: 1000" *ngIf="cloud_settings?.betaFeatures">
+      <ion-button expand="block" [routerLink]="['/device', device_id, 'diary']">{{'devices.button-diary' | translate}}</ion-button>
+    </ion-col>
   </ion-row>
 </ion-card-content>

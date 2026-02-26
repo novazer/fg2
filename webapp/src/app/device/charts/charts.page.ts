@@ -251,7 +251,7 @@ export class ChartsPage implements OnInit, OnDestroy {
           }
         }, 10000)
       }
-    })
+    });
   }
 
   ngOnDestroy() {
