@@ -21,6 +21,8 @@ export class DiaryPage implements OnInit, OnDestroy {
   public deviceId: string = '';
   public cloudSettings: any = {};
 
+  public selectedReport: 'co2' = 'co2';
+
   private devicesSub: Subscription | undefined;
 
   constructor(private route: ActivatedRoute, private router: Router, private data: DataService, private devices: DeviceService) {
@@ -38,5 +40,9 @@ export class DiaryPage implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.devicesSub?.unsubscribe();
     this.devicesSub = undefined;
+  }
+
+  reportSelected() {
+
   }
 }

@@ -11,6 +11,7 @@ import { DiaryPage } from './diary.page';
 import { PipesModule } from 'src/app/pipes/pipes.module';
 import { TranslateModule } from '@ngx-translate/core';
 import {DiaryPageRoutingModule} from "./diary-routing.module";
+import {DevicesModule} from "../../devices/devices.module";
 
 @NgModule({
   imports: [
@@ -21,7 +22,8 @@ import {DiaryPageRoutingModule} from "./diary-routing.module";
     HighchartsChartModule,
     DiaryPageRoutingModule,
     PipesModule,
-    TranslateModule.forChild()
+    TranslateModule.forChild(),
+    DevicesModule
   ],
   declarations: [DiaryPage]
 })
