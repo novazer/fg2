@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Subject, firstValueFrom } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { AuthService } from '../auth/auth.service';
+import {DiaryEntry} from "../device/diary/diary-entry-modal/diary-entry-modal.component";
 
 export interface Device {
   device_id: string;
@@ -29,6 +30,8 @@ export interface DeviceLog {
   severity: 0 | 1 | 2,
   time: string,
   categories?: string[],
+  images?: string[],
+  data?: DiaryEntry['data']
 }
 
 export interface DeviceClass {
@@ -198,6 +201,10 @@ export class DeviceService {
 
   public async clearLogs(device_id:string) {
     return await firstValueFrom( this.http.delete(environment.API_URL + '/device/logs/' + device_id) )
+  }
+
+  public async addLog(device_id: string, message: { title: string; message?: string; raw?: boolean; severity: 0 | 1 | 2 | number; categories: string[] }) {
+    await firstValueFrom( this.http.post(environment.API_URL + '/device/logs/' + device_id, message ) )
   }
 
   public async setSettings(device_id:string, settings: string) {

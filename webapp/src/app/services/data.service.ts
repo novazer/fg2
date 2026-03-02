@@ -89,8 +89,8 @@ export class DataService {
     }
   }
 
-  public async getSeries(device_id: string, measure: string, from: string, interval: string, to: string = 'now()') {
-    let query = `?from=${from}&to=${to}&interval=${interval}`
+  public async getSeries(device_id: string, measure: string, from: string, interval: string, to: string = 'now()', method: string = 'mean'): Promise<[number, number][]> {
+    let query = `?from=${from}&to=${to}&interval=${interval}&method=${method}`;
     let data:any = await firstValueFrom(this.http.get(environment.API_URL + '/data/series/' + device_id + '/' + measure + query))
     return data.map((row: any) => {return [new Date(row._time).getTime(), row._value]});
   }

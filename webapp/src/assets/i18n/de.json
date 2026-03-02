@@ -342,6 +342,29 @@
     }
   },
 
+  "diary": {
+    "title": "Tagebuch",
+    "addEntry": "Eintrag hinzufügen",
+    "co2Report": "CO2 Bericht",
+    "categories": {
+      "co2Refill": "CO2 Nachfüllung"
+    },
+    "labels": {
+      "categories": "Kategorie",
+      "time": "Zeit",
+      "title": "Titel",
+      "oldCylinderRest": "Rest im alten Zylinder (g)",
+      "newCylinderFilling": "Füllmenge neuer Zylinder (g)",
+      "message": "Nachricht"
+    },
+    "actions": {
+      "save": "Speichern"
+    },
+    "defaults": {
+      "co2RefillTitle": "CO2 Flasche wurde nachgefüllt"
+    },
+    "co2ReportNoData": "Noch keine CO2 Nachfüllungen."
+  },
 
   "message-lost-connection-title": "Verbindungsproblem",
   "message-lost-connection-text": "Die Verbindung zwischen deinem Gerät und unserem Server ist abgebrochen und wurde wiederhergestellt. Wenn dieser Fehler oft auftritt überprüfe bitte dein WLAN und deine Internetverbindung.",

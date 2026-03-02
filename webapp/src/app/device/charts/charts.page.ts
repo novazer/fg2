@@ -76,7 +76,7 @@ export class ChartsPage implements OnInit, OnDestroy {
     // { title: 'D', icon: 'heating', color: '#f00', name: 'd', txt: 'D', unit: '', enabled: false, right: false, nav: false, types: ['fridge', 'foo']},
     { title: 'Dehumidifier', icon: 'dehumidify', color: '#00f', name: 'out_dehumidifier', txt: 'H', unit: '', enabled: false, right: false, nav: false, types: ['fridge', 'fridge2', 'dryer', 'controller'], max: 1},
     { title: 'Fan', icon: 'fan_out', color: '#00f', name: 'out_fan', txt: 'Fan', unit: '%', enabled: false, right: false, nav: false, types: ['fan'], max: 1},
-    { title: 'CO2 Valve', icon: 'co2_valve', color: '#000', name: 'out_co2', txt: 'CO2 Valve', unit: ' ticks', enabled: false, right: false, nav: false, types: ['fridge', 'fridge2', 'controller']},
+    { title: 'CO2 Valve', icon: 'co2_valve', color: '#000', name: 'out_co2', txt: 'CO2 Valve', unit: ' ticks', enabled: false, right: false, nav: false, types: ['fridge', 'fridge2', 'controller'], method: 'sum'},
     { title: 'Lights', icon: 'light', color: '#000', name: 'out_light', txt: 'Lights', unit: '', enabled: false, right: false, nav: false, types: ['fridge', 'fridge2', 'light', 'controller'], max: 100},
     { title: 'Day', icon: 'light', color: '#000', name: 'day', txt: 'Day', unit: '', enabled: false, right: false, nav: false, types: ['fan'], max: 1},
     { title: 'Fan (internal)', icon: 'fan_internal', color: 'orange', name: 'out_fan-internal', txt: 'fan-internal', unit: '',  enabled: false, right: false, nav: false, types: ['fridge', 'fridge2'], max: 1},
@@ -317,9 +317,9 @@ export class ChartsPage implements OnInit, OnDestroy {
       measure.axis = axis;
     }
 
-    const series = await Promise.all(this.filtered_measures.map(async (measure:any):Promise<Highcharts.SeriesOptionsType & { data: [[number, number]] }> => {
+    const series = await Promise.all(this.filtered_measures.map(async (measure:any):Promise<Highcharts.SeriesOptionsType & { data: [number, number][] }> => {
       const requestedMeasure = measure.name + (measure.name === 'vpd' && this.vpdMode !== 'all' ? `_${this.vpdMode}` : '');
-      let data = measure.enabled ? await this.data.getSeries(this.device_id, requestedMeasure, from, this.selectedInterval, to) : []
+      let data = measure.enabled ? await this.data.getSeries(this.device_id, requestedMeasure, from, this.selectedInterval, to, measure.method) : []
 
       if (data.length > 0 && data[data.length - 1][1] === null) {
         data.pop();

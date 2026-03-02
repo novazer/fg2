@@ -10,8 +10,8 @@
   <ng-container>
     <ion-card>
       <ion-card-content>
-        <ion-button color="primary" (click)="$event.preventDefault()">
-          <ion-icon name="add-circle-outline"></ion-icon>
+        <ion-button color="primary" (click)="openEntryModal()">
+          <ion-icon name="add-circle-outline"></ion-icon>&nbsp;
           {{'diary.addEntry' | translate}}
         </ion-button>
 
@@ -21,9 +21,15 @@
           (ngModelChange)="reportSelected()"
           class="ion-float-right"
         >
-          <ion-select-option value="co2">{{ 'diary.co2Report' | translate}}</ion-select-option>
+          <ion-select-option value="co2report">{{ 'diary.co2Report' | translate}}</ion-select-option>
         </ion-select>
       </ion-card-content>
     </ion-card>
+
+    <app-co2-report
+      *ngIf="selectedReport === 'co2report'"
+      [deviceId]="deviceId"
+      [cloudSettings]="cloudSettings"
+    ></app-co2-report>
   </ng-container>
 </ion-content>

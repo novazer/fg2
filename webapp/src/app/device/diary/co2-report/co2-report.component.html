@@ -1,0 +1,19 @@
+<ion-card>
+  <ion-card-header>
+    <ion-card-title>{{ 'diary.co2Report' | translate }}</ion-card-title>
+  </ion-card-header>
+  <ion-card-content>
+    <p>{{ averageTicksPerFilling ? '⌀ ' + (averageTicksPerFilling | number:'1.0-0') + ' ticks/g' : ('diary.co2ReportNoData' | translate) }}</p>
+
+    <ion-item *ngFor="let cylinder of cylinders.reverse(); let first = first">
+      <ion-label [color]="first ? 'primary' : null">
+        {{ cylinder.timestampStart | date:'medium' }} |
+        {{ cylinder.fillingStart - (cylinder.fillingEnd ?? 0) }}g CO₂ used |
+        {{ cylinder.ticksReleased | number: '1.0'}} ticks released |
+        {{ cylinder.ticksPerFilling ? (cylinder.ticksPerFilling | number:'1.0-0') + ' ticks/g CO₂' : (cylinder.fillingEnd | number:'1.0-0') + ' g CO₂ remaining' + (first ? ' (estimated)' : '') }}
+      </ion-label>
+      <ion-spinner name="dots" *ngIf="first"></ion-spinner>
+    </ion-item>
+  </ion-card-content>
+</ion-card>
+

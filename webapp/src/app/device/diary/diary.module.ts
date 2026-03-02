@@ -12,6 +12,8 @@ import { PipesModule } from 'src/app/pipes/pipes.module';
 import { TranslateModule } from '@ngx-translate/core';
 import {DiaryPageRoutingModule} from "./diary-routing.module";
 import {DevicesModule} from "../../devices/devices.module";
+import { Co2ReportComponent } from './co2-report/co2-report.component';
+import { DiaryEntryModalComponent } from './diary-entry-modal/diary-entry-modal.component';
 
 @NgModule({
   imports: [
@@ -22,9 +24,9 @@ import {DevicesModule} from "../../devices/devices.module";
     HighchartsChartModule,
     DiaryPageRoutingModule,
     PipesModule,
-    TranslateModule.forChild(),
+    TranslateModule,
     DevicesModule
   ],
-  declarations: [DiaryPage]
+  declarations: [DiaryPage, Co2ReportComponent, DiaryEntryModalComponent]
 })
 export class DiaryPageModule {}

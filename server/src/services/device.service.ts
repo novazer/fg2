@@ -400,7 +400,20 @@ class DeviceService {
     }
   }
 
-  public async logMessage(deviceId: string, msg: { message: string; title?: string; severity: 0 | 1 | 2; raw?: boolean; categories: string[] }) {
+  public async logMessage(
+    deviceId: string,
+    msg: {
+      message: string;
+      title?: string;
+      severity: 0 | 1 | 2;
+      raw?: boolean;
+      categories: string[];
+      data?: Record<string, any>;
+      images?: string[];
+      deleted?: boolean;
+      time?: string;
+    },
+  ) {
     //console.log("\nLOG\n", message)
     const [messageKey, value] = msg.message.split(':');
     if (messageKey?.startsWith('message-maintenance-mode-activated') && isNumeric(value)) {
@@ -414,6 +427,10 @@ class DeviceService {
       severity: msg.severity,
       raw: msg.raw,
       categories: msg.categories || [],
+      data: msg.data,
+      images: msg.images,
+      deleted: msg.deleted,
+      time: new Date(msg.time),
     });
   }
 

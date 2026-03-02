@@ -11,6 +11,9 @@ import * as Highcharts from 'highcharts/highstock';
 import {DeviceLog, DeviceService} from 'src/app/services/devices.service';
 import {PlotLineOrBand, XAxisPlotLinesOptions} from "highcharts";
 import {YAxisOptions} from "highcharts/highstock";
+import { ModalController } from '@ionic/angular';
+import {DiaryEntry, DiaryEntryModalComponent} from './diary-entry-modal/diary-entry-modal.component';
+import {OverlayEventDetail} from "@ionic/core/components";
 
 @Component({
   selector: 'app-diary',
@@ -21,11 +24,17 @@ export class DiaryPage implements OnInit, OnDestroy {
   public deviceId: string = '';
   public cloudSettings: any = {};
 
-  public selectedReport: 'co2' = 'co2';
+  public selectedReport: 'co2report' = 'co2report';
 
   private devicesSub: Subscription | undefined;
 
-  constructor(private route: ActivatedRoute, private router: Router, private data: DataService, private devices: DeviceService) {
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private data: DataService,
+    private devices: DeviceService,
+    private modalController: ModalController
+  ) {
   }
 
   ngOnInit(): void {
@@ -40,6 +49,35 @@ export class DiaryPage implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.devicesSub?.unsubscribe();
     this.devicesSub = undefined;
+  }
+
+  async openEntryModal() {
+    const modal = await this.modalController.create({
+      component: DiaryEntryModalComponent,
+      componentProps: {
+        deviceId: this.deviceId,
+      },
+      // canDismiss: (data, role) => Promise.resolve(!data?.note),
+      backdropDismiss: false,
+    });
+
+    await modal.present();
+    const result: OverlayEventDetail<DiaryEntry> = await modal.onDidDismiss();
+
+    if (result.role === 'save') {
+      const data = {
+        title: result.data?.title ?? '',
+        message: result.data?.message ?? result.data?.title ?? '',
+        time: result.data?.time,
+        raw: true,
+        categories: [result.data?.category || 'unknown'],
+        data: result.data?.data,
+        images: result.data?.images,
+        severity: 0,
+        deleted: true,
+      }
+      await this.devices.addLog(this.deviceId, data);
+    }
   }
 
   reportSelected() {

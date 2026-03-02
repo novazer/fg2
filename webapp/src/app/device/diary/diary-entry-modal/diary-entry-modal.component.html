@@ -1,0 +1,52 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>{{ 'diary.addEntry' | translate }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cancel()">{{ 'misc.close' | translate }}</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-item>
+    <ion-label>{{ 'diary.labels.categories' | translate }}</ion-label>
+    <ion-select [(ngModel)]="category" multiple="false" [interfaceOptions]="{ cssClass: 'wider-popover' }">
+      <ion-select-option value="co2-refill">{{ 'diary.categories.co2Refill' | translate }}</ion-select-option>
+    </ion-select>
+  </ion-item>
+
+  <ion-item>
+    <ion-label>{{ 'diary.labels.time' | translate }}</ion-label>
+    <ion-datetime-button datetime="diary-entry-time"></ion-datetime-button>
+
+    <ion-modal [keepContentsMounted]="true">
+      <ng-template>
+        <ion-datetime id="diary-entry-time" presentation="date-time" [(ngModel)]="time"></ion-datetime>
+      </ng-template>
+    </ion-modal>
+  </ion-item>
+
+  <ion-item *ngIf="isFieldEditable('title')">
+    <ion-label>{{ 'diary.labels.title' | translate }}</ion-label>
+    <ion-input [(ngModel)]="title" class="ion-text-right"></ion-input>
+  </ion-item>
+
+  <ion-item *ngIf="isFieldEditable('co2FillingRest')">
+    <ion-label>{{ 'diary.labels.oldCylinderRest' | translate }}</ion-label>
+    <ion-input type="number" [(ngModel)]="data.co2FillingRest" class="ion-text-right"></ion-input>
+  </ion-item>
+
+  <ion-item *ngIf="isFieldEditable('co2FillingInitial')">
+    <ion-label>{{ 'diary.labels.newCylinderFilling' | translate }}</ion-label>
+    <ion-input type="number" [(ngModel)]="data.co2FillingInitial" class="ion-text-right"></ion-input>
+  </ion-item>
+
+  <ion-item *ngIf="isFieldEditable('message')">
+    <ion-label position="stacked">{{ 'diary.labels.message' | translate }}</ion-label>
+    <ion-textarea [(ngModel)]="message" autoGrow="true"></ion-textarea>
+  </ion-item>
+
+  <ion-button expand="block" [disabled]="!isValid()" (click)="save()">
+    {{ 'diary.actions.save' | translate }}
+  </ion-button>
+</ion-content>

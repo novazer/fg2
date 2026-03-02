@@ -6,6 +6,7 @@ import { AddDeviceClassDto, TestDeviceDto } from '@dtos/device.dto';
 import { isUserDeviceMiddelware } from '@/middlewares/auth.middleware';
 import deviceModel from '@models/device.model'; // added import
 import recipeModel from '@models/recipe.model';
+import { isNumeric } from 'influx/lib/src/grammar';
 
 class DeviceController {
   public getDevices = async (req: Request, res: Response, next: NextFunction) => {
@@ -351,6 +352,32 @@ class DeviceController {
       await deviceService.deleteDeviceLogs(req.params.device_id, req.user_id);
 
       res.status(200).json({ status: 'ok' });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public addDeviceLog = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+    try {
+      const device_id = req.params.device_id;
+      if (!device_id) {
+        return res.status(400).json({ error: 'Missing device_id' });
+      }
+
+      if (
+        (!req.body?.title && !req.body?.message) ||
+        !isNumeric(req.body.severity) ||
+        !Array.isArray(req.body.categories) ||
+        req.body.categories.length === 0 ||
+        !req.body.time
+      ) {
+        return res.status(400).json({ error: 'Invalid log entry payload' });
+      }
+
+      if (await isUserDeviceMiddelware(req, res, device_id)) {
+        await deviceService.logMessage(device_id, req.body);
+        res.status(200).json({ status: 'ok' });
+      }
     } catch (error) {
       next(error);
     }

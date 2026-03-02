@@ -57,9 +57,14 @@ class DataService {
     }
   }
 
-  public async getSeries(device_id, measure, from, to, interval): Promise<{ _time: string; _value: number }[]> {
+  public async getSeries(device_id, measure, from, to, interval, method = 'mean'): Promise<{ _time: string; _value: number }[]> {
     if (measure.startsWith('vpd')) {
-      return this.getSeriesVpd(device_id, measure, from, to, interval);
+      return this.getSeriesVpd(device_id, measure, from, to, interval, method);
+    }
+
+    const allowedMethods = ['mean', 'min', 'max', 'sum'];
+    if (!allowedMethods.includes(method)) {
+      method = allowedMethods[0];
     }
 
     const queryApi = influxdb_client.getQueryApi(INFLUXDB_ORG);
@@ -69,8 +74,8 @@ class DataService {
         |> filter(fn: (r) => r["_measurement"] == "status")
         |> filter(fn: (r) => r["_field"] == "${measure}")
         |> filter(fn: (r) => r["device_id"] == "${device_id}")
-        |> aggregateWindow(every: ${interval}, fn: mean, createEmpty: true)
-        |> yield(name: "mean")
+        |> aggregateWindow(every: ${interval}, fn: ${method}, createEmpty: true)
+        |> yield(name: "${method}")
         |> limit(n: 50000)
     `;
     const rows = await queryApi.collectRows(query);
@@ -80,10 +85,10 @@ class DataService {
     });
   }
 
-  private async getSeriesVpd(device_id, measure: any, from, to, interval): Promise<{ _time: string; _value: number }[]> {
-    const tempSeries = await this.getSeries(device_id, 'temperature', from, to, interval);
-    const humiditySeries = await this.getSeries(device_id, 'humidity', from, to, interval);
-    const lightSeries = await this.getSeries(device_id, 'out_light', from, to, interval);
+  private async getSeriesVpd(device_id, measure: any, from, to, interval, method): Promise<{ _time: string; _value: number }[]> {
+    const tempSeries = await this.getSeries(device_id, 'temperature', from, to, interval, method);
+    const humiditySeries = await this.getSeries(device_id, 'humidity', from, to, interval, method);
+    const lightSeries = await this.getSeries(device_id, 'out_light', from, to, interval, method);
 
     const combinedSeries = new Map();
     tempSeries.forEach(t => {

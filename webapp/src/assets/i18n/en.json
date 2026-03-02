@@ -358,6 +358,30 @@
     }
   },
 
+  "diary": {
+    "title": "Diary",
+    "addEntry": "Add entry",
+    "co2Report": "CO2 report",
+    "categories": {
+      "co2Refill": "CO2 refill"
+    },
+    "labels": {
+      "categories": "Category",
+      "time": "Time",
+      "title": "Title",
+      "oldCylinderRest": "Old cylinder rest (g)",
+      "newCylinderFilling": "New cylinder filling (g)",
+      "message": "Message"
+    },
+    "actions": {
+      "save": "Save"
+    },
+    "defaults": {
+      "co2RefillTitle": "CO2 cylinder was refilled"
+    },
+    "co2ReportNoData": "No CO2 refill data yet."
+  },
+
   "message-lost-connection-title": "Connection problem",
   "message-lost-connection-text": "The connection between your device and our sever was lost and has been reestablished. If this messages appeares regulary please check your wifi and internet connection",
   "message-device-booted-title": "Device rebooted",
