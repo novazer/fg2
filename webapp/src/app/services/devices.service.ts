@@ -32,6 +32,7 @@ export interface DeviceLog {
   categories?: string[],
   images?: string[],
   data?: DiaryEntry['data']
+  deleted?: boolean;
 }
 
 export interface DeviceClass {
@@ -205,6 +206,10 @@ export class DeviceService {
 
   public async addLog(device_id: string, message: { title: string; message?: string; raw?: boolean; severity: 0 | 1 | 2 | number; categories: string[] }) {
     await firstValueFrom( this.http.post(environment.API_URL + '/device/logs/' + device_id, message ) )
+  }
+
+  public async deleteLog(device_id: string, log_id: string) {
+    await firstValueFrom(this.http.delete(environment.API_URL + '/device/logs/' + device_id + '/' + log_id));
   }
 
   public async setSettings(device_id:string, settings: string) {

@@ -4,7 +4,7 @@ import { deviceService } from '@services/device.service';
 import { RequestWithUser } from '@/interfaces/auth.interface';
 import { AddDeviceClassDto, TestDeviceDto } from '@dtos/device.dto';
 import { isUserDeviceMiddelware } from '@/middlewares/auth.middleware';
-import deviceModel from '@models/device.model'; // added import
+import deviceModel from '@models/device.model';
 import recipeModel from '@models/recipe.model';
 import { isNumeric } from 'influx/lib/src/grammar';
 
@@ -352,6 +352,17 @@ class DeviceController {
       await deviceService.deleteDeviceLogs(req.params.device_id, req.user_id);
 
       res.status(200).json({ status: 'ok' });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public deleteDeviceLog = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+    try {
+      if (await isUserDeviceMiddelware(req, res, req.params.device_id)) {
+        await deviceService.deleteDeviceLog(req.params.device_id, req.user_id, req.is_admin, req.params.log_id);
+        res.status(200).json({ status: 'ok' });
+      }
     } catch (error) {
       next(error);
     }

@@ -346,6 +346,8 @@
     "title": "Tagebuch",
     "addEntry": "Eintrag hinzufügen",
     "co2Report": "CO2 Bericht",
+    "entriesReport": "Einträge",
+    "entriesIncludeSystem": "Systemeinträge anzeigen",
     "categories": {
       "co2Refill": "CO2 Nachfüllung"
     },
@@ -358,12 +360,16 @@
       "message": "Nachricht"
     },
     "actions": {
-      "save": "Speichern"
+      "save": "Speichern",
+      "edit": "Bearbeiten",
+      "delete": "Löschen"
     },
+    "confirmDelete": "Diesen Tagebuch-Eintrag löschen?",
     "defaults": {
       "co2RefillTitle": "CO2 Flasche wurde nachgefüllt"
     },
-    "co2ReportNoData": "Noch keine CO2 Nachfüllungen."
+    "co2ReportNoData": "Noch keine CO2 Nachfüllungen.",
+    "entriesNoData": "Noch keine Tagebuch-Einträge."
   },
 
   "message-lost-connection-title": "Verbindungsproblem",

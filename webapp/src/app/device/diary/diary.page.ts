@@ -24,7 +24,7 @@ export class DiaryPage implements OnInit, OnDestroy {
   public deviceId: string = '';
   public cloudSettings: any = {};
 
-  public selectedReport: 'co2report' = 'co2report';
+  public selectedReport: 'co2report' | 'entries' = 'entries';
 
   private devicesSub: Subscription | undefined;
 
@@ -54,10 +54,6 @@ export class DiaryPage implements OnInit, OnDestroy {
   async openEntryModal() {
     const modal = await this.modalController.create({
       component: DiaryEntryModalComponent,
-      componentProps: {
-        deviceId: this.deviceId,
-      },
-      // canDismiss: (data, role) => Promise.resolve(!data?.note),
       backdropDismiss: false,
     });
 

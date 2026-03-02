@@ -1,0 +1,70 @@
+<ion-card>
+  <ion-card-header>
+    <ion-card-title>{{ 'diary.entriesReport' | translate }}</ion-card-title>
+  </ion-card-header>
+  <ion-card-content>
+    <ion-item lines="none">
+      <ion-label>{{ 'diary.entriesIncludeSystem' | translate }}</ion-label>
+      <ion-toggle
+        [(ngModel)]="includeSystemEntries"
+        (ionChange)="onIncludeSystemEntriesChange()"
+      ></ion-toggle>
+    </ion-item>
+
+    <ion-item *ngIf="loading">
+      <ion-spinner name="dots"></ion-spinner>
+      <ion-label>{{ 'misc.loading' | translate }}</ion-label>
+    </ion-item>
+
+    <ion-item *ngIf="!loading && logs.length === 0">
+      <ion-label>{{ 'diary.entriesNoData' | translate }}</ion-label>
+    </ion-item>
+
+    <ion-list *ngIf="!loading && logs.length > 0">
+      <ion-item *ngFor="let log of logs" lines="full">
+        <ion-label style="white-space: normal">
+          <ion-row>
+            <ion-col>
+              <h3 [style.color]="log.severity === 1 ? 'orange' : log.severity === 2 ? 'crimson' : 'dodgerblue'">
+                {{ log.raw
+                ? log.title
+                : (log.title + '-title' | translate) !== log.title + '-title'
+                  ? (log.title + '-title' | translate)
+                  : (log.title?.split(':')?.[0] + '-title' | translate: {value: log.title?.split(':')?.[1]})
+                }}
+              </h3>
+            </ion-col>
+            <ion-col class="ion-text-right">
+              {{ log.time | date: 'medium' }}
+            </ion-col>
+          </ion-row>
+          <ion-row>
+            <ion-col aria-colspan="3">
+              {{ log.raw
+              ? log.message
+              : (log.message + '-text' | translate) !== log.message + '-text'
+                ? (log.message + '-text' | translate)
+                : (log.message?.split(':')?.[0] + '-text' | translate: {value: log.message?.split(':')?.[1]})
+              }}
+            </ion-col>
+          </ion-row>
+          <ion-row *ngIf="log.categories?.length">
+            <ion-col>
+              <ion-chip *ngFor="let category of log.categories">{{ category }}</ion-chip>
+            </ion-col>
+            <ion-col size="auto">
+              <ion-button *ngIf="isEditableLog(log)" color="primary" (click)="openEditModal(log)">
+                <ion-icon name="pencil-outline"></ion-icon>&nbsp;
+                {{ 'diary.actions.edit' | translate }}
+              </ion-button>
+              <ion-button color="danger" (click)="deleteLog(log)">
+                <ion-icon name="trash-outline"></ion-icon>&nbsp;
+                {{ 'diary.actions.delete' | translate }}
+              </ion-button>
+            </ion-col>
+          </ion-row>
+        </ion-label>
+      </ion-item>
+    </ion-list>
+  </ion-card-content>
+</ion-card>

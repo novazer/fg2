@@ -1,4 +1,4 @@
-import {Component, Input, OnChanges} from '@angular/core';
+import {Component, Input, OnInit} from '@angular/core';
 import {ModalController} from '@ionic/angular';
 
 export type DiaryEntry = {
@@ -13,7 +13,7 @@ export type DiaryEntry = {
   images?: string[];
 };
 
-const defaultEntries : Record<string, Partial<DiaryEntry>> = {
+export const defaultDiaryEntries : Record<string, Partial<DiaryEntry>> = {
   'co2-refill': {
     title: 'CO2 cylinder was refilled',
   },
@@ -24,7 +24,7 @@ const defaultEntries : Record<string, Partial<DiaryEntry>> = {
   templateUrl: './diary-entry-modal.component.html',
   styleUrls: ['./diary-entry-modal.component.scss'],
 })
-export class DiaryEntryModalComponent implements OnChanges {
+export class DiaryEntryModalComponent implements OnInit {
   @Input() entry: DiaryEntry | undefined;
 
   public message = '';
@@ -40,7 +40,7 @@ export class DiaryEntryModalComponent implements OnChanges {
   constructor(private modalController: ModalController) {
   }
 
-  ngOnChanges() {
+  ngOnInit() {
     this.message = this.entry?.message || '';
     this.title = this.entry?.title || '';
     this.time = this.entry?.time ? this.entry.time.toISOString() : new Date().toISOString();
@@ -64,7 +64,7 @@ export class DiaryEntryModalComponent implements OnChanges {
       category: this.category,
       data: this.data,
       images: this.images,
-      ...(defaultEntries[this.category] || {})
+      ...(defaultDiaryEntries[this.category] || {})
     };
 
     void this.modalController.dismiss(data, 'save');
@@ -75,7 +75,7 @@ export class DiaryEntryModalComponent implements OnChanges {
       return false;
     }
 
-    return !defaultEntries[this.category]?.[field as keyof DiaryEntry] && !defaultEntries[this.category]?.data?.[field as keyof DiaryEntry['data']];
+    return !defaultDiaryEntries[this.category]?.[field as keyof DiaryEntry] && !defaultDiaryEntries[this.category]?.data?.[field as keyof DiaryEntry['data']];
   }
 
   isValid() {

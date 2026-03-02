@@ -21,6 +21,7 @@
           (ngModelChange)="reportSelected()"
           class="ion-float-right"
         >
+          <ion-select-option value="entries">{{ 'diary.entriesReport' | translate}}</ion-select-option>
           <ion-select-option value="co2report">{{ 'diary.co2Report' | translate}}</ion-select-option>
         </ion-select>
       </ion-card-content>
@@ -31,5 +32,10 @@
       [deviceId]="deviceId"
       [cloudSettings]="cloudSettings"
     ></app-co2-report>
+
+    <app-diary-entries-report
+      *ngIf="selectedReport === 'entries'"
+      [deviceId]="deviceId"
+    ></app-diary-entries-report>
   </ng-container>
 </ion-content>

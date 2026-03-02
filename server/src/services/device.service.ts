@@ -430,7 +430,7 @@ class DeviceService {
       data: msg.data,
       images: msg.images,
       deleted: msg.deleted,
-      time: new Date(msg.time),
+      time: msg.time ? new Date(msg.time) : undefined,
     });
   }
 
@@ -468,6 +468,19 @@ class DeviceService {
     const device = await deviceModel.findOne({ device_id: device_id, owner_id: user_id }, { device_id: 1 });
     if (device) {
       await deviceLogModel.updateMany({ device_id: device_id }, { $set: { deleted: true } });
+    }
+  }
+
+  public async deleteDeviceLog(device_id: string, user_id: string, is_admin: boolean, log_id: string) {
+    let device;
+    if (is_admin) {
+      device = await deviceModel.findOne({ device_id: device_id }, { device_id: 1 });
+    } else {
+      device = await deviceModel.findOne({ device_id: device_id, owner_id: user_id }, { device_id: 1 });
+    }
+
+    if (device) {
+      await deviceLogModel.deleteOne({ _id: log_id, device_id: device_id });
     }
   }
 

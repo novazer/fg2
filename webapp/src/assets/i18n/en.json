@@ -362,6 +362,8 @@
     "title": "Diary",
     "addEntry": "Add entry",
     "co2Report": "CO2 report",
+    "entriesReport": "Entries",
+    "entriesIncludeSystem": "Include system entries",
     "categories": {
       "co2Refill": "CO2 refill"
     },
@@ -374,12 +376,17 @@
       "message": "Message"
     },
     "actions": {
-      "save": "Save"
+      "save": "Save",
+      "edit": "Edit",
+      "delete": "Delete"
     },
+    "confirmDelete": "Delete this diary entry?",
+
     "defaults": {
       "co2RefillTitle": "CO2 cylinder was refilled"
     },
-    "co2ReportNoData": "No CO2 refill data yet."
+    "co2ReportNoData": "No CO2 refill data yet.",
+    "entriesNoData": "No diary entries yet."
   },
 
   "message-lost-connection-title": "Connection problem",
