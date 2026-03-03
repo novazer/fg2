@@ -39,14 +39,13 @@
             </ion-col>
           </ion-row>
           <ion-row *ngIf="log.message">
-            <ion-col aria-colspan="3">
-              {{ log.raw
+            <ion-col aria-colspan="3" [style.white-space]="log.categories?.includes('configuration') ? 'pre-wrap' : 'normal'"
+            >{{ log.raw
               ? log.message
               : (log.message + '-text' | translate) !== log.message + '-text'
                 ? (log.message + '-text' | translate)
                 : (log.message.split(':')[0] + '-text' | translate: {value: log.message.split(':')[1]})
-              }}
-            </ion-col>
+            }}</ion-col>
           </ion-row>
           <ion-row *ngIf="log.data">
             <ion-col aria-colspan="3">

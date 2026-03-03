@@ -229,12 +229,13 @@
               </ion-row>
               <ion-row>
                 <ion-col>
-                  {{ log.raw
+                  <p [style.white-space]="log.categories?.includes('configuration') ? 'pre-wrap' : 'normal'"
+                  >{{ log.raw
                   ? log.message
                   : (log.message + '-text' | translate) !== log.message + '-text'
                     ? (log.message + '-text' | translate)
                     : (log.message?.split(':')?.[0] + '-text' | translate: {value: log.message?.split(':')?.[1]})
-                  }}
+                  }}</p>
 
                   <p [hidden]="(log.count ?? 0) <= 1">
                     (Message appeared {{ log.count }} times consecutively

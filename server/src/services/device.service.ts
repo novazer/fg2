@@ -342,15 +342,15 @@ class DeviceService {
 
       if (activeStep && (!activeStep.lastTimeApplied || activeStep.lastTimeApplied < now - 3600 * 1000) && device.lastseen >= now - 60 * 1000) {
         mqttclient.publish('/devices/' + device.device_id + '/configuration', activeStep.settings);
-        device.configuration = activeStep.settings;
+        if (await this.configureDevice(device.device_id, device.owner_id, activeStep.settings)) {
+          console.log(`Applied recipe step ${device.recipe.activeStepIndex} to device ${device.device_id}`);
+        }
         activeStep.lastTimeApplied = now;
         hasChanges = true;
-
-        console.log(`Applied recipe step ${device.recipe.activeStepIndex} to device ${device.device_id}`);
       }
 
       if (hasChanges) {
-        await deviceModel.findByIdAndUpdate(device._id, { recipe: device.recipe, configuration: device.configuration });
+        await deviceModel.findByIdAndUpdate(device._id, { recipe: device.recipe });
       }
 
       if (emailSubject && emailBody && device.recipe.email) {
@@ -738,10 +738,60 @@ class DeviceService {
     await deviceModel.findOneAndUpdate({ device_id: device_id }, { owner_id: '' });
   }
 
-  public async configureDevice(device_id: string, user_id: string, config: string) {
-    await deviceModel.findOneAndUpdate({ device_id: device_id, owner_id: user_id }, { configuration: config });
+  public async configureDevice(device_id: string, user_id: string, config: string): Promise<boolean> {
+    const oldDdevice = await deviceModel.findOneAndUpdate(
+      { device_id: device_id, owner_id: user_id },
+      { configuration: config },
+      { returnOriginal: true },
+    );
     mqttclient.publish('/devices/' + device_id + '/configuration', config);
     await claimCodeModel.deleteMany({ device_id: device_id });
+
+    if (oldDdevice.configuration !== config) {
+      await this.logMessage(device_id, {
+        title: 'Configuration updated',
+        message: 'Device configuration has been updated:\n' + this.diffConfigs(oldDdevice.configuration, config),
+        raw: true,
+        severity: 0,
+        categories: ['device', 'configuration'],
+        deleted: true,
+      });
+      return true;
+    }
+
+    return false;
+  }
+
+  private diffConfigs(oldConfigJson: string, newConfigJson: string): string {
+    try {
+      const oldConfig = JSON.parse(oldConfigJson);
+      const newConfig = JSON.parse(newConfigJson);
+
+      const diff: Record<string, { old: any; new: any }> = {};
+      const readConfigKeys = (obj: any, targetKey: 'old' | 'new', prefix = '') => {
+        for (const key in obj) {
+          const fullKey = prefix ? `${prefix}.${key}` : key;
+          if (typeof obj[key] === 'object' && obj[key] !== null) {
+            readConfigKeys(obj[key], targetKey, fullKey);
+          } else {
+            if (!(fullKey in diff)) {
+              diff[fullKey] = { old: undefined, new: undefined };
+            }
+            diff[fullKey][targetKey] = obj[key];
+          }
+        }
+      };
+
+      readConfigKeys(oldConfig, 'old');
+      readConfigKeys(newConfig, 'new');
+
+      return Object.entries(diff)
+        .filter(([_, change]) => change.old !== change.new)
+        .map(([key, change]) => `    ${key}: ${change.old} -> ${change.new}`)
+        .join('\n');
+    } catch (e) {
+      return 'Could not parse configuration for diff: ' + e.message;
+    }
   }
 
   public async setDeviceAlarms(device_id: string, user_id: string, alarms: Alarm[]): Promise<void> {
