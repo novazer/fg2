@@ -5,7 +5,7 @@
   <ion-card-content>
     <p>{{ averageTicksPerFilling ? '⌀ ' + (averageTicksPerFilling | number:'1.0-0') + ' ticks/g' : ('diary.co2ReportNoData' | translate) }}</p>
 
-    <ion-item *ngFor="let cylinder of cylinders.reverse(); let first = first">
+    <ion-item *ngFor="let cylinder of cylinders; let first = first">
       <ion-text [color]="first ? 'primary' : undefined" class="ion-padding-bottom ion-padding-top">
         {{ cylinder.timestampStart | date:'medium' }} |
         {{ cylinder.fillingEnd !== undefined ? cylinder.fillingStart - cylinder.fillingEnd : 'n/a' }} g CO₂ used |

@@ -58,13 +58,13 @@ export class Co2ReportComponent implements OnInit, OnDestroy, OnChanges {
     this.cylinders = [];
 
     for (const entry of entries) {
-      const lastCylinder = this.cylinders.length > 0 ? this.cylinders[this.cylinders.length - 1] : null;
+      const lastCylinder = this.cylinders.length > 0 ? this.cylinders[0] : null;
       if (lastCylinder) {
         lastCylinder.fillingEnd = entry.data?.co2FillingRest ?? lastCylinder.fillingEnd ?? 0;
         lastCylinder.timestampEnd = new Date(entry.time);
       }
 
-      this.cylinders.push({
+      this.cylinders.unshift({
         timestampStart: new Date(entry.time),
         timestampEnd: new Date(),
         fillingStart: entry.data?.co2FillingInitial ?? 425,
@@ -76,7 +76,7 @@ export class Co2ReportComponent implements OnInit, OnDestroy, OnChanges {
       try {
         const interval = Math.floor((cylinder.timestampEnd.getTime() - cylinder.timestampStart.getTime()) / 1000) + 's';
         const series = await this.data.getSeries(this.deviceId, 'out_co2', String(cylinder.timestampStart.toISOString()), interval, String(cylinder.timestampEnd?.toISOString()), 'sum')
-        cylinder.ticksReleased = series.reduce((sum, point) => sum + (point[1] ?? 0), 0);
+        cylinder.ticksReleased = series.reduce((sum, point) => sum + (point?.[1] ?? 0), 0);
 
         if (cylinder.fillingEnd !== undefined) {
           cylinder.ticksPerFilling = (cylinder.ticksReleased ?? 0) / (cylinder.fillingStart - cylinder.fillingEnd);
