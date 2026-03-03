@@ -38,6 +38,14 @@ const deviceLogSchema: Schema = new Schema({
     type: Boolean,
     required: false,
   },
+  data: {
+    type: Schema.Types.Mixed,
+    required: false,
+  },
+  images: {
+    type: [String],
+    required: false,
+  },
 });
 deviceLogSchema.index({ device_id: 1, deleted: -1, categories: 1, time: -1 });
 

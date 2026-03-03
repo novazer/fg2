@@ -1,0 +1,43 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>{{'diary.title' | translate}}</ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content>
+  <ng-container>
+    <ion-card>
+      <ion-card-content>
+        <ion-button color="primary" (click)="openEntryModal()">
+          <ion-icon name="add-circle-outline"></ion-icon>&nbsp;
+          {{'diary.addEntry' | translate}}
+        </ion-button>
+
+        <ion-select
+          [(ngModel)]="selectedReport"
+          [interfaceOptions]="{'cssClass': 'wider-popover'}"
+          (ngModelChange)="reportSelected()"
+          class="ion-float-right"
+        >
+          <ion-select-option value="entries">{{ 'diary.entriesReport' | translate}}</ion-select-option>
+          <ion-select-option value="co2report">{{ 'diary.co2Report' | translate}}</ion-select-option>
+        </ion-select>
+      </ion-card-content>
+    </ion-card>
+
+    <app-co2-report
+      *ngIf="selectedReport === 'co2report'"
+      [deviceId]="deviceId"
+      [cloudSettings]="cloudSettings"
+      [lastUpdated]="lastUpdated"
+    ></app-co2-report>
+
+    <app-diary-entries-report
+      *ngIf="selectedReport === 'entries'"
+      [deviceId]="deviceId"
+      [lastUpdated]="lastUpdated"
+    ></app-diary-entries-report>
+  </ng-container>
+</ion-content>

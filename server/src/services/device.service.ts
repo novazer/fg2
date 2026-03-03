@@ -400,7 +400,20 @@ class DeviceService {
     }
   }
 
-  public async logMessage(deviceId: string, msg: { message: string; title?: string; severity: 0 | 1 | 2; raw?: boolean; categories: string[] }) {
+  public async logMessage(
+    deviceId: string,
+    msg: {
+      message: string;
+      title?: string;
+      severity: 0 | 1 | 2;
+      raw?: boolean;
+      categories: string[];
+      data?: Record<string, any>;
+      images?: string[];
+      deleted?: boolean;
+      time?: string;
+    },
+  ) {
     //console.log("\nLOG\n", message)
     const [messageKey, value] = msg.message.split(':');
     if (messageKey?.startsWith('message-maintenance-mode-activated') && isNumeric(value)) {
@@ -414,6 +427,10 @@ class DeviceService {
       severity: msg.severity,
       raw: msg.raw,
       categories: msg.categories || [],
+      data: msg.data,
+      images: msg.images,
+      deleted: msg.deleted,
+      time: msg.time ? new Date(msg.time) : undefined,
     });
   }
 
@@ -452,6 +469,65 @@ class DeviceService {
     if (device) {
       await deviceLogModel.updateMany({ device_id: device_id }, { $set: { deleted: true } });
     }
+  }
+
+  public async deleteDeviceLog(device_id: string, user_id: string, is_admin: boolean, log_id: string) {
+    let device;
+    if (is_admin) {
+      device = await deviceModel.findOne({ device_id: device_id }, { device_id: 1 });
+    } else {
+      device = await deviceModel.findOne({ device_id: device_id, owner_id: user_id }, { device_id: 1 });
+    }
+
+    if (device) {
+      await deviceLogModel.deleteOne({ _id: log_id, device_id: device_id });
+    }
+  }
+
+  public async updateDeviceLog(
+    device_id: string,
+    user_id: string,
+    is_admin: boolean,
+    log_id: string,
+    payload: {
+      title?: string;
+      message?: string;
+      raw?: boolean;
+      severity: 0 | 1 | 2 | number;
+      categories: string[];
+      data?: Record<string, any>;
+      images?: string[];
+      deleted?: boolean;
+      time?: string | Date;
+    },
+  ) {
+    let device;
+    if (is_admin) {
+      device = await deviceModel.findOne({ device_id: device_id }, { device_id: 1 });
+    } else {
+      device = await deviceModel.findOne({ device_id: device_id, owner_id: user_id }, { device_id: 1 });
+    }
+
+    if (!device) {
+      return;
+    }
+
+    const update: Record<string, any> = {
+      title: payload.title,
+      message: payload.message,
+      raw: payload.raw,
+      severity: payload.severity,
+      categories: payload.categories,
+      data: payload.data,
+      images: payload.images,
+      deleted: payload.deleted,
+    };
+
+    if (payload.time) {
+      update.time = new Date(payload.time);
+    }
+
+    await deviceLogModel.updateOne({ _id: log_id, device_id: device_id }, { $set: update });
   }
 
   private async settingsMessage(device: Device, message) {

@@ -1,0 +1,23 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="close()">
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>{{ imageIndex + 1 }} / {{ imageUrls.length }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="showPreviousImage()" [disabled]="imageUrls.length < 2">
+        <ion-icon name="chevron-back-outline"></ion-icon>
+      </ion-button>
+      <ion-button (click)="showNextImage()" [disabled]="imageUrls.length < 2">
+        <ion-icon name="chevron-forward-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding" (click)="close()">
+  <ion-img [src]="currentImageUrl" (click)="$event.stopPropagation(); showNextImage()"></ion-img>
+</ion-content>
+

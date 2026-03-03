@@ -1,0 +1,111 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>{{ 'diary.addEntry' | translate }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cancel()">{{ 'misc.close' | translate }}</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-item>
+    <ion-label>{{ 'diary.labels.categories' | translate }}</ion-label>
+    <ion-select [(ngModel)]="category" multiple="false" [interfaceOptions]="{ cssClass: 'wider-popover' }">
+      <ion-select-option value="plant-log">{{ 'diary.categories.plantLog' | translate }}</ion-select-option>
+      <ion-select-option value="fridge-log">{{ 'diary.categories.fridgeLog' | translate }}</ion-select-option>
+      <ion-select-option value="light-measurement">{{ 'diary.categories.lightMeasurement' | translate }}</ion-select-option>
+      <ion-select-option value="plant-lifecycle">{{ 'diary.categories.plantLifecycle' | translate }}</ion-select-option>
+      <ion-select-option value="co2-refill">{{ 'diary.categories.co2Refill' | translate }}</ion-select-option>
+    </ion-select>
+  </ion-item>
+
+  <ion-item>
+    <ion-label>{{ 'diary.labels.time' | translate }}</ion-label>
+    <ion-datetime-button datetime="diary-entry-time"></ion-datetime-button>
+
+    <ion-modal [keepContentsMounted]="true">
+      <ng-template>
+        <ion-datetime id="diary-entry-time" presentation="date-time" [(ngModel)]="time"></ion-datetime>
+      </ng-template>
+    </ion-modal>
+  </ion-item>
+
+  <ion-item *ngIf="isFieldEditable('title')">
+    <ion-label>{{ 'diary.labels.title' | translate }}</ion-label>
+    <ion-input [(ngModel)]="title" class="ion-text-right"></ion-input>
+  </ion-item>
+
+  <ion-item *ngIf="isFieldEditable('data.co2FillingRest')">
+    <ion-label>{{ 'diary.labels.oldCylinderRest' | translate }}</ion-label>
+    <ion-input type="number" [(ngModel)]="data.co2FillingRest" class="ion-text-right"></ion-input>
+    <ion-text>g</ion-text>
+  </ion-item>
+
+  <ion-item *ngIf="isFieldEditable('data.co2FillingInitial')">
+    <ion-label>{{ 'diary.labels.newCylinderFilling' | translate }}</ion-label>
+    <ion-input type="number" [(ngModel)]="data.co2FillingInitial" class="ion-text-right"></ion-input>
+    <ion-text>g</ion-text>
+  </ion-item>
+
+  <ion-item *ngIf="isFieldEditable('data.newLifecycleStage')">
+    <ion-label>{{ 'diary.labels.newLifecycleStage' | translate }}</ion-label>
+    <ion-select [(ngModel)]="data.newLifecycleStage" [interfaceOptions]="{ cssClass: 'wider-popover' }">
+      <ion-select-option value="germination">{{ 'diary.lifecycleStages.germination' | translate }}</ion-select-option>
+      <ion-select-option value="seedling">{{ 'diary.lifecycleStages.seedling' | translate }}</ion-select-option>
+      <ion-select-option value="vegetative">{{ 'diary.lifecycleStages.vegetative' | translate }}</ion-select-option>
+      <ion-select-option value="flowering">{{ 'diary.lifecycleStages.flowering' | translate }}</ion-select-option>
+      <ion-select-option value="drying">{{ 'diary.lifecycleStages.drying' | translate }}</ion-select-option>
+      <ion-select-option value="curing">{{ 'diary.lifecycleStages.curing' | translate }}</ion-select-option>
+    </ion-select>
+  </ion-item>
+
+  <ion-item *ngIf="isFieldEditable('data.lightMeasurement')">
+    <ion-label>{{ 'diary.labels.lightMeasurement' | translate }}</ion-label>
+    <ion-input type="number" [(ngModel)]="data.lightMeasurement" class="ion-text-right"></ion-input>
+    <ion-text>ppfd</ion-text>
+  </ion-item>
+
+  <ion-item *ngIf="isFieldEditable('message')">
+    <ion-label position="stacked">{{ 'diary.labels.message' | translate }}</ion-label>
+    <ion-textarea [(ngModel)]="message" autoGrow="true"></ion-textarea>
+  </ion-item>
+
+  <ion-item>
+    <ion-button expand="block" (click)="triggerCameraInput()">
+      {{ 'diary.actions.openCamera' | translate }}
+    </ion-button>
+    <ion-button expand="block" (click)="triggerFilesInput()">
+      {{ 'diary.actions.selectImages' | translate }}
+    </ion-button>
+    <input #cameraInput type="file" capture="environment" alt="Open camera" accept="image/*" (change)="onFilesSelected($event)" style="display: none" />
+    <input #filesInput type="file" alt="Select image(s)" multiple accept="image/*" (change)="onFilesSelected($event)" style="display: none" />
+  </ion-item>
+
+  <ion-item *ngIf="uploadErrors.length">
+    <ion-text color="danger" *ngFor="let error of uploadErrors">
+      <ion-icon name="warning" color="warning"></ion-icon>
+      {{ error }}
+    </ion-text>
+  </ion-item>
+
+  <ion-item *ngIf="uploading">
+    <ion-spinner name="dots"></ion-spinner>
+    <ion-label>Uploading...</ion-label>
+  </ion-item>
+
+  <ion-item *ngIf="images.length">
+    <ion-label position="stacked">Images</ion-label>
+    <ion-row>
+      <ion-col *ngFor="let imageId of images; let i = index" lines="none" class="ion-float-left">
+        <img [src]="imageIdToImageUrl[imageId]" style="height: 50px; max-height: 50px; min-width: 10px; margin-right: 5px;"/>
+        <ion-button fill="clear" color="danger" size="small" (click)="removeImage(imageId)" style="position: absolute; top: 0; right: 0;">
+          <ion-icon name="close-circle"></ion-icon>
+        </ion-button>
+      </ion-col>
+    </ion-row>
+  </ion-item>
+
+  <ion-button expand="block" [disabled]="!isValid()" (click)="save()">
+    {{ 'diary.actions.save' | translate }}
+  </ion-button>
+</ion-content>

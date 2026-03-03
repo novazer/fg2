@@ -7,7 +7,14 @@ class DataController {
   public getSeries = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
       if (await isUserDeviceMiddelware(req, res, req.params.device_id)) {
-        const data = await dataService.getSeries(req.params.device_id, req.params.measure, req.query?.from, req.query?.to, req.query?.interval);
+        const data = await dataService.getSeries(
+          req.params.device_id,
+          req.params.measure,
+          req.query?.from,
+          req.query?.to,
+          req.query?.interval,
+          String(req.query?.method),
+        );
         res.status(201).json(data);
       }
     } catch (error) {

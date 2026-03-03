@@ -4,8 +4,9 @@ import { deviceService } from '@services/device.service';
 import { RequestWithUser } from '@/interfaces/auth.interface';
 import { AddDeviceClassDto, TestDeviceDto } from '@dtos/device.dto';
 import { isUserDeviceMiddelware } from '@/middlewares/auth.middleware';
-import deviceModel from '@models/device.model'; // added import
+import deviceModel from '@models/device.model';
 import recipeModel from '@models/recipe.model';
+import { isNumeric } from 'influx/lib/src/grammar';
 
 class DeviceController {
   public getDevices = async (req: Request, res: Response, next: NextFunction) => {
@@ -351,6 +352,69 @@ class DeviceController {
       await deviceService.deleteDeviceLogs(req.params.device_id, req.user_id);
 
       res.status(200).json({ status: 'ok' });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public deleteDeviceLog = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+    try {
+      if (await isUserDeviceMiddelware(req, res, req.params.device_id)) {
+        await deviceService.deleteDeviceLog(req.params.device_id, req.user_id, req.is_admin, req.params.log_id);
+        res.status(200).json({ status: 'ok' });
+      }
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public addDeviceLog = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+    try {
+      const device_id = req.params.device_id;
+      if (!device_id) {
+        return res.status(400).json({ error: 'Missing device_id' });
+      }
+
+      if (
+        (!req.body?.title && !req.body?.message) ||
+        !isNumeric(req.body.severity) ||
+        !Array.isArray(req.body.categories) ||
+        req.body.categories.length === 0 ||
+        !req.body.time
+      ) {
+        return res.status(400).json({ error: 'Invalid log entry payload' });
+      }
+
+      if (await isUserDeviceMiddelware(req, res, device_id)) {
+        await deviceService.logMessage(device_id, req.body);
+        res.status(200).json({ status: 'ok' });
+      }
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public updateDeviceLog = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+    try {
+      const device_id = req.params.device_id;
+      const log_id = req.params.log_id;
+      if (!device_id || !log_id) {
+        return res.status(400).json({ error: 'Missing device_id or log_id' });
+      }
+
+      if (
+        (!req.body?.title && !req.body?.message) ||
+        !isNumeric(req.body.severity) ||
+        !Array.isArray(req.body.categories) ||
+        req.body.categories.length === 0
+      ) {
+        return res.status(400).json({ error: 'Invalid log entry payload' });
+      }
+
+      if (await isUserDeviceMiddelware(req, res, device_id)) {
+        await deviceService.updateDeviceLog(device_id, req.user_id, req.is_admin, log_id, req.body);
+        res.status(200).json({ status: 'ok' });
+      }
     } catch (error) {
       next(error);
     }

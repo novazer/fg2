@@ -125,4 +125,6 @@ export interface DeviceLog {
   time: Date;
   categories: [string];
   deleted?: boolean;
+  data?: Record<string, any>;
+  images?: string[];
 }

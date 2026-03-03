@@ -11,6 +11,9 @@ import * as Highcharts from 'highcharts/highstock';
 import {DeviceLog, DeviceService} from 'src/app/services/devices.service';
 import {PlotLineOrBand, XAxisPlotLinesOptions} from "highcharts";
 import {YAxisOptions} from "highcharts/highstock";
+import {ImageViewerModalComponent} from "../diary/image-viewer-modal/image-viewer-modal.component";
+import {LogEntry} from "../diary/diary-entries-report/diary-entries-report.component";
+import {ModalController} from "@ionic/angular";
 
 declare var require: any;
 let Boost = require('highcharts/modules/boost');
@@ -76,7 +79,7 @@ export class ChartsPage implements OnInit, OnDestroy {
     // { title: 'D', icon: 'heating', color: '#f00', name: 'd', txt: 'D', unit: '', enabled: false, right: false, nav: false, types: ['fridge', 'foo']},
     { title: 'Dehumidifier', icon: 'dehumidify', color: '#00f', name: 'out_dehumidifier', txt: 'H', unit: '', enabled: false, right: false, nav: false, types: ['fridge', 'fridge2', 'dryer', 'controller'], max: 1},
     { title: 'Fan', icon: 'fan_out', color: '#00f', name: 'out_fan', txt: 'Fan', unit: '%', enabled: false, right: false, nav: false, types: ['fan'], max: 1},
-    { title: 'CO2 Valve', icon: 'co2_valve', color: '#000', name: 'out_co2', txt: 'CO2 Valve', unit: ' ticks', enabled: false, right: false, nav: false, types: ['fridge', 'fridge2', 'controller']},
+    { title: 'CO2 Valve', icon: 'co2_valve', color: '#000', name: 'out_co2', txt: 'CO2 Valve', unit: ' ticks', enabled: false, right: false, nav: false, types: ['fridge', 'fridge2', 'controller'], method: 'sum'},
     { title: 'Lights', icon: 'light', color: '#000', name: 'out_light', txt: 'Lights', unit: '', enabled: false, right: false, nav: false, types: ['fridge', 'fridge2', 'light', 'controller'], max: 100},
     { title: 'Day', icon: 'light', color: '#000', name: 'day', txt: 'Day', unit: '', enabled: false, right: false, nav: false, types: ['fan'], max: 1},
     { title: 'Fan (internal)', icon: 'fan_internal', color: 'orange', name: 'out_fan-internal', txt: 'fan-internal', unit: '',  enabled: false, right: false, nav: false, types: ['fridge', 'fridge2'], max: 1},
@@ -132,6 +135,8 @@ export class ChartsPage implements OnInit, OnDestroy {
 
   private currentDataLoadStartTime: number = 0;
 
+  public imageIdToImageUrl: Record<string, string> = {};
+
   @ViewChild(BaseChartDirective) chart?: BaseChartDirective;
   @ViewChild('spacer') spacer? : ElementRef;
 
@@ -139,7 +144,7 @@ export class ChartsPage implements OnInit, OnDestroy {
 
   public selectedLogs: DeviceLog[] = [];
 
-  constructor(private route: ActivatedRoute, private router: Router, private data: DataService, private devices: DeviceService) {
+  constructor(private route: ActivatedRoute, private router: Router, private data: DataService, private devices: DeviceService, private modalController: ModalController) {
     this.chartOptions = {
       chart: {
         animation: true,
@@ -251,7 +256,7 @@ export class ChartsPage implements OnInit, OnDestroy {
           }
         }, 10000)
       }
-    })
+    });
   }
 
   ngOnDestroy() {
@@ -317,9 +322,9 @@ export class ChartsPage implements OnInit, OnDestroy {
       measure.axis = axis;
     }
 
-    const series = await Promise.all(this.filtered_measures.map(async (measure:any):Promise<Highcharts.SeriesOptionsType & { data: [[number, number]] }> => {
+    const series = await Promise.all(this.filtered_measures.map(async (measure:any):Promise<Highcharts.SeriesOptionsType & { data: [number, number][] }> => {
       const requestedMeasure = measure.name + (measure.name === 'vpd' && this.vpdMode !== 'all' ? `_${this.vpdMode}` : '');
-      let data = measure.enabled ? await this.data.getSeries(this.device_id, requestedMeasure, from, this.selectedInterval, to) : []
+      let data = measure.enabled ? await this.data.getSeries(this.device_id, requestedMeasure, from, this.selectedInterval, to, measure.method) : []
 
       if (data.length > 0 && data[data.length - 1][1] === null) {
         data.pop();
@@ -562,6 +567,8 @@ export class ChartsPage implements OnInit, OnDestroy {
           || thisLog?.message !== nextLog?.message
           || thisLog?.severity !== nextLog?.severity
           || thisLog?.raw !== nextLog?.raw
+          || thisLog?.images?.length
+          || thisLog?.data !== undefined
         ) {
           result.push({
             ...thisLog,
@@ -581,6 +588,19 @@ export class ChartsPage implements OnInit, OnDestroy {
     this.filteredLogs = getFilteredLogs();
     this.filteredLogsUngroupedCount = getFilteredLogs(undefined, true).length;
     this.filteredLogsSelectionFiltered = this.filteredLogs.length < getFilteredLogs(true).length;
+
+    this.filteredLogs.forEach(l =>
+      l.images?.forEach(imageId => {
+
+        if (this.imageIdToImageUrl[imageId] === undefined) {
+          this.getLogEntryImageUrl(imageId)
+            .then(url =>
+              this.imageIdToImageUrl[imageId] = url
+            )
+        }
+
+      })
+    );
   }
 
   logCategoryChanged() {
@@ -600,5 +620,26 @@ export class ChartsPage implements OnInit, OnDestroy {
       window.dispatchEvent(new Event('resize'));
       void this.loadDeviceImage(this.currentImageTimestamp);
     }, 10);
+  }
+
+  getLogEntryImageUrl(imageId: string): Promise<string> {
+    return this.devices.getDeviceImageUrl(this.device_id, 'user/jpeg', undefined, undefined, imageId);
+  }
+
+  async openImageModal(log: LogEntry, index: number): Promise<void> {
+    const imageUrls = log.images?.map(imageId => this.imageIdToImageUrl[imageId]) ?? [];
+
+    const modal = await this.modalController.create({
+      component: ImageViewerModalComponent,
+      componentProps: {
+        imageUrls,
+        startIndex: index,
+      },
+      cssClass: 'dialog-fullscreen',
+      initialBreakpoint: 1,
+      breakpoints: [0, 1],
+    });
+
+    await modal.present();
   }
 }

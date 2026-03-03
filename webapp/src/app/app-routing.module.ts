@@ -20,6 +20,11 @@ const routes: Routes = [
     loadChildren: () => import('./device/charts/charts.module').then( m => m.ChartsPageModule)
   },
   {
+    path: 'device/:device_id/diary',
+    canActivate:[AuthGuard],
+    loadChildren: () => import('./device/diary/diary.module').then( m => m.DiaryPageModule)
+  },
+  {
     path: 'device/:device_id/settings',
     canActivate:[AuthGuard],
     loadChildren: () => import('./device/settings/settings.module').then( m => m.SettingsPageModule)

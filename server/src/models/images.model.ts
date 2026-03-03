@@ -25,7 +25,7 @@ const imagesSchema: Schema = new Schema({
   },
   format: {
     type: String,
-    enum: ['jpeg', 'mp4'],
+    enum: ['jpeg', 'mp4', 'user/jpeg'],
     required: true,
   },
   duration: {

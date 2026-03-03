@@ -10,7 +10,11 @@
 <ion-content>
   <ion-card *ngFor="let device of all_devices">
     <ion-card-content [ngSwitch]="device.device_type">
-      <fan-overview [device_id]="device.device_id" [device_name]="device.name" *ngSwitchCase="'fan'"></fan-overview>
+      <fan-overview
+        [device_id]="device.device_id"
+        [device_name]="device.name"
+        [cloud_settings]="device.cloudSettings"
+        *ngSwitchCase="'fan'"></fan-overview>
       <fridge-overview
         [device_id]="device.device_id"
         [device_name]="device.name"
@@ -29,9 +33,21 @@
         [maintenance_mode_until]="device.maintenance_mode_until ?? 0"
         [cloud_settings]="device.cloudSettings"
         *ngSwitchCase="'controller'"></fridge-overview>
-      <light-overview [device_id]="device.device_id" [device_name]="device.name" *ngSwitchCase="'light'"></light-overview>
-      <plug-overview [device_id]="device.device_id" [device_name]="device.name" *ngSwitchCase="'plug'"></plug-overview>
-      <dryer-overview [device_id]="device.device_id" [device_name]="device.name" *ngSwitchCase="'dryer'"></dryer-overview>
+      <light-overview
+        [device_id]="device.device_id"
+        [device_name]="device.name"
+        [cloud_settings]="device.cloudSettings"
+        *ngSwitchCase="'light'"></light-overview>
+      <plug-overview
+        [device_id]="device.device_id"
+        [device_name]="device.name"
+        [cloud_settings]="device.cloudSettings"
+        *ngSwitchCase="'plug'"></plug-overview>
+      <dryer-overview
+        [device_id]="device.device_id"
+        [device_name]="device.name"
+        [cloud_settings]="device.cloudSettings"
+        *ngSwitchCase="'dryer'"></dryer-overview>
       <!-- <hr>
       <p>{{device.device_id}}</p>
       <p>{{device.device_class[0].name}}</p>
