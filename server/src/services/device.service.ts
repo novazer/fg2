@@ -747,10 +747,11 @@ class DeviceService {
     mqttclient.publish('/devices/' + device_id + '/configuration', config);
     await claimCodeModel.deleteMany({ device_id: device_id });
 
-    if (oldDdevice.configuration !== config) {
+    const diffStr = this.diffConfigs(oldDdevice.configuration, config);
+    if (oldDdevice.configuration !== config && diffStr.length > 0) {
       await this.logMessage(device_id, {
         title: 'Configuration updated',
-        message: 'Device configuration has been updated:\n' + this.diffConfigs(oldDdevice.configuration, config),
+        message: 'Device configuration has been updated:\n' + diffStr,
         raw: true,
         severity: 0,
         categories: ['device', 'configuration'],
@@ -787,6 +788,7 @@ class DeviceService {
 
       return Object.entries(diff)
         .filter(([_, change]) => change.old !== change.new)
+        .filter(([key, _]) => key !== 'daynight.float_start' || diff['daynight.floating']?.new)
         .map(([key, change]) => `    ${key}: ${change.old} -> ${change.new}`)
         .join('\n');
     } catch (e) {

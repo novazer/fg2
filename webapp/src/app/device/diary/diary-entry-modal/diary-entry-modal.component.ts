@@ -49,7 +49,7 @@ export const defaultDiaryEntries : Record<string, Partial<DiaryEntry> & { defaul
   },
   'measurement': {
     defaults: {
-      title: 'Light measurement',
+      title: 'User measurement',
     },
     message: '',
     data: {
@@ -63,7 +63,7 @@ export const defaultDiaryEntries : Record<string, Partial<DiaryEntry> & { defaul
   },
   'plant-lifecycle': {
     defaults: {
-      title: 'Plant lifecycle event',
+      title: 'Plant phase change',
     },
     message: '',
     data: {

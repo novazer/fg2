@@ -36,13 +36,13 @@
   </ion-item>
 
   <ion-item *ngIf="isFieldEditable('data.co2FillingRest')">
-    <ion-label>{{ 'diary.labels.oldCylinderRest' | translate }}</ion-label>
+    <ion-label>{{ 'diary.labels.co2FillingRest' | translate }}</ion-label>
     <ion-input type="number" [(ngModel)]="data.co2FillingRest" class="ion-text-right"></ion-input>
     <ion-text>{{ getDiaryDataFieldUnit('co2FillingRest') }}</ion-text>
   </ion-item>
 
   <ion-item *ngIf="isFieldEditable('data.co2FillingInitial')">
-    <ion-label>{{ 'diary.labels.newCylinderFilling' | translate }}</ion-label>
+    <ion-label>{{ 'diary.labels.co2FillingInitial' | translate }}</ion-label>
     <ion-input type="number" [(ngModel)]="data.co2FillingInitial" class="ion-text-right"></ion-input>
     <ion-text>{{ getDiaryDataFieldUnit('co2FillingInitial') }}</ion-text>
   </ion-item>
