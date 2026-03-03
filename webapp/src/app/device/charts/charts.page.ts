@@ -14,6 +14,7 @@ import {YAxisOptions} from "highcharts/highstock";
 import {ImageViewerModalComponent} from "../diary/image-viewer-modal/image-viewer-modal.component";
 import {LogEntry} from "../diary/diary-entries-report/diary-entries-report.component";
 import {ModalController} from "@ionic/angular";
+import {getDiaryDataFieldUnit} from "../diary/diary-entry-modal/diary-entry-modal.component";
 
 declare var require: any;
 let Boost = require('highcharts/modules/boost');
@@ -644,4 +645,6 @@ export class ChartsPage implements OnInit, OnDestroy {
 
     await modal.present();
   }
+
+  protected readonly getDiaryDataFieldUnit = getDiaryDataFieldUnit;
 }

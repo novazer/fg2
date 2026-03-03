@@ -1,7 +1,12 @@
 import {Component, Input, OnChanges, OnInit, SimpleChanges} from '@angular/core';
 import {DeviceLog, DeviceService} from '../../../services/devices.service';
 import {ModalController} from '@ionic/angular';
-import {DiaryEntry, DiaryEntryModalComponent, defaultDiaryEntries} from "../diary-entry-modal/diary-entry-modal.component";
+import {
+  DiaryEntry,
+  DiaryEntryModalComponent,
+  defaultDiaryEntries,
+  getDiaryDataFieldUnit
+} from "../diary-entry-modal/diary-entry-modal.component";
 import {TranslateService} from '@ngx-translate/core';
 import { ImageViewerModalComponent } from '../image-viewer-modal/image-viewer-modal.component';
 
@@ -150,4 +155,6 @@ export class DiaryEntriesReportComponent implements OnInit, OnChanges {
 
     await modal.present();
   }
+
+  protected readonly getDiaryDataFieldUnit = getDiaryDataFieldUnit;
 }

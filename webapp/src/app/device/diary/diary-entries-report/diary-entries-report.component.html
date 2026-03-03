@@ -48,19 +48,15 @@
               }}
             </ion-col>
           </ion-row>
-          <ion-row *ngIf="log.categories?.includes('plant-lifecycle') && log.data?.newLifecycleStage">
+          <ion-row *ngIf="log.data">
             <ion-col aria-colspan="3">
-              {{ 'diary.lifecycleStages.' + log.data?.newLifecycleStage | translate }}
-            </ion-col>
-          </ion-row>
-          <ion-row *ngIf="log.categories?.includes('co2-refill') && log.data?.co2FillingRest !== undefined && log.data?.co2FillingInitial !== undefined">
-            <ion-col aria-colspan="3">
-              {{ 'diary.co2Filling' | translate:{rest: log.data?.co2FillingRest, initial: log.data?.co2FillingInitial} }}
-            </ion-col>
-          </ion-row>
-          <ion-row *ngIf="log.categories?.includes('light-measurement') && log.data?.lightMeasurement !== undefined">
-            <ion-col aria-colspan="3">
-              {{ 'diary.lightMeasurement' | translate:{value: log.data?.lightMeasurement} }}
+              <ul>
+                <li *ngFor="let measurement of log.data | keyvalue">
+                  {{ 'diary.labels.' + measurement.key | translate }}:
+                  {{ measurement.key === 'newLifecycleStage' ? ('diary.lifecycleStages.' + measurement.value | translate) : measurement.value }}
+                  {{ getDiaryDataFieldUnit(measurement.key) }}
+                </li>
+              </ul>
             </ion-col>
           </ion-row>
           <ion-row *ngIf="log.imageUrls?.length">

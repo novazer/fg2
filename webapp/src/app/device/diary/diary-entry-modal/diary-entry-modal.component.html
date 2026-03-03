@@ -12,9 +12,9 @@
     <ion-label>{{ 'diary.labels.categories' | translate }}</ion-label>
     <ion-select [(ngModel)]="category" multiple="false" [interfaceOptions]="{ cssClass: 'wider-popover' }">
       <ion-select-option value="plant-log">{{ 'diary.categories.plantLog' | translate }}</ion-select-option>
-      <ion-select-option value="fridge-log">{{ 'diary.categories.fridgeLog' | translate }}</ion-select-option>
-      <ion-select-option value="light-measurement">{{ 'diary.categories.lightMeasurement' | translate }}</ion-select-option>
       <ion-select-option value="plant-lifecycle">{{ 'diary.categories.plantLifecycle' | translate }}</ion-select-option>
+      <ion-select-option value="fridge-log">{{ 'diary.categories.fridgeLog' | translate }}</ion-select-option>
+      <ion-select-option value="measurement">{{ 'diary.categories.measurement' | translate }}</ion-select-option>
       <ion-select-option value="co2-refill">{{ 'diary.categories.co2Refill' | translate }}</ion-select-option>
     </ion-select>
   </ion-item>
@@ -38,13 +38,13 @@
   <ion-item *ngIf="isFieldEditable('data.co2FillingRest')">
     <ion-label>{{ 'diary.labels.oldCylinderRest' | translate }}</ion-label>
     <ion-input type="number" [(ngModel)]="data.co2FillingRest" class="ion-text-right"></ion-input>
-    <ion-text>g</ion-text>
+    <ion-text>{{ getDiaryDataFieldUnit('co2FillingRest') }}</ion-text>
   </ion-item>
 
   <ion-item *ngIf="isFieldEditable('data.co2FillingInitial')">
     <ion-label>{{ 'diary.labels.newCylinderFilling' | translate }}</ion-label>
     <ion-input type="number" [(ngModel)]="data.co2FillingInitial" class="ion-text-right"></ion-input>
-    <ion-text>g</ion-text>
+    <ion-text>{{ getDiaryDataFieldUnit('co2FillingInitial') }}</ion-text>
   </ion-item>
 
   <ion-item *ngIf="isFieldEditable('data.newLifecycleStage')">
@@ -62,7 +62,38 @@
   <ion-item *ngIf="isFieldEditable('data.lightMeasurement')">
     <ion-label>{{ 'diary.labels.lightMeasurement' | translate }}</ion-label>
     <ion-input type="number" [(ngModel)]="data.lightMeasurement" class="ion-text-right"></ion-input>
-    <ion-text>ppfd</ion-text>
+    <ion-text>{{ getDiaryDataFieldUnit('lightMeasurement') }}</ion-text>
+  </ion-item>
+
+
+  <ion-item *ngIf="isFieldEditable('data.distanceMeasurement')">
+    <ion-label>{{ 'diary.labels.distanceMeasurement' | translate }}</ion-label>
+    <ion-input type="number" [(ngModel)]="data.distanceMeasurement" class="ion-text-right"></ion-input>
+    <ion-text>{{ getDiaryDataFieldUnit('distanceMeasurement') }}</ion-text>
+  </ion-item>
+
+  <ion-item *ngIf="isFieldEditable('data.tdsMeasurement')">
+    <ion-label>{{ 'diary.labels.tdsMeasurement' | translate }}</ion-label>
+    <ion-input type="number" [(ngModel)]="data.tdsMeasurement" class="ion-text-right"></ion-input>
+    <ion-text>{{ getDiaryDataFieldUnit('tdsMeasurement') }}</ion-text>
+  </ion-item>
+
+  <ion-item *ngIf="isFieldEditable('data.ecMeasurement')">
+    <ion-label>{{ 'diary.labels.ecMeasurement' | translate }}</ion-label>
+    <ion-input type="number" [(ngModel)]="data.ecMeasurement" class="ion-text-right"></ion-input>
+    <ion-text>{{ getDiaryDataFieldUnit('ecMeasurement') }}</ion-text>
+  </ion-item>
+
+  <ion-item *ngIf="isFieldEditable('data.outsideTemperatureMeasurement')">
+    <ion-label>{{ 'diary.labels.outsideTemperatureMeasurement' | translate }}</ion-label>
+    <ion-input type="number" [(ngModel)]="data.outsideTemperatureMeasurement" class="ion-text-right"></ion-input>
+    <ion-text>{{ getDiaryDataFieldUnit('outsideTemperatureMeasurement') }}</ion-text>
+  </ion-item>
+
+  <ion-item *ngIf="isFieldEditable('data.phMeasurement')">
+    <ion-label>{{ 'diary.labels.phMeasurement' | translate }}</ion-label>
+    <ion-input type="number" [(ngModel)]="data.phMeasurement" class="ion-text-right"></ion-input>
+    <ion-text>{{ getDiaryDataFieldUnit('phMeasurement') }}</ion-text>
   </ion-item>
 
   <ion-item *ngIf="isFieldEditable('message')">

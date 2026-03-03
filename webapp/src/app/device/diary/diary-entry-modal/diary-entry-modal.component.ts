@@ -4,10 +4,15 @@ import {DeviceService} from 'src/app/services/devices.service';
 import {HttpErrorResponse} from "@angular/common/http";
 
 type DiaryEntryData = {
-  co2FillingRest?: number;
-  co2FillingInitial?: number;
-  newLifecycleStage?: 'germination' | 'seedling' | 'vegetative' | 'flowering' | 'drying' | 'curing';
-  lightMeasurement?: number;
+  co2FillingRest: number | undefined;
+  co2FillingInitial: number | undefined;
+  newLifecycleStage: undefined | 'germination' | 'seedling' | 'vegetative' | 'flowering' | 'drying' | 'curing';
+  lightMeasurement: number | undefined;
+  distanceMeasurement: number | undefined;
+  tdsMeasurement: number | undefined;
+  ecMeasurement: number | undefined;
+  outsideTemperatureMeasurement: number | undefined;
+  phMeasurement: number | undefined;
 };
 
 export type DiaryEntry = {
@@ -15,7 +20,7 @@ export type DiaryEntry = {
   title: string;
   time: Date;
   category: string;
-  data?: DiaryEntryData,
+  data?: Partial<DiaryEntryData>,
   images?: string[];
 };
 
@@ -42,13 +47,18 @@ export const defaultDiaryEntries : Record<string, Partial<DiaryEntry> & { defaul
     },
     message: '',
   },
-  'light-measurement': {
+  'measurement': {
     defaults: {
       title: 'Light measurement',
     },
     message: '',
     data: {
-      lightMeasurement: 0,
+      lightMeasurement: undefined,
+      distanceMeasurement: undefined,
+      tdsMeasurement: undefined,
+      ecMeasurement: undefined,
+      outsideTemperatureMeasurement: undefined,
+      phMeasurement: undefined,
     },
   },
   'plant-lifecycle': {
@@ -79,11 +89,9 @@ export class DiaryEntryModalComponent implements OnInit {
   public title = ''
   public time = new Date().toISOString();
   public category = 'plant-log';
-  public data: Required<DiaryEntryData> = {
+  public data: Partial<DiaryEntryData> = {
     co2FillingRest: 0,
     co2FillingInitial: 425,
-    newLifecycleStage: 'seedling',
-    lightMeasurement: 0,
   };
   public images: string[] = [];
   public uploading = false;
@@ -102,8 +110,13 @@ export class DiaryEntryModalComponent implements OnInit {
     this.data = {
       co2FillingRest: this.entry?.data?.co2FillingRest || 0,
       co2FillingInitial: this.entry?.data?.co2FillingInitial || 425,
-      newLifecycleStage: this.entry?.data?.newLifecycleStage || 'seedling',
-      lightMeasurement : this.entry?.data?.lightMeasurement || 0,
+      newLifecycleStage: this.entry?.data?.newLifecycleStage,
+      lightMeasurement : this.entry?.data?.lightMeasurement,
+      distanceMeasurement : this.entry?.data?.distanceMeasurement,
+      tdsMeasurement : this.entry?.data?.tdsMeasurement,
+      ecMeasurement : this.entry?.data?.ecMeasurement,
+      outsideTemperatureMeasurement : this.entry?.data?.outsideTemperatureMeasurement,
+      phMeasurement : this.entry?.data?.phMeasurement,
     },
     this.images = this.entry?.images ? this.entry.images : [];
     void this.loadImageUrls();
@@ -154,17 +167,21 @@ export class DiaryEntryModalComponent implements OnInit {
   }
 
   save() {
-    const data: DiaryEntry = {
-      message: this.message,
-      title: this.title,
-      time: new Date(this.time),
+    const data = Object.fromEntries(Object.entries(this.data).filter(([key, value]) =>
+      value !== undefined && value !== null && this.isFieldEditable('data.' + key)
+    ));
+
+    const entry: DiaryEntry = {
       category: this.category,
-      images: this.images,
-      data: this.data,
+      time: new Date(this.time),
+      title: this.title,
+      ...(this.isFieldEditable('message') ? {message: this.message} : {}),
+      ...(this.images.length > 0 ? {images: this.images} : {}),
+      ...(Object.keys(data).length > 0 ? {data} : {}),
       ...(defaultDiaryEntries[this.category].defaults ?? {})
     };
 
-    void this.modalController.dismiss(data, 'save');
+    void this.modalController.dismiss(entry, 'save');
   }
 
   isFieldEditable(field: keyof (DiaryEntry & DiaryEntry['data']) | string) {
@@ -174,10 +191,11 @@ export class DiaryEntryModalComponent implements OnInit {
 
     if (field.includes('.')) {
       const [mainField, subField] = field.split('.') as [keyof DiaryEntry, keyof DiaryEntry['data']];
-      return defaultDiaryEntries[this.category]?.[mainField]?.[subField] !== undefined;
+      const mainFieldValue = defaultDiaryEntries[this.category]?.[mainField];
+      return typeof mainFieldValue === 'object' ? subField in mainFieldValue: false;
     }
 
-    return defaultDiaryEntries[this.category]?.[field as keyof DiaryEntry] !== undefined;
+    return field in (defaultDiaryEntries[this.category] ?? {});
   }
 
   isValid() {
@@ -207,4 +225,26 @@ export class DiaryEntryModalComponent implements OnInit {
       }
     }
   }
+
+  protected readonly getDiaryDataFieldUnit = getDiaryDataFieldUnit;
 }
+
+export const getDiaryDataFieldUnit = (field: keyof DiaryEntryData | string) => {
+  switch (field) {
+    case 'co2FillingRest':
+    case 'co2FillingInitial':
+      return 'g';
+    case 'lightMeasurement':
+      return 'ppfd';
+    case 'distanceMeasurement':
+      return 'cm';
+    case 'tdsMeasurement':
+      return 'ppm';
+    case 'ecMeasurement':
+      return 'mS/cm';
+    case 'outsideTemperatureMeasurement':
+      return '°C';
+    default:
+      return '';
+  }
+};
