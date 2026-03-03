@@ -51,7 +51,7 @@ export class Co2ReportComponent implements OnInit, OnDestroy, OnChanges {
 
   async loadData() {
     const entries = await this.devices.getLogs(this.deviceId, undefined, undefined, true, ['co2-refill']);
-    await this.parseEntries(entries);
+    void this.parseEntries(entries);
   }
 
   async parseEntries(entries: DeviceLog[]): Promise<void> {
