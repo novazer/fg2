@@ -1,4 +1,4 @@
-<div class="offline-overlay" *ngIf="device_online == false">
+<div class="offline-overlay" *ngIf="device_online == false" (click)="device_online = true">
   <p>{{'devices.device-offline' | translate}}</p>
 </div>
 
