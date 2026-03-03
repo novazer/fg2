@@ -197,7 +197,7 @@ export class DeviceService {
   }
 
   public async getDeviceImageUrl(device_id: string, format: 'mp4' | 'jpeg' | 'user/jpeg', timestamp?: number, duration?: string, imageId?: string): Promise<string> {
-    return `${environment.API_URL}/image/${device_id}?timestamp=${timestamp ?? imageId ? '' : (Math.ceil(Date.now()/5000)*5000)}&token=${await this.auth.getImageToken()}&format=${format}&duration=${duration ?? ''}&image_id=${imageId ?? ''}`;
+    return `${environment.API_URL}/image/${device_id}?timestamp=${timestamp ?? (imageId ? '' : (Math.ceil(Date.now()/5000)*5000))}&token=${await this.auth.getImageToken()}&format=${format}&duration=${duration ?? ''}&image_id=${imageId ?? ''}`;
   }
 
   public async uploadDeviceImage(device_id: string, file: File, timestamp?: number): Promise<string> {

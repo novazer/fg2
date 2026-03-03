@@ -524,7 +524,9 @@ export class ChartsPage implements OnInit, OnDestroy {
 
   toggleShowImage() {
     this.showImage = !this.showImage;
-    this.redrawChart();
+    void this.loadData().then(() =>
+      this.redrawChart()
+    );
   }
 
   toggleShowLogs() {
