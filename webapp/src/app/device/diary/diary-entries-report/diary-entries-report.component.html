@@ -38,14 +38,26 @@
               {{ log.time | date: 'medium' }}
             </ion-col>
           </ion-row>
-          <ion-row>
+          <ion-row *ngIf="log.message">
             <ion-col aria-colspan="3">
               {{ log.raw
               ? log.message
               : (log.message + '-text' | translate) !== log.message + '-text'
                 ? (log.message + '-text' | translate)
-                : (log.message?.split(':')?.[0] + '-text' | translate: {value: log.message?.split(':')?.[1]})
+                : (log.message.split(':')[0] + '-text' | translate: {value: log.message.split(':')[1]})
               }}
+            </ion-col>
+          </ion-row>
+          <ion-row *ngIf="log.imageUrls?.length">
+            <ion-col>
+              <a
+                *ngFor="let imageUrl of log.imageUrls; let i = index"
+                [href]="imageUrl | async"
+                target="_blank"
+                (click)="$event.preventDefault(); openImageModal(log, i)"
+              >
+                <img [src]="imageUrl | async" style="height: 100px; margin-right: 5px;"/>
+              </a>
             </ion-col>
           </ion-row>
           <ion-row *ngIf="log.categories?.length">
@@ -68,3 +80,4 @@
     </ion-list>
   </ion-card-content>
 </ion-card>
+

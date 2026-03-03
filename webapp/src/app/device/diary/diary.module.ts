@@ -15,6 +15,7 @@ import {DevicesModule} from "../../devices/devices.module";
 import { Co2ReportComponent } from './co2-report/co2-report.component';
 import { DiaryEntryModalComponent } from './diary-entry-modal/diary-entry-modal.component';
 import { DiaryEntriesReportComponent } from './diary-entries-report/diary-entries-report.component';
+import { ImageViewerModalComponent } from './image-viewer-modal/image-viewer-modal.component';
 
 @NgModule({
   imports: [
@@ -28,6 +29,12 @@ import { DiaryEntriesReportComponent } from './diary-entries-report/diary-entrie
     TranslateModule,
     DevicesModule
   ],
-  declarations: [DiaryPage, Co2ReportComponent, DiaryEntryModalComponent, DiaryEntriesReportComponent]
+  declarations: [
+    DiaryPage,
+    Co2ReportComponent,
+    DiaryEntryModalComponent,
+    DiaryEntriesReportComponent,
+    ImageViewerModalComponent,
+  ]
 })
 export class DiaryPageModule {}

@@ -37,6 +37,7 @@ class ImageController {
           String(req.query.format),
           Number(req.query.timestamp),
           String(req.query.duration || ''),
+          String(req.query.image_id ?? ''),
         );
 
         if (image) {
@@ -51,6 +52,59 @@ class ImageController {
       } else {
         res.status(401).send();
       }
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public uploadDeviceImage = async (req: any, res: Response, next: NextFunction) => {
+    try {
+      if (!(await isUserDeviceMiddelware(req, res, req.params.device_id, 'user'))) {
+        return;
+      }
+
+      const files = req.files as Record<string, any> | undefined;
+      const uploaded = files?.image;
+      const file = Array.isArray(uploaded) ? uploaded[0] : uploaded;
+
+      if (!file?.data || !Buffer.isBuffer(file.data)) {
+        res.status(400).json({ message: 'Image file is missing or invalid' });
+        return;
+      }
+
+      const timestamp = Number(req.body?.timestamp);
+      const image = await imageService.createDeviceImage(req.params.device_id, file.data, Number.isFinite(timestamp) ? timestamp : undefined);
+
+      res.status(201).json({
+        image_id: image.image_id,
+        device_id: image.device_id,
+        timestamp: image.timestamp,
+        format: image.format,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public deleteImage = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+    try {
+      const image = await imageService.getImageById(req.params.image_id);
+      if (!image) {
+        res.status(404).json({ status: 'not found' });
+        return;
+      }
+
+      if (!(await isUserDeviceMiddelware(req, res, image.device_id, 'user'))) {
+        return;
+      }
+
+      const deleted = await imageService.deleteImage(req.params.image_id);
+      if (!deleted) {
+        res.status(404).json({ status: 'not found' });
+        return;
+      }
+
+      res.status(200).json({ status: 'ok' });
     } catch (error) {
       next(error);
     }

@@ -378,7 +378,9 @@
     "actions": {
       "save": "Save",
       "edit": "Edit",
-      "delete": "Delete"
+      "delete": "Delete",
+      "openCamera": "Open camera",
+      "selectImages": "Select images"
     },
     "confirmDelete": "Delete this diary entry?",
 

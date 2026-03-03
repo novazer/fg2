@@ -1,4 +1,4 @@
-import {Component, Input, OnDestroy, OnInit} from '@angular/core';
+import {Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges} from '@angular/core';
 import {DeviceLog, DeviceService} from "../../../services/devices.service";
 import {Subscription} from "rxjs";
 import {DataService} from "../../../services/data.service";
@@ -17,9 +17,10 @@ type CylinderData = {
   templateUrl: './co2-report.component.html',
   styleUrls: ['./co2-report.component.scss'],
 })
-export class Co2ReportComponent implements OnInit, OnDestroy {
+export class Co2ReportComponent implements OnInit, OnDestroy, OnChanges {
   @Input() deviceId = '';
   @Input() cloudSettings: any = {};
+  @Input() lastUpdated: number | undefined;
 
   private devicesSubscription: Subscription | undefined;
 
@@ -40,6 +41,12 @@ export class Co2ReportComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.devicesSubscription?.unsubscribe();
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['lastUpdated'] && !changes['lastUpdated'].firstChange) {
+      void this.loadData();
+    }
   }
 
   async loadData() {
@@ -64,24 +71,32 @@ export class Co2ReportComponent implements OnInit, OnDestroy {
       });
     }
 
+    this.averageTicksPerFilling = undefined;
     for (const cylinder of this.cylinders) {
-      const interval = Math.floor((cylinder.timestampEnd.getTime() - cylinder.timestampStart.getTime()) / 1000) + 's';
-      const series = await this.data.getSeries(this.deviceId, 'out_co2', String(cylinder.timestampStart.toISOString()), interval, String(cylinder.timestampEnd?.toISOString()), 'sum')
-      cylinder.ticksReleased = series.reduce((sum, point) => sum + (point[1] ?? 0), 0);
+      try {
+        const interval = Math.floor((cylinder.timestampEnd.getTime() - cylinder.timestampStart.getTime()) / 1000) + 's';
+        const series = await this.data.getSeries(this.deviceId, 'out_co2', String(cylinder.timestampStart.toISOString()), interval, String(cylinder.timestampEnd?.toISOString()), 'sum')
+        cylinder.ticksReleased = series.reduce((sum, point) => sum + (point[1] ?? 0), 0);
 
-      if (cylinder.fillingEnd !== undefined) {
-        cylinder.ticksPerFilling = (cylinder.ticksReleased ?? 0) / (cylinder.fillingStart - cylinder.fillingEnd);
+        if (cylinder.fillingEnd !== undefined) {
+          cylinder.ticksPerFilling = (cylinder.ticksReleased ?? 0) / (cylinder.fillingStart - cylinder.fillingEnd);
+
+          const averageTicksPerFilling = this.cylinders
+            .filter(c => c.ticksPerFilling !== undefined && c.ticksPerFilling > 0)
+            .map(c => c.ticksPerFilling ?? 0);
+          this.averageTicksPerFilling = averageTicksPerFilling.reduce((a, b) => a + b, 0) / averageTicksPerFilling.length;
+        }
+      } catch (e) {
+        console.log('Error fetching series for cylinder', cylinder, e);
       }
     }
 
-    this.cylinders.filter(cylinder => cylinder.fillingEnd === undefined).forEach(cylinder => {
-      const averageTicksPerFilling = this.cylinders
-        .filter(c => c.ticksPerFilling !== undefined && c.ticksPerFilling > 0)
-        .map(c => c.ticksPerFilling ?? 0);
-      this.averageTicksPerFilling = averageTicksPerFilling.reduce((a, b) => a + b, 0) / averageTicksPerFilling.length;
 
-      cylinder.fillingEnd = cylinder.fillingStart - (cylinder.ticksReleased ?? 0) / this.averageTicksPerFilling;
-    });
+    this.cylinders.filter(cylinder => cylinder.fillingEnd === undefined).forEach(cylinder =>
+      cylinder.fillingEnd = cylinder.fillingStart - (cylinder.ticksReleased ?? 0) / (this.averageTicksPerFilling ?? 0)
+    );
   }
+
+  protected readonly NaN = NaN;
 }
 

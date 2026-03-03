@@ -484,6 +484,52 @@ class DeviceService {
     }
   }
 
+  public async updateDeviceLog(
+    device_id: string,
+    user_id: string,
+    is_admin: boolean,
+    log_id: string,
+    payload: {
+      title?: string;
+      message?: string;
+      raw?: boolean;
+      severity: 0 | 1 | 2 | number;
+      categories: string[];
+      data?: Record<string, any>;
+      images?: string[];
+      deleted?: boolean;
+      time?: string | Date;
+    },
+  ) {
+    let device;
+    if (is_admin) {
+      device = await deviceModel.findOne({ device_id: device_id }, { device_id: 1 });
+    } else {
+      device = await deviceModel.findOne({ device_id: device_id, owner_id: user_id }, { device_id: 1 });
+    }
+
+    if (!device) {
+      return;
+    }
+
+    const update: Record<string, any> = {
+      title: payload.title,
+      message: payload.message,
+      raw: payload.raw,
+      severity: payload.severity,
+      categories: payload.categories,
+      data: payload.data,
+      images: payload.images,
+      deleted: payload.deleted,
+    };
+
+    if (payload.time) {
+      update.time = new Date(payload.time);
+    }
+
+    await deviceLogModel.updateOne({ _id: log_id, device_id: device_id }, { $set: update });
+  }
+
   private async settingsMessage(device: Device, message) {
     await deviceModel.findOneAndUpdate({ device_id: device.device_id }, { configuration: JSON.stringify(message) });
   }

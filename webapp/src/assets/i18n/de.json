@@ -362,7 +362,9 @@
     "actions": {
       "save": "Speichern",
       "edit": "Bearbeiten",
-      "delete": "Löschen"
+      "delete": "Löschen",
+      "openCamera": "Kamera öffnen",
+      "selectImages": "Bilder auswählen"
     },
     "confirmDelete": "Diesen Tagebuch-Eintrag löschen?",
     "defaults": {

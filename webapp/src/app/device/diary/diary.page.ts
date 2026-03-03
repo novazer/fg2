@@ -23,6 +23,7 @@ import {OverlayEventDetail} from "@ionic/core/components";
 export class DiaryPage implements OnInit, OnDestroy {
   public deviceId: string = '';
   public cloudSettings: any = {};
+  public lastUpdated: number | undefined;
 
   public selectedReport: 'co2report' | 'entries' = 'entries';
 
@@ -55,6 +56,9 @@ export class DiaryPage implements OnInit, OnDestroy {
     const modal = await this.modalController.create({
       component: DiaryEntryModalComponent,
       backdropDismiss: false,
+      componentProps: {
+        deviceId: this.deviceId,
+      },
     });
 
     await modal.present();
@@ -73,7 +77,9 @@ export class DiaryPage implements OnInit, OnDestroy {
         deleted: true,
       }
       await this.devices.addLog(this.deviceId, data);
+      this.lastUpdated = Date.now();
     }
+
   }
 
   reportSelected() {

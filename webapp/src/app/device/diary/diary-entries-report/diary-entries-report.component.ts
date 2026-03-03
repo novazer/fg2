@@ -3,6 +3,11 @@ import {DeviceLog, DeviceService} from '../../../services/devices.service';
 import {ModalController} from '@ionic/angular';
 import {DiaryEntry, DiaryEntryModalComponent, defaultDiaryEntries} from "../diary-entry-modal/diary-entry-modal.component";
 import {TranslateService} from '@ngx-translate/core';
+import { ImageViewerModalComponent } from '../image-viewer-modal/image-viewer-modal.component';
+
+export type LogEntry = DeviceLog & {
+  imageUrls?: undefined | Promise<string>[];
+};
 
 @Component({
   selector: 'app-diary-entries-report',
@@ -11,8 +16,9 @@ import {TranslateService} from '@ngx-translate/core';
 })
 export class DiaryEntriesReportComponent implements OnInit, OnChanges {
   @Input() deviceId = '';
+  @Input() lastUpdated: number | undefined;
 
-  public logs: DeviceLog[] = [];
+  public logs: LogEntry[] = [];
   public loading = false;
   public includeSystemEntries = false;
 
@@ -28,7 +34,8 @@ export class DiaryEntriesReportComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['deviceId'] && !changes['deviceId'].firstChange) {
+    if ((changes['deviceId'] && !changes['deviceId'].firstChange)
+      || (changes['lastUpdated'] && !changes['lastUpdated'].firstChange)) {
       void this.loadData();
     }
   }
@@ -42,8 +49,8 @@ export class DiaryEntriesReportComponent implements OnInit, OnChanges {
     this.loading = true;
     try {
       const categories = this.includeSystemEntries ? undefined : Object.keys(defaultDiaryEntries);
-      const entries = await this.devices.getLogs(this.deviceId, undefined, undefined, true, categories);
-      this.logs = entries.slice().reverse();
+      this.logs = (await this.devices.getLogs(this.deviceId, undefined, undefined, true, categories)).reverse();
+      this.logs.forEach(l => l.imageUrls = l.images?.map(url => this.getImageUrl(url)));
     } finally {
       this.loading = false;
     }
@@ -57,7 +64,7 @@ export class DiaryEntriesReportComponent implements OnInit, OnChanges {
     return log.categories?.length === 1 && log.categories[0] in defaultDiaryEntries;
   }
 
-  async openEditModal(log: DeviceLog): Promise<void> {
+  async openEditModal(log: LogEntry): Promise<void> {
     if (!this.isEditableLog(log)) {
       return;
     }
@@ -67,6 +74,7 @@ export class DiaryEntriesReportComponent implements OnInit, OnChanges {
       backdropDismiss: false,
       componentProps: {
         entry: this.toDiaryEntry(log),
+        deviceId: this.deviceId,
       },
     });
 
@@ -86,7 +94,7 @@ export class DiaryEntriesReportComponent implements OnInit, OnChanges {
         deleted: log.deleted ?? false,
       };
 
-      await this.devices.addLog(this.deviceId, payload);
+      await this.devices.updateLog(this.deviceId, log._id, payload);
 
       log.title = payload.title;
       log.message = payload.message;
@@ -94,6 +102,7 @@ export class DiaryEntriesReportComponent implements OnInit, OnChanges {
       log.categories = payload.categories;
       log.data = payload.data;
       log.images = payload.images;
+      log.imageUrls = payload.images?.map(imageId => this.getImageUrl(imageId));
     }
   }
 
@@ -116,5 +125,29 @@ export class DiaryEntriesReportComponent implements OnInit, OnChanges {
       data: log.data,
       images: log.images,
     };
+  }
+
+  getImageUrl(imageId: string) {
+    return this.devices.getDeviceImageUrl(this.deviceId, 'user/jpeg', undefined, undefined, imageId);
+  }
+
+  async openImageModal(log: LogEntry, index: number): Promise<void> {
+    if (!log.imageUrls?.length) {
+      return;
+    }
+
+    const imageUrls = await Promise.all(log.imageUrls);
+    const modal = await this.modalController.create({
+      component: ImageViewerModalComponent,
+      componentProps: {
+        imageUrls,
+        startIndex: index,
+      },
+      cssClass: 'dialog-fullscreen',
+      initialBreakpoint: 1,
+      breakpoints: [0, 1],
+    });
+
+    await modal.present();
   }
 }

@@ -30,7 +30,7 @@ export interface DeviceLog {
   severity: 0 | 1 | 2,
   time: string,
   categories?: string[],
-  images?: string[],
+  images?: DiaryEntry['images'],
   data?: DiaryEntry['data']
   deleted?: boolean;
 }
@@ -196,16 +196,33 @@ export class DeviceService {
     return await firstValueFrom( this.http.get<DeviceLog[]>(environment.API_URL + '/device/logs/' + device_id + '?from=' + Number(timestampFrom ?? 0) + '&to=' + Number(timestampTo ?? Date.now()) + '&deleted=' + (deleted ? '1' : '') + (categories ? '&categories=' + categories.join(',') : '')) );
   }
 
-  public async getDeviceImageUrl(device_id: string, format: 'mp4' | 'jpeg', timestamp?: number, duration?: string): Promise<string | undefined> {
-    return `${environment.API_URL}/image/${device_id}?timestamp=${timestamp ?? (Math.ceil(Date.now()/5000)*5000)}&token=${await this.auth.getImageToken()}&format=${format}&duration=${duration ?? ''}`;
+  public async getDeviceImageUrl(device_id: string, format: 'mp4' | 'jpeg' | 'user/jpeg', timestamp?: number, duration?: string, imageId?: string): Promise<string> {
+    return `${environment.API_URL}/image/${device_id}?timestamp=${timestamp ?? imageId ? '' : (Math.ceil(Date.now()/5000)*5000)}&token=${await this.auth.getImageToken()}&format=${format}&duration=${duration ?? ''}&image_id=${imageId ?? ''}`;
+  }
+
+  public async uploadDeviceImage(device_id: string, file: File, timestamp?: number): Promise<string> {
+    const formData = new FormData();
+    formData.append('image', file, file.name);
+    if (Number.isFinite(timestamp)) {
+      formData.append('timestamp', String(timestamp));
+    }
+
+    const result = await firstValueFrom(
+      this.http.post<{ image_id: string }>(environment.API_URL + '/image/' + device_id, formData)
+    );
+    return result.image_id;
   }
 
   public async clearLogs(device_id:string) {
     return await firstValueFrom( this.http.delete(environment.API_URL + '/device/logs/' + device_id) )
   }
 
-  public async addLog(device_id: string, message: { title: string; message?: string; raw?: boolean; severity: 0 | 1 | 2 | number; categories: string[] }) {
+  public async addLog(device_id: string, message: { title: string; message?: string; raw?: boolean; severity: 0 | 1 | 2 | number; categories: string[]; data?: DiaryEntry['data']; images?: DiaryEntry['images']; }) {
     await firstValueFrom( this.http.post(environment.API_URL + '/device/logs/' + device_id, message ) )
+  }
+
+  public async updateLog(device_id: string, log_id: string, payload: { title: string; message?: string; raw?: boolean; severity: 0 | 1 | 2 | number; categories: string[]; time?: Date; data?: DiaryEntry['data']; images?: DiaryEntry['images']; deleted?: boolean }) {
+    await firstValueFrom(this.http.put(environment.API_URL + '/device/logs/' + device_id + '/' + log_id, payload));
   }
 
   public async deleteLog(device_id: string, log_id: string) {

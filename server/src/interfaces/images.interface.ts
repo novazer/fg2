@@ -4,6 +4,6 @@ export interface Image {
   timestamp: number;
   timestampEnd?: number;
   data: Buffer;
-  format?: 'jpeg' | 'mp4';
+  format?: 'jpeg' | 'mp4' | 'user/jpeg';
   duration?: '1d' | '1w' | '1m';
 }

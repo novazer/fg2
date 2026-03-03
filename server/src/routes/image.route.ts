@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import { Routes } from '@interfaces/routes.interface';
-import validationMiddleware from '@/middlewares/validation.middleware';
-import { authMiddleware, authAdminMiddleware } from '@/middlewares/auth.middleware';
+import { authMiddleware } from '@/middlewares/auth.middleware';
 import ImageController from '@controllers/image.controller';
 
 class ImageRoute implements Routes {
@@ -15,6 +14,8 @@ class ImageRoute implements Routes {
 
   private initializeRoutes() {
     this.router.get(`${this.path}/:device_id`, this.imageController.getDeviceImage);
+    this.router.post(`${this.path}/:device_id`, authMiddleware, this.imageController.uploadDeviceImage);
+    this.router.delete(`${this.path}/:image_id`, authMiddleware, this.imageController.deleteImage);
   }
 }
 

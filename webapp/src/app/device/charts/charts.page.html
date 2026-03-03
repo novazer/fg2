@@ -242,6 +242,18 @@
                   </p>
                 </ion-col>
               </ion-row>
+              <ion-row *ngIf="log.images?.length">
+                <ion-col>
+                  <a
+                    *ngFor="let imageId of log.images; let i = index"
+                    [href]="imageIdToImageUrl[imageId]"
+                    target="_blank"
+                    (click)="$event.preventDefault(); openImageModal(log, i)"
+                  >
+                    <img [src]="imageIdToImageUrl[imageId]" style="height: 100px; margin-right: 5px;"/>
+                  </a>
+                </ion-col>
+              </ion-row>
             </ion-label>
           </ion-item>
           <ion-item lines="full" *ngIf="filteredLogs.length > LOGS_MAX_DISPLAY_COUNT">

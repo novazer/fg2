@@ -14,6 +14,7 @@ import { alarmService } from '@services/alarm.service';
 import { isNumeric } from 'influx/lib/src/grammar';
 import { mailTransport } from '@services/auth.service';
 import { execFile } from 'node:child_process';
+import im from 'imagemagick';
 import imageModel from '@models/images.model';
 import pLimit from 'p-limit';
 import { tmpdir } from 'node:os';
@@ -51,15 +52,67 @@ class ImageService {
     }, 60_000);
   }
 
-  public async getDeviceImage(device_id: string, format: string, timestamp?: number, duration?: string): Promise<Image | undefined> {
+  public async getDeviceImage(
+    device_id: string,
+    format: string,
+    timestamp?: number,
+    duration?: string,
+    imageId?: string,
+  ): Promise<Image | undefined> {
     return imageModel
       .findOne({
         device_id,
         format: { $eq: format as 'jpeg' | 'mp4' },
-        timestamp: { $lte: timestamp ? timestamp : Date.now() },
         duration: (duration as '1d' | '1w' | '1m') || undefined,
+        ...(!imageId || timestamp ? { timestamp: { $lte: timestamp ? timestamp : Date.now() } } : {}),
+        ...(imageId ? { image_id: imageId } : {}),
       })
       .sort({ timestamp: -1 });
+  }
+
+  public async getImageById(image_id: string): Promise<Image | undefined> {
+    return imageModel.findOne({ image_id });
+  }
+
+  public async createDeviceImage(device_id: string, source: Buffer, timestamp?: number): Promise<Image> {
+    const jpegData = await this.convertToJpeg(source);
+
+    return imageModel.create({
+      image_id: uuidv4(),
+      device_id,
+      format: 'user/jpeg',
+      timestamp: Number.isFinite(timestamp) ? (timestamp as number) : Date.now(),
+      data: jpegData,
+    });
+  }
+
+  public async deleteImage(image_id: string): Promise<boolean> {
+    const result = await imageModel.deleteOne({ image_id });
+    return (result?.deletedCount ?? 0) > 0;
+  }
+
+  private async convertToJpeg(source: Buffer): Promise<Buffer> {
+    const tmpDir = await mkdtemp(join(tmpdir(), 'image-upload-'));
+    const srcPath = join(tmpDir, `source-${uuidv4()}`);
+    const dstPath = join(tmpDir, `image-${uuidv4()}.jpeg`);
+
+    try {
+      await writeFile(srcPath, source);
+      await new Promise<void>((resolve, reject) => {
+        im.convert([srcPath, '-auto-orient', `jpeg:${dstPath}`], err => {
+          if (err) {
+            reject(err);
+            return;
+          }
+          resolve();
+        });
+      });
+      return await readFile(dstPath);
+    } finally {
+      await unlink(srcPath).catch(() => Promise.resolve());
+      await unlink(dstPath).catch(() => Promise.resolve());
+      await rmdir(tmpDir).catch(() => Promise.resolve());
+    }
   }
 
   private async readFromRtspStreams(): Promise<void> {

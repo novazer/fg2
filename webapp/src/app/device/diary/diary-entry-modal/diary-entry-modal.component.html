@@ -46,6 +46,41 @@
     <ion-textarea [(ngModel)]="message" autoGrow="true"></ion-textarea>
   </ion-item>
 
+  <ion-item>
+    <ion-button expand="block" (click)="triggerCameraInput()">
+      {{ 'diary.actions.openCamera' | translate }}
+    </ion-button>
+    <ion-button expand="block" (click)="triggerFilesInput()">
+      {{ 'diary.actions.selectImages' | translate }}
+    </ion-button>
+    <input #cameraInput type="file" capture="environment" alt="Open camera" accept="image/*" (change)="onFilesSelected($event)" style="display: none" />
+    <input #filesInput type="file" alt="Select image(s)" multiple accept="image/*" (change)="onFilesSelected($event)" style="display: none" />
+  </ion-item>
+
+  <ion-item *ngIf="uploadErrors.length">
+    <ion-text color="danger" *ngFor="let error of uploadErrors">
+      <ion-icon name="warning" color="warning"></ion-icon>
+      {{ error }}
+    </ion-text>
+  </ion-item>
+
+  <ion-item *ngIf="uploading">
+    <ion-spinner name="dots"></ion-spinner>
+    <ion-label>Uploading...</ion-label>
+  </ion-item>
+
+  <ion-item *ngIf="images.length">
+    <ion-label position="stacked">Images</ion-label>
+    <ion-row>
+      <ion-col *ngFor="let imageId of images; let i = index" lines="none" class="ion-float-left">
+        <img [src]="imageIdToImageUrl[imageId]" style="height: 50px; max-height: 50px; min-width: 10px; margin-right: 5px;"/>
+        <ion-button fill="clear" color="danger" size="small" (click)="removeImage(imageId)" style="position: absolute; top: 0; right: 0;">
+          <ion-icon name="close-circle"></ion-icon>
+        </ion-button>
+      </ion-col>
+    </ion-row>
+  </ion-item>
+
   <ion-button expand="block" [disabled]="!isValid()" (click)="save()">
     {{ 'diary.actions.save' | translate }}
   </ion-button>

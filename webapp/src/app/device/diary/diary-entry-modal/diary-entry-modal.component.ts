@@ -1,5 +1,7 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, ElementRef, Input, OnInit, ViewChild} from '@angular/core';
 import {ModalController} from '@ionic/angular';
+import {DeviceService} from 'src/app/services/devices.service';
+import {HttpErrorResponse} from "@angular/common/http";
 
 export type DiaryEntry = {
   message?: string;
@@ -26,6 +28,11 @@ export const defaultDiaryEntries : Record<string, Partial<DiaryEntry>> = {
 })
 export class DiaryEntryModalComponent implements OnInit {
   @Input() entry: DiaryEntry | undefined;
+  @Input() deviceId: string | undefined;
+
+
+  @ViewChild('cameraInput') cameraInput? : ElementRef;
+  @ViewChild('filesInput') filesInput? : ElementRef;
 
   public message = '';
   public title = ''
@@ -36,8 +43,12 @@ export class DiaryEntryModalComponent implements OnInit {
     co2FillingInitial: 425,
   };
   public images: string[] = [];
+  public uploading = false;
+  public uploadErrors: string[] = [];
 
-  constructor(private modalController: ModalController) {
+  public imageIdToImageUrl: Record<string, string> = {};
+
+  constructor(private modalController: ModalController, private devices: DeviceService) {
   }
 
   ngOnInit() {
@@ -48,11 +59,50 @@ export class DiaryEntryModalComponent implements OnInit {
     this.data.co2FillingRest = this.entry?.data?.co2FillingRest || 0;
     this.data.co2FillingInitial = this.entry?.data?.co2FillingInitial || 425;
     this.images = this.entry?.images ? this.entry.images : [];
+    void this.loadImageUrls();
   }
 
   cancel() {
     if (confirm('You have unsaved changes. Are you sure you want to discard them?')) {
       void this.modalController.dismiss(undefined, 'cancel');
+    }
+  }
+
+  public async onFilesSelected(event: Event) {
+    const input = event.target as HTMLInputElement | null;
+    const files = input?.files ? Array.from(input.files) : [];
+    if (!files.length) {
+      return;
+    }
+
+    if (!this.deviceId) {
+      this.uploadErrors = ['Missing device id'];
+      return;
+    }
+
+    this.uploading = true;
+    this.uploadErrors = [];
+
+    for (const file of files) {
+      try {
+        const imageId = await this.devices.uploadDeviceImage(this.deviceId, file);
+        this.images.push(imageId);
+        void this.loadImageUrls();
+      } catch (error) {
+        let message;
+        if (error instanceof HttpErrorResponse) {
+          message = error.error.message ?? error.message ?? String(error);
+        } else {
+          message = (error as any).message ?? String(error);
+        }
+        console.log('Failed uploading image', error);
+        this.uploadErrors.push(file.name + ': ' + message);
+      }
+    }
+
+    this.uploading = false;
+    if (input) {
+      input.value = '';
     }
   }
 
@@ -79,6 +129,30 @@ export class DiaryEntryModalComponent implements OnInit {
   }
 
   isValid() {
-    return this.category && (!this.isFieldEditable('title') || this.title);
+    return this.category && (!this.isFieldEditable('title') || this.title) && !this.uploading;
+  }
+
+  triggerCameraInput() {
+    this.cameraInput?.nativeElement?.click();
+  }
+
+  triggerFilesInput() {
+    this.filesInput?.nativeElement?.click();
+  }
+
+  removeImage(imageId: string) {
+    this.images = this.images.filter(id => id !== imageId);
+  }
+
+  async loadImageUrls() {
+    if (!this.deviceId) {
+      return;
+    }
+
+    for (const imageId of this.images) {
+      if (!(imageId in this.imageIdToImageUrl)) {
+        this.imageIdToImageUrl[imageId] = await this.devices.getDeviceImageUrl(this.deviceId, 'user/jpeg', undefined, undefined, imageId);
+      }
+    }
   }
 }

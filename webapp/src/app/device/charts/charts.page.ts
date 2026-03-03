@@ -11,6 +11,9 @@ import * as Highcharts from 'highcharts/highstock';
 import {DeviceLog, DeviceService} from 'src/app/services/devices.service';
 import {PlotLineOrBand, XAxisPlotLinesOptions} from "highcharts";
 import {YAxisOptions} from "highcharts/highstock";
+import {ImageViewerModalComponent} from "../diary/image-viewer-modal/image-viewer-modal.component";
+import {LogEntry} from "../diary/diary-entries-report/diary-entries-report.component";
+import {ModalController} from "@ionic/angular";
 
 declare var require: any;
 let Boost = require('highcharts/modules/boost');
@@ -132,6 +135,8 @@ export class ChartsPage implements OnInit, OnDestroy {
 
   private currentDataLoadStartTime: number = 0;
 
+  public imageIdToImageUrl: Record<string, string> = {};
+
   @ViewChild(BaseChartDirective) chart?: BaseChartDirective;
   @ViewChild('spacer') spacer? : ElementRef;
 
@@ -139,7 +144,7 @@ export class ChartsPage implements OnInit, OnDestroy {
 
   public selectedLogs: DeviceLog[] = [];
 
-  constructor(private route: ActivatedRoute, private router: Router, private data: DataService, private devices: DeviceService) {
+  constructor(private route: ActivatedRoute, private router: Router, private data: DataService, private devices: DeviceService, private modalController: ModalController) {
     this.chartOptions = {
       chart: {
         animation: true,
@@ -562,6 +567,8 @@ export class ChartsPage implements OnInit, OnDestroy {
           || thisLog?.message !== nextLog?.message
           || thisLog?.severity !== nextLog?.severity
           || thisLog?.raw !== nextLog?.raw
+          || thisLog?.images?.length
+          || thisLog?.data !== undefined
         ) {
           result.push({
             ...thisLog,
@@ -581,6 +588,19 @@ export class ChartsPage implements OnInit, OnDestroy {
     this.filteredLogs = getFilteredLogs();
     this.filteredLogsUngroupedCount = getFilteredLogs(undefined, true).length;
     this.filteredLogsSelectionFiltered = this.filteredLogs.length < getFilteredLogs(true).length;
+
+    this.filteredLogs.forEach(l =>
+      l.images?.forEach(imageId => {
+
+        if (this.imageIdToImageUrl[imageId] === undefined) {
+          this.getLogEntryImageUrl(imageId)
+            .then(url =>
+              this.imageIdToImageUrl[imageId] = url
+            )
+        }
+
+      })
+    );
   }
 
   logCategoryChanged() {
@@ -600,5 +620,26 @@ export class ChartsPage implements OnInit, OnDestroy {
       window.dispatchEvent(new Event('resize'));
       void this.loadDeviceImage(this.currentImageTimestamp);
     }, 10);
+  }
+
+  getLogEntryImageUrl(imageId: string): Promise<string> {
+    return this.devices.getDeviceImageUrl(this.device_id, 'user/jpeg', undefined, undefined, imageId);
+  }
+
+  async openImageModal(log: LogEntry, index: number): Promise<void> {
+    const imageUrls = log.images?.map(imageId => this.imageIdToImageUrl[imageId]) ?? [];
+
+    const modal = await this.modalController.create({
+      component: ImageViewerModalComponent,
+      componentProps: {
+        imageUrls,
+        startIndex: index,
+      },
+      cssClass: 'dialog-fullscreen',
+      initialBreakpoint: 1,
+      breakpoints: [0, 1],
+    });
+
+    await modal.present();
   }
 }

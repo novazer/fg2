@@ -394,6 +394,32 @@ class DeviceController {
     }
   };
 
+  public updateDeviceLog = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+    try {
+      const device_id = req.params.device_id;
+      const log_id = req.params.log_id;
+      if (!device_id || !log_id) {
+        return res.status(400).json({ error: 'Missing device_id or log_id' });
+      }
+
+      if (
+        (!req.body?.title && !req.body?.message) ||
+        !isNumeric(req.body.severity) ||
+        !Array.isArray(req.body.categories) ||
+        req.body.categories.length === 0
+      ) {
+        return res.status(400).json({ error: 'Invalid log entry payload' });
+      }
+
+      if (await isUserDeviceMiddelware(req, res, device_id)) {
+        await deviceService.updateDeviceLog(device_id, req.user_id, req.is_admin, log_id, req.body);
+        res.status(200).json({ status: 'ok' });
+      }
+    } catch (error) {
+      next(error);
+    }
+  };
+
   public getOnlineDevices = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const devices: Device[] = await deviceService.findOnlineDevices();
