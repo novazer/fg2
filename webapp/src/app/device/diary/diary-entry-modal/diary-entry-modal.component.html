@@ -11,6 +11,10 @@
   <ion-item>
     <ion-label>{{ 'diary.labels.categories' | translate }}</ion-label>
     <ion-select [(ngModel)]="category" multiple="false" [interfaceOptions]="{ cssClass: 'wider-popover' }">
+      <ion-select-option value="plant-log">{{ 'diary.categories.plantLog' | translate }}</ion-select-option>
+      <ion-select-option value="fridge-log">{{ 'diary.categories.fridgeLog' | translate }}</ion-select-option>
+      <ion-select-option value="light-measurement">{{ 'diary.categories.lightMeasurement' | translate }}</ion-select-option>
+      <ion-select-option value="plant-lifecycle">{{ 'diary.categories.plantLifecycle' | translate }}</ion-select-option>
       <ion-select-option value="co2-refill">{{ 'diary.categories.co2Refill' | translate }}</ion-select-option>
     </ion-select>
   </ion-item>
@@ -31,14 +35,34 @@
     <ion-input [(ngModel)]="title" class="ion-text-right"></ion-input>
   </ion-item>
 
-  <ion-item *ngIf="isFieldEditable('co2FillingRest')">
+  <ion-item *ngIf="isFieldEditable('data.co2FillingRest')">
     <ion-label>{{ 'diary.labels.oldCylinderRest' | translate }}</ion-label>
     <ion-input type="number" [(ngModel)]="data.co2FillingRest" class="ion-text-right"></ion-input>
+    <ion-text>g</ion-text>
   </ion-item>
 
-  <ion-item *ngIf="isFieldEditable('co2FillingInitial')">
+  <ion-item *ngIf="isFieldEditable('data.co2FillingInitial')">
     <ion-label>{{ 'diary.labels.newCylinderFilling' | translate }}</ion-label>
     <ion-input type="number" [(ngModel)]="data.co2FillingInitial" class="ion-text-right"></ion-input>
+    <ion-text>g</ion-text>
+  </ion-item>
+
+  <ion-item *ngIf="isFieldEditable('data.newLifecycleStage')">
+    <ion-label>{{ 'diary.labels.newLifecycleStage' | translate }}</ion-label>
+    <ion-select [(ngModel)]="data.newLifecycleStage" [interfaceOptions]="{ cssClass: 'wider-popover' }">
+      <ion-select-option value="germination">{{ 'diary.lifecycleStages.germination' | translate }}</ion-select-option>
+      <ion-select-option value="seedling">{{ 'diary.lifecycleStages.seedling' | translate }}</ion-select-option>
+      <ion-select-option value="vegetative">{{ 'diary.lifecycleStages.vegetative' | translate }}</ion-select-option>
+      <ion-select-option value="flowering">{{ 'diary.lifecycleStages.flowering' | translate }}</ion-select-option>
+      <ion-select-option value="drying">{{ 'diary.lifecycleStages.drying' | translate }}</ion-select-option>
+      <ion-select-option value="curing">{{ 'diary.lifecycleStages.curing' | translate }}</ion-select-option>
+    </ion-select>
+  </ion-item>
+
+  <ion-item *ngIf="isFieldEditable('data.lightMeasurement')">
+    <ion-label>{{ 'diary.labels.lightMeasurement' | translate }}</ion-label>
+    <ion-input type="number" [(ngModel)]="data.lightMeasurement" class="ion-text-right"></ion-input>
+    <ion-text>ppfd</ion-text>
   </ion-item>
 
   <ion-item *ngIf="isFieldEditable('message')">

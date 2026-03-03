@@ -3,21 +3,62 @@ import {ModalController} from '@ionic/angular';
 import {DeviceService} from 'src/app/services/devices.service';
 import {HttpErrorResponse} from "@angular/common/http";
 
+type DiaryEntryData = {
+  co2FillingRest?: number;
+  co2FillingInitial?: number;
+  newLifecycleStage?: 'germination' | 'seedling' | 'vegetative' | 'flowering' | 'drying' | 'curing';
+  lightMeasurement?: number;
+};
+
 export type DiaryEntry = {
   message?: string;
   title: string;
   time: Date;
   category: string;
-  data?: {
-    co2FillingRest?: number;
-    co2FillingInitial?: number;
-  },
+  data?: DiaryEntryData,
   images?: string[];
 };
 
-export const defaultDiaryEntries : Record<string, Partial<DiaryEntry>> = {
+export const defaultDiaryEntries : Record<string, Partial<DiaryEntry> & { defaults?: Partial<Omit<DiaryEntry, 'data'>> }> = {
   'co2-refill': {
-    title: 'CO2 cylinder was refilled',
+    defaults: {
+      title: 'CO2 cylinder was refilled',
+    },
+    message: '',
+    data: {
+      co2FillingRest: 0,
+      co2FillingInitial: 425,
+    },
+  },
+  'plant-log': {
+    defaults: {
+      title: 'Plant log entry'
+    },
+    message: '',
+  },
+  'fridge-log': {
+    defaults: {
+      title: 'Fridge log entry'
+    },
+    message: '',
+  },
+  'light-measurement': {
+    defaults: {
+      title: 'Light measurement',
+    },
+    message: '',
+    data: {
+      lightMeasurement: 0,
+    },
+  },
+  'plant-lifecycle': {
+    defaults: {
+      title: 'Plant lifecycle event',
+    },
+    message: '',
+    data: {
+      newLifecycleStage: 'seedling',
+    },
   },
 }
 
@@ -37,10 +78,12 @@ export class DiaryEntryModalComponent implements OnInit {
   public message = '';
   public title = ''
   public time = new Date().toISOString();
-  public category = '';
-  public data = {
+  public category = 'plant-log';
+  public data: Required<DiaryEntryData> = {
     co2FillingRest: 0,
     co2FillingInitial: 425,
+    newLifecycleStage: 'seedling',
+    lightMeasurement: 0,
   };
   public images: string[] = [];
   public uploading = false;
@@ -55,9 +98,13 @@ export class DiaryEntryModalComponent implements OnInit {
     this.message = this.entry?.message || '';
     this.title = this.entry?.title || '';
     this.time = this.entry?.time ? this.entry.time.toISOString() : new Date().toISOString();
-    this.category = this.entry?.category || '';
-    this.data.co2FillingRest = this.entry?.data?.co2FillingRest || 0;
-    this.data.co2FillingInitial = this.entry?.data?.co2FillingInitial || 425;
+    this.category = this.entry?.category || 'plant-log';
+    this.data = {
+      co2FillingRest: this.entry?.data?.co2FillingRest || 0,
+      co2FillingInitial: this.entry?.data?.co2FillingInitial || 425,
+      newLifecycleStage: this.entry?.data?.newLifecycleStage || 'seedling',
+      lightMeasurement : this.entry?.data?.lightMeasurement || 0,
+    },
     this.images = this.entry?.images ? this.entry.images : [];
     void this.loadImageUrls();
   }
@@ -112,20 +159,25 @@ export class DiaryEntryModalComponent implements OnInit {
       title: this.title,
       time: new Date(this.time),
       category: this.category,
-      data: this.data,
       images: this.images,
-      ...(defaultDiaryEntries[this.category] || {})
+      data: this.data,
+      ...(defaultDiaryEntries[this.category].defaults ?? {})
     };
 
     void this.modalController.dismiss(data, 'save');
   }
 
-  isFieldEditable(field: keyof (DiaryEntry & DiaryEntry['data'])) {
+  isFieldEditable(field: keyof (DiaryEntry & DiaryEntry['data']) | string) {
     if (!this.category) {
       return false;
     }
 
-    return !defaultDiaryEntries[this.category]?.[field as keyof DiaryEntry] && !defaultDiaryEntries[this.category]?.data?.[field as keyof DiaryEntry['data']];
+    if (field.includes('.')) {
+      const [mainField, subField] = field.split('.') as [keyof DiaryEntry, keyof DiaryEntry['data']];
+      return defaultDiaryEntries[this.category]?.[mainField]?.[subField] !== undefined;
+    }
+
+    return defaultDiaryEntries[this.category]?.[field as keyof DiaryEntry] !== undefined;
   }
 
   isValid() {

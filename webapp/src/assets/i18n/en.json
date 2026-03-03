@@ -364,16 +364,32 @@
     "co2Report": "CO2 report",
     "entriesReport": "Entries",
     "entriesIncludeSystem": "Include system entries",
+    "co2Filling": "Previous bottle had {{ rest }}g CO2 left. New bottle was filled with {{ initial }}g CO2.",
+    "lightMeasurement": "Light measurement was {{ value }} PPFD",
     "categories": {
-      "co2Refill": "CO2 refill"
+      "co2Refill": "CO2 refill",
+      "plantLog": "Plant log",
+      "plantLifecycle": "Plant lifecycle",
+      "lightMeasurement": "Light measurement",
+      "fridgeLog": "Fridge log"
     },
     "labels": {
       "categories": "Category",
       "time": "Time",
       "title": "Title",
-      "oldCylinderRest": "Old cylinder rest (g)",
-      "newCylinderFilling": "New cylinder filling (g)",
-      "message": "Message"
+      "oldCylinderRest": "Old cylinder rest",
+      "newCylinderFilling": "New cylinder filling",
+      "message": "Comment",
+      "newLifecycleStage": "New lifecycle stage",
+      "lightMeasurement": "Light measurement"
+    },
+    "lifecycleStages": {
+      "germination": "Germination",
+      "seedling": "Seedlings phase",
+      "vegetative": "Vegetative phase",
+      "flowering": "Flowering phase",
+      "drying": "Drying",
+      "curing": "Curing"
     },
     "actions": {
       "save": "Save",

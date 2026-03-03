@@ -70,7 +70,7 @@ export class DiaryPage implements OnInit, OnDestroy {
         message: result.data?.message ?? result.data?.title ?? '',
         time: result.data?.time,
         raw: true,
-        categories: [result.data?.category || 'unknown'],
+        categories: ['diary', result.data?.category || 'unknown'],
         data: result.data?.data,
         images: result.data?.images,
         severity: 0,

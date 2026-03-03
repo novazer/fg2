@@ -348,16 +348,32 @@
     "co2Report": "CO2 Bericht",
     "entriesReport": "Einträge",
     "entriesIncludeSystem": "Systemeinträge anzeigen",
+    "co2Filling": "Vorheriger Zylinder hatte noch {{ rest }}g CO2. Neuer Zylinder wurde mit {{ initial }}g CO2 gefüllt.",
+    "lightMeasurement": "Beleuchtungsstärke betrug {{ value }} PPFD.",
     "categories": {
-      "co2Refill": "CO2 Nachfüllung"
+      "co2Refill": "CO2 Nachfüllung",
+      "plantLog": "Pflanzen-Log",
+      "plantLifecycle": "Pflanzenzyklus",
+      "lightMeasurement": "Beleuchtungsmessung",
+      "fridgeLog": "Fridge-Log"
     },
     "labels": {
       "categories": "Kategorie",
       "time": "Zeit",
       "title": "Titel",
-      "oldCylinderRest": "Rest im alten Zylinder (g)",
-      "newCylinderFilling": "Füllmenge neuer Zylinder (g)",
-      "message": "Nachricht"
+      "oldCylinderRest": "Rest im alten Zylinder",
+      "newCylinderFilling": "Füllmenge neuer Zylinder",
+      "message": "Kommentar",
+      "newLifecycleStage": "Neuer Lebenszyklus",
+      "lightMeasurement": "Beleuchtungsstärke"
+    },
+    "lifecycleStages": {
+      "germination": "Keimung",
+      "seedling": "Sämlingsphase",
+      "vegetative": "Vegetative Phase",
+      "flowering": "Blütephase",
+      "drying": "Trocknungsphase",
+      "curing": "Curing"
     },
     "actions": {
       "save": "Speichern",

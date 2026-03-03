@@ -48,7 +48,7 @@ export class DiaryEntriesReportComponent implements OnInit, OnChanges {
 
     this.loading = true;
     try {
-      const categories = this.includeSystemEntries ? undefined : Object.keys(defaultDiaryEntries);
+      const categories = this.includeSystemEntries ? undefined : ['diary', ...Object.keys(defaultDiaryEntries)];
       this.logs = (await this.devices.getLogs(this.deviceId, undefined, undefined, true, categories)).reverse();
       this.logs.forEach(l => l.imageUrls = l.images?.map(url => this.getImageUrl(url)));
     } finally {
@@ -61,7 +61,7 @@ export class DiaryEntriesReportComponent implements OnInit, OnChanges {
   }
 
   isEditableLog(log: DeviceLog): boolean {
-    return log.categories?.length === 1 && log.categories[0] in defaultDiaryEntries;
+    return log.categories?.length === 2 && log.categories[0] === 'diary' && log.categories[1] in defaultDiaryEntries;
   }
 
   async openEditModal(log: LogEntry): Promise<void> {
@@ -87,7 +87,7 @@ export class DiaryEntriesReportComponent implements OnInit, OnChanges {
         message: result.data.message ?? result.data.title ?? '',
         time: result.data.time,
         raw: true,
-        categories: [result.data.category || 'unknown'],
+        categories: ['diary', result.data.category || 'unknown'],
         data: result.data.data,
         images: result.data.images,
         severity: log.severity ?? 0,
@@ -121,7 +121,7 @@ export class DiaryEntriesReportComponent implements OnInit, OnChanges {
       title: log.title ?? '',
       message: log.message,
       time: new Date(log.time),
-      category: log.categories?.[0] ?? '',
+      category: log.categories?.[1] ?? '',
       data: log.data,
       images: log.images,
     };
