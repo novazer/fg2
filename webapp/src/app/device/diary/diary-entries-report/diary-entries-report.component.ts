@@ -15,6 +15,7 @@ import {
 
 export type LogEntry = DeviceLog & {
   imageUrls?: undefined | Promise<string>[];
+  editable?: boolean;
 };
 
 @Component({
@@ -63,7 +64,10 @@ export class DiaryEntriesReportComponent implements OnInit, OnChanges {
     try {
       const categories = this.includeSystemEntries ? undefined : ['diary', ...Object.keys(defaultDiaryEntries)];
       this.allLogs = (await this.devices.getLogs(this.deviceId, undefined, undefined, true, categories)).reverse();
-      this.allLogs.forEach(l => l.imageUrls = l.images?.map(url => this.getImageUrl(url)));
+      this.allLogs.forEach(l => {
+        l.imageUrls = l.images?.map(url => this.getImageUrl(url));
+        l.editable = this.isEditableLog(l);
+      });
       this.availableLogCategories = collectLogCategories(this.allLogs);
 
       // Reset to ['diary'] if no longer available, otherwise keep current selection
@@ -133,6 +137,7 @@ export class DiaryEntriesReportComponent implements OnInit, OnChanges {
       log.data = payload.data;
       log.images = payload.images;
       log.imageUrls = payload.images?.map(imageId => this.getImageUrl(imageId));
+      log.editable = this.isEditableLog(log);
       this.availableLogCategories = collectLogCategories(this.allLogs);
 
       // Reset to ['diary'] if no longer available

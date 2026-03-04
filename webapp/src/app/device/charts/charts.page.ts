@@ -12,7 +12,7 @@ import {DeviceLog, DeviceService} from 'src/app/services/devices.service';
 import {PlotLineOrBand, XAxisPlotLinesOptions} from "highcharts";
 import {YAxisOptions} from "highcharts/highstock";
 import {ImageViewerModalComponent} from "../diary/image-viewer-modal/image-viewer-modal.component";
-import {ModalController} from "@ionic/angular";
+import {IonModal, ModalController} from "@ionic/angular";
 import {
   collectLogCategories,
   matchesLogCategory,
@@ -114,6 +114,8 @@ export class ChartsPage implements OnInit, OnDestroy {
   public showImage = false;
 
   public showLogs = false;
+
+  @ViewChild('chartsDateModal') chartsDateModal!: IonModal;
 
   public deviceLogs: DeviceLog[] = [];
 
@@ -329,14 +331,19 @@ export class ChartsPage implements OnInit, OnDestroy {
     this.clampSelectedDateToNow();
   }
 
-  public dateChanged() {
+  public dateChanged(dateModal?: { dismiss: () => Promise<boolean> }) {
     this.clampSelectedDateToNow();
     this.autoUpdate = this.isSelectedAtOrAfterNow() && this.autoUpdate;
     this.offsetChanged();
+    void dateModal?.dismiss();
   }
 
   public getDatePickerMaxDate() {
     return new Date(Date.now() - this.getSelectedTimespanDurationMs()).toISOString();
+  }
+
+  public openDateModal(): Promise<void> {
+    return this.chartsDateModal.present();
   }
 
   private async loadData() {

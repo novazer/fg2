@@ -69,7 +69,7 @@
         <ion-chip *ngFor="let category of entry.categories">{{ category }}</ion-chip>
       </ion-col>
       <ion-col size="auto">
-        <ion-button *ngIf="showEdit && editable" color="primary" (click)="edit.emit(entry)">
+        <ion-button *ngIf="showEdit && canEdit(entry)" color="primary" (click)="edit.emit(entry)">
           <ion-icon name="pencil-outline"></ion-icon>&nbsp;
           {{ 'diary.actions.edit' | translate }}
         </ion-button>

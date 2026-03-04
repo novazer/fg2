@@ -103,20 +103,38 @@
 
       <ion-col>
         <ion-item lines="none">
-          <ion-label>{{'charts.offset' | translate}}</ion-label>
+          <ion-label style="cursor: pointer;" (click)="openDateModal()">{{'charts.offset' | translate}}</ion-label>
           <ion-button id="charts-date-trigger" fill="clear" size="small">
             {{ selectedDate ? (selectedDate | date: 'medium') : '' }}
           </ion-button>
 
-          <ion-modal trigger="charts-date-trigger" [keepContentsMounted]="true">
+          <ion-modal #chartsDateModal trigger="charts-date-trigger" [keepContentsMounted]="true">
             <ng-template>
-              <ion-datetime
-                id="charts-date"
-                presentation="date-time"
-                [max]="getDatePickerMaxDate()"
-                [(ngModel)]="selectedDate"
-                (ionChange)="dateChanged()"
-              ></ion-datetime>
+              <ion-header>
+                <ion-toolbar>
+                  <ion-title>{{ 'charts.offset' | translate }}</ion-title>
+                  <ion-buttons slot="end">
+                    <ion-button (click)="chartsDateModal.dismiss()">{{ 'misc.close' | translate }}</ion-button>
+                  </ion-buttons>
+                </ion-toolbar>
+              </ion-header>
+              <ion-content>
+                <ion-datetime
+                  id="charts-date"
+                  presentation="date-time"
+                  [max]="getDatePickerMaxDate()"
+                  [(ngModel)]="selectedDate"
+                ></ion-datetime>
+              </ion-content>
+              <ion-footer>
+                <ion-toolbar>
+                  <ion-buttons slot="end">
+                    <ion-button (click)="dateChanged(chartsDateModal)" color="primary">
+                      {{ 'misc.ok' | translate }}
+                    </ion-button>
+                  </ion-buttons>
+                </ion-toolbar>
+              </ion-footer>
             </ng-template>
           </ion-modal>
         </ion-item>

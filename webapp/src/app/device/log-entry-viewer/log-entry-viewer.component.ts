@@ -7,6 +7,7 @@ export type LogCategoryFilterValue = string[];
 export type LogEntryViewerLog = DeviceLog & {
   count?: number;
   imageUrls?: Promise<string>[];
+  editable?: boolean;
 };
 
 export function collectLogCategories(logs: Array<Pick<DeviceLog, 'categories'>>): string[] {
@@ -123,6 +124,10 @@ export class LogEntryViewerComponent implements OnChanges {
 
   previousPage(): void {
     this.goToPage(this.currentPage - 1);
+  }
+
+  canEdit(entry: LogEntryViewerLog): boolean {
+    return this.editable || entry.editable === true;
   }
 
   protected readonly getDiaryDataFieldUnit = getDiaryDataFieldUnit;
