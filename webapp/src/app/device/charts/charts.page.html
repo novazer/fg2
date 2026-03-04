@@ -18,8 +18,8 @@
   <ion-row>
     <ng-container *ngFor="let m of filtered_measures">
       <ion-col class="onoff cooling" style="cursor: pointer;" [class.on]="m.enabled" (click)="toggleMeasure(m)">
-        <img class="icon-on" src="assets/icon/{{m.icon}}.svg" />
-        <img class="icon-off" src="assets/icon/{{m.icon}}_off.svg" />
+        <img class="icon-on" src="assets/icon/{{m.icon}}.svg" [alt]="'Measure ' + m.name + ' on'" />
+        <img class="icon-off" src="assets/icon/{{m.icon}}_off.svg" [alt]="'Measure ' + m.name + ' off'" />
       </ion-col>
     </ng-container>
     <ng-container>
@@ -30,8 +30,8 @@
         (click)="toggleShowImage()"
         [hidden]="!cloudSettings?.rtspStream"
         title="Show image">
-        <img class="icon-on" src="assets/icon/camera.svg" />
-        <img class="icon-off" src="assets/icon/camera_off.svg" style="opacity: 0.3" />
+        <img class="icon-on" src="assets/icon/camera.svg" alt="Image on" />
+        <img class="icon-off" src="assets/icon/camera_off.svg" alt="Image off" style="opacity: 0.3" />
       </ion-col>
       <ion-col
         class="onoff showLogs"
@@ -39,8 +39,8 @@
         [class.on]="showLogs"
         (click)="toggleShowLogs()"
         title="Show logs">
-        <img class="icon-on" src="assets/icon/logs.svg" />
-        <img class="icon-off" src="assets/icon/logs_off.svg" style="opacity: 0.3" />
+        <img class="icon-on" src="assets/icon/logs.svg" alt="Logs on" />
+        <img class="icon-off" src="assets/icon/logs_off.svg" alt="Logs off" style="opacity: 0.3" />
       </ion-col>
       <ion-col
         class="onoff autoUpdate"
@@ -49,8 +49,8 @@
         (click)="toggleAutoUpdate()"
         [hidden]="offset < 0"
         title="Auto update">
-        <img class="icon-on" src="assets/icon/autoUpdate.png" />
-        <img class="icon-off" src="assets/icon/autoUpdate_off.png" style="opacity: 0.3" />
+        <img class="icon-on" src="assets/icon/autoUpdate.png" alt="Auto update on" />
+        <img class="icon-off" src="assets/icon/autoUpdate_off.png" alt="Auto update off" style="opacity: 0.3" />
       </ion-col>
     </ng-container>
   </ion-row>
@@ -156,7 +156,7 @@
   </ion-row>
 
 
-  <div #spacer style="padding: 5px, width: 100%"></div>
+  <div #spacer style="padding: 5px; width: 100%"></div>
 
   <ion-row>
     <ion-col [style.width]="(showImage || showLogs) ? '50%' : ''" [hidden]="!hasEnabledMeasures()">
@@ -170,7 +170,7 @@
     </ion-col>
     <ion-col *ngIf="showImage || showLogs" [style.width]="hasEnabledMeasures() ? '50%' : '100%'">
       <div *ngIf="showImage">
-        <img *ngIf="!isAnimatedImage()" [src]="deviceImageUrl ?? ''" fill="fill" alt="Device Image" style="width: 100%"/>
+        <img *ngIf="!isAnimatedImage()" [src]="deviceImageUrl ?? ''" alt="Device Image" style="width: 100%"/>
         <video *ngIf="isAnimatedImage()" [src]="deviceImageUrl ?? ''" autoplay muted loop style="width: 100%"></video>
         <br />
         {{ currentImageTimestamp | date: (isAnimatedImage() ? 'mediumDate' : 'medium') }}
@@ -183,15 +183,12 @@
                 <ion-col>
                   <h1>{{'charts.logsTitle' | translate}} ({{ filteredLogsUngroupedCount }})</h1>
                 </ion-col>
-                <ion-col class="ion-text-right" [hidden]="deviceLogCategories.size <= 0 && !selectedLogCategory">
-                  <ion-select
-                    [(ngModel)]="selectedLogCategory"
-                    (ionChange)="logCategoryChanged()"
-                    [interfaceOptions]="{'cssClass': 'wider-popover'}"
-                  >
-                    <ion-select-option value="all">all</ion-select-option>
-                    <ion-select-option *ngFor="let category of deviceLogCategories" [value]="category">{{ category }}</ion-select-option>
-                  </ion-select>
+                <ion-col class="ion-text-right" [hidden]="deviceLogCategories.length <= 0">
+                  <app-log-category-selector
+                    [availableCategories]="deviceLogCategories"
+                    [selectedCategories]="selectedLogCategories"
+                    (selectedCategoriesChange)="logCategoryChanged($event)"
+                  ></app-log-category-selector>
                 </ion-col>
               </ion-row>
               <ion-row *ngIf="selectedLogs.length > 0 && filteredLogsSelectionFiltered">
@@ -203,76 +200,20 @@
           </ion-item>
           <ion-item lines="full" *ngIf="filteredLogs.length === 0">
             <ion-label>
-              {{ (selectedLogCategory !== 'all' ? 'charts.logsNoFilteredEntries' : 'charts.logsNoEntries') | translate }}
+              {{ 'charts.logsNoEntries' | translate }}
             </ion-label>
           </ion-item>
-          <ion-item *ngFor="let log of filteredLogs.slice(0, LOGS_MAX_DISPLAY_COUNT)" lines="full">
-            <ion-label style="white-space: normal">
-<!--              <ion-item slot="header" [color]="log.severity == 1 ? 'warning' : log.severity == 2 ? 'danger' : 'light'">-->
-<!--              </ion-item>-->
-              <ion-row>
-                <ion-col>
-                  <h3 [style.color]="log.severity === 1 ? 'orange' : log.severity === 2 ? 'crimson' : 'dodgerblue'">
-                    {{ log.raw
-                    ? log.title
-                    : (log.title + '-title' | translate) !== log.title + '-title'
-                      ? (log.title + '-title' | translate)
-                      : (log.title?.split(':')?.[0] + '-title' | translate: {value: log.title?.split(':')?.[1]})
-                    }}
-
-                    {{ (log.count ?? 0) > 1 ? '(' + log.count + 'x)' : '' }}
-                  </h3>
-                </ion-col>
-                <ion-col class="ion-text-right">
-                  {{ log.time | date: 'medium' }}
-                </ion-col>
-              </ion-row>
-              <ion-row>
-                <ion-col>
-                  <p [style.white-space]="log.categories?.includes('configuration') ? 'pre-wrap' : 'normal'"
-                  >{{ log.raw
-                  ? log.message
-                  : (log.message + '-text' | translate) !== log.message + '-text'
-                    ? (log.message + '-text' | translate)
-                    : (log.message?.split(':')?.[0] + '-text' | translate: {value: log.message?.split(':')?.[1]})
-                  }}</p>
-
-                  <p [hidden]="(log.count ?? 0) <= 1">
-                    (Message appeared {{ log.count }} times consecutively
-                    - <a href="#" (click)="$event.preventDefault(); disableLogGrouping()">show all</a>)
-                  </p>
-                </ion-col>
-              </ion-row>
-              <ion-row *ngIf="log.data">
-                <ion-col aria-colspan="3">
-                  <ul>
-                    <li *ngFor="let measurement of log.data | keyvalue">
-                      {{ 'diary.labels.' + measurement.key | translate }}:
-                      {{ measurement.key === 'newLifecycleStage' ? ('diary.lifecycleStages.' + measurement.value | translate) : measurement.value }}
-                      {{ getDiaryDataFieldUnit(measurement.key) }}
-                    </li>
-                  </ul>
-                </ion-col>
-              </ion-row>
-              <ion-row *ngIf="log.images?.length">
-                <ion-col>
-                  <a
-                    *ngFor="let imageId of log.images; let i = index"
-                    [href]="imageIdToImageUrl[imageId]"
-                    target="_blank"
-                    (click)="$event.preventDefault(); openImageModal(log, i)"
-                  >
-                    <img [src]="imageIdToImageUrl[imageId]" style="height: 100px; margin-right: 5px;"/>
-                  </a>
-                </ion-col>
-              </ion-row>
-            </ion-label>
-          </ion-item>
-          <ion-item lines="full" *ngIf="filteredLogs.length > LOGS_MAX_DISPLAY_COUNT">
-            <ion-label>
-              {{ 'charts.moreHiddenMessages' | translate: { count: filteredLogs.length - LOGS_MAX_DISPLAY_COUNT } }}
-            </ion-label>
-          </ion-item>
+          <app-log-entry-viewer
+            [logs]="filteredLogs"
+            [itemsPerPage]="LOGS_MAX_DISPLAY_COUNT"
+            [showPagination]="filteredLogs.length > LOGS_MAX_DISPLAY_COUNT"
+            [selectedCategories]="selectedLogCategories"
+            [imageIdToImageUrl]="imageIdToImageUrl"
+            [showCount]="true"
+            [showGroupingHint]="true"
+            (showAll)="disableLogGrouping()"
+            (imageOpen)="openImageModal($event.log, $event.imageIndex)"
+          ></app-log-entry-viewer>
         </ion-list>
       </div>
     </ion-col>

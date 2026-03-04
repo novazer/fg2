@@ -16,78 +16,31 @@
       <ion-label>{{ 'misc.loading' | translate }}</ion-label>
     </ion-item>
 
+    <app-log-category-selector
+      *ngIf="!loading && availableLogCategories.length > 0"
+      [availableCategories]="availableLogCategories"
+      [selectedCategories]="selectedLogCategories"
+      (selectedCategoriesChange)="logCategoryChanged($event)"
+    ></app-log-category-selector>
+
     <ion-item *ngIf="!loading && logs.length === 0">
       <ion-label>{{ 'diary.entriesNoData' | translate }}</ion-label>
     </ion-item>
 
-    <ion-list *ngIf="!loading && logs.length > 0">
-      <ion-item *ngFor="let log of logs" lines="full">
-        <ion-label style="white-space: normal">
-          <ion-row>
-            <ion-col>
-              <h3 [style.color]="log.severity === 1 ? 'orange' : log.severity === 2 ? 'crimson' : 'dodgerblue'">
-                {{ log.raw
-                ? log.title
-                : (log.title + '-title' | translate) !== log.title + '-title'
-                  ? (log.title + '-title' | translate)
-                  : (log.title?.split(':')?.[0] + '-title' | translate: {value: log.title?.split(':')?.[1]})
-                }}
-              </h3>
-            </ion-col>
-            <ion-col class="ion-text-right">
-              {{ log.time | date: 'medium' }}
-            </ion-col>
-          </ion-row>
-          <ion-row *ngIf="log.message">
-            <ion-col aria-colspan="3" [style.white-space]="log.categories?.includes('configuration') ? 'pre-wrap' : 'normal'"
-            >{{ log.raw
-              ? log.message
-              : (log.message + '-text' | translate) !== log.message + '-text'
-                ? (log.message + '-text' | translate)
-                : (log.message.split(':')[0] + '-text' | translate: {value: log.message.split(':')[1]})
-            }}</ion-col>
-          </ion-row>
-          <ion-row *ngIf="log.data">
-            <ion-col aria-colspan="3">
-              <ul>
-                <li *ngFor="let measurement of log.data | keyvalue">
-                  {{ 'diary.labels.' + measurement.key | translate }}:
-                  {{ measurement.key === 'newLifecycleStage' ? ('diary.lifecycleStages.' + measurement.value | translate) : measurement.value }}
-                  {{ getDiaryDataFieldUnit(measurement.key) }}
-                </li>
-              </ul>
-            </ion-col>
-          </ion-row>
-          <ion-row *ngIf="log.imageUrls?.length">
-            <ion-col>
-              <a
-                *ngFor="let imageUrl of log.imageUrls; let i = index"
-                [href]="imageUrl | async"
-                target="_blank"
-                (click)="$event.preventDefault(); openImageModal(log, i)"
-              >
-                <img [src]="imageUrl | async" style="height: 100px; margin-right: 5px;"/>
-              </a>
-            </ion-col>
-          </ion-row>
-          <ion-row *ngIf="log.categories?.length">
-            <ion-col>
-              <ion-chip *ngFor="let category of log.categories">{{ category }}</ion-chip>
-            </ion-col>
-            <ion-col size="auto">
-              <ion-button *ngIf="isEditableLog(log)" color="primary" (click)="openEditModal(log)">
-                <ion-icon name="pencil-outline"></ion-icon>&nbsp;
-                {{ 'diary.actions.edit' | translate }}
-              </ion-button>
-              <ion-button color="danger" (click)="deleteLog(log)">
-                <ion-icon name="trash-outline"></ion-icon>&nbsp;
-                {{ 'diary.actions.delete' | translate }}
-              </ion-button>
-            </ion-col>
-          </ion-row>
-        </ion-label>
-      </ion-item>
-    </ion-list>
+    <app-log-entry-viewer
+      *ngIf="!loading && logs.length > 0"
+      [logs]="logs"
+      [itemsPerPage]="100"
+      [showPagination]="logs.length > 100"
+      [selectedCategories]="selectedLogCategories"
+      [showCategories]="true"
+      [showEdit]="true"
+      [showDelete]="true"
+      (imageOpen)="openImageModal($event.log, $event.imageIndex)"
+      (edit)="openEditModal($event)"
+      (delete)="deleteLog($event)"
+      (showAll)="disableLogGrouping()"
+    ></app-log-entry-viewer>
   </ion-card-content>
 </ion-card>
 

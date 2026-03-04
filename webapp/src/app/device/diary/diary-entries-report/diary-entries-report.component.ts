@@ -5,10 +5,13 @@ import {
   DiaryEntry,
   DiaryEntryModalComponent,
   defaultDiaryEntries,
-  getDiaryDataFieldUnit
 } from "../diary-entry-modal/diary-entry-modal.component";
 import {TranslateService} from '@ngx-translate/core';
 import { ImageViewerModalComponent } from '../image-viewer-modal/image-viewer-modal.component';
+import {
+  collectLogCategories,
+  filterLogsByCategory,
+} from '../../log-entry-viewer/log-entry-viewer.component';
 
 export type LogEntry = DeviceLog & {
   imageUrls?: undefined | Promise<string>[];
@@ -24,8 +27,11 @@ export class DiaryEntriesReportComponent implements OnInit, OnChanges {
   @Input() lastUpdated: number | undefined;
 
   public logs: LogEntry[] = [];
+  private allLogs: LogEntry[] = [];
   public loading = false;
   public includeSystemEntries = false;
+  public availableLogCategories: string[] = [];
+  public selectedLogCategories: string[] = [];
 
   constructor(
     private devices: DeviceService,
@@ -48,14 +54,24 @@ export class DiaryEntriesReportComponent implements OnInit, OnChanges {
   async loadData(): Promise<void> {
     if (!this.deviceId) {
       this.logs = [];
+      this.allLogs = [];
+      this.availableLogCategories = [];
       return;
     }
 
     this.loading = true;
     try {
       const categories = this.includeSystemEntries ? undefined : ['diary', ...Object.keys(defaultDiaryEntries)];
-      this.logs = (await this.devices.getLogs(this.deviceId, undefined, undefined, true, categories)).reverse();
-      this.logs.forEach(l => l.imageUrls = l.images?.map(url => this.getImageUrl(url)));
+      this.allLogs = (await this.devices.getLogs(this.deviceId, undefined, undefined, true, categories)).reverse();
+      this.allLogs.forEach(l => l.imageUrls = l.images?.map(url => this.getImageUrl(url)));
+      this.availableLogCategories = collectLogCategories(this.allLogs);
+
+      // Reset to ['diary'] if no longer available, otherwise keep current selection
+      if (!this.availableLogCategories.some(cat => this.selectedLogCategories.includes(cat))) {
+        this.selectedLogCategories = this.availableLogCategories.includes('diary') ? ['diary'] : [];
+      }
+
+      this.applyCategoryFilter();
     } finally {
       this.loading = false;
     }
@@ -63,6 +79,15 @@ export class DiaryEntriesReportComponent implements OnInit, OnChanges {
 
   onIncludeSystemEntriesChange(): void {
     void this.loadData();
+  }
+
+  logCategoryChanged(selectedCategories?: string[]): void {
+    this.selectedLogCategories = selectedCategories && selectedCategories.length > 0 ? selectedCategories : ['diary'];
+    this.applyCategoryFilter();
+  }
+
+  private applyCategoryFilter(): void {
+    this.logs = filterLogsByCategory(this.allLogs, this.selectedLogCategories);
   }
 
   isEditableLog(log: DeviceLog): boolean {
@@ -108,6 +133,14 @@ export class DiaryEntriesReportComponent implements OnInit, OnChanges {
       log.data = payload.data;
       log.images = payload.images;
       log.imageUrls = payload.images?.map(imageId => this.getImageUrl(imageId));
+      this.availableLogCategories = collectLogCategories(this.allLogs);
+
+      // Reset to ['diary'] if no longer available
+      if (!this.availableLogCategories.some(cat => this.selectedLogCategories.includes(cat))) {
+        this.selectedLogCategories = ['diary'];
+      }
+
+      this.applyCategoryFilter();
     }
   }
 
@@ -118,7 +151,15 @@ export class DiaryEntriesReportComponent implements OnInit, OnChanges {
     }
 
     await this.devices.deleteLog(this.deviceId, log._id);
-    this.logs = this.logs.filter(entry => entry._id !== log._id);
+    this.allLogs = this.allLogs.filter(entry => entry._id !== log._id);
+    this.availableLogCategories = collectLogCategories(this.allLogs);
+
+    // Reset to ['diary'] if no longer available
+    if (!this.availableLogCategories.some(cat => this.selectedLogCategories.includes(cat))) {
+      this.selectedLogCategories = ['diary'];
+    }
+
+    this.applyCategoryFilter();
   }
 
   private toDiaryEntry(log: DeviceLog): DiaryEntry {
@@ -156,5 +197,7 @@ export class DiaryEntriesReportComponent implements OnInit, OnChanges {
     await modal.present();
   }
 
-  protected readonly getDiaryDataFieldUnit = getDiaryDataFieldUnit;
+  disableLogGrouping(): void {
+    // Placeholder for future grouping logic if needed in diary report
+  }
 }

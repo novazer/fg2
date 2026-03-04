@@ -12,9 +12,11 @@ import {DeviceLog, DeviceService} from 'src/app/services/devices.service';
 import {PlotLineOrBand, XAxisPlotLinesOptions} from "highcharts";
 import {YAxisOptions} from "highcharts/highstock";
 import {ImageViewerModalComponent} from "../diary/image-viewer-modal/image-viewer-modal.component";
-import {LogEntry} from "../diary/diary-entries-report/diary-entries-report.component";
 import {ModalController} from "@ionic/angular";
-import {getDiaryDataFieldUnit} from "../diary/diary-entry-modal/diary-entry-modal.component";
+import {
+  collectLogCategories,
+  matchesLogCategory,
+} from '../log-entry-viewer/log-entry-viewer.component';
 
 declare var require: any;
 let Boost = require('highcharts/modules/boost');
@@ -122,9 +124,9 @@ export class ChartsPage implements OnInit, OnDestroy {
 
   public filteredLogsUngroupedCount: number = 0;
 
-  public deviceLogCategories: Set<string> = new Set<string>();
+  public deviceLogCategories: string[] = [];
 
-  public selectedLogCategory: string = 'all';
+  public selectedLogCategories: string[] = [];
 
   public groupLogs: boolean = true;
 
@@ -237,7 +239,8 @@ export class ChartsPage implements OnInit, OnDestroy {
       this.selectedInterval = this.route.snapshot.queryParams['interval'];
     }
     if (this.route.snapshot.queryParams?.['logs']) {
-      this.selectedLogCategory = this.route.snapshot.queryParams['logs'];
+      const logsParam = this.route.snapshot.queryParams['logs'];
+      this.selectedLogCategories = logsParam ? logsParam.split(',').filter((c: string) => c.length > 0) : [];
     }
     this.devicesSub = this.devices.devices.subscribe((devices) => {
       const device = devices.find((device) => device.device_id == this.device_id);
@@ -356,7 +359,7 @@ export class ChartsPage implements OnInit, OnDestroy {
     [0, 1, 2].forEach(severity => {
       const logs = deviceLogs
         .filter(log => log.severity === severity)
-        .filter(log => !this.selectedLogCategory || this.selectedLogCategory === 'all' || log.categories?.includes(this.selectedLogCategory));
+        .filter(log => matchesLogCategory(log, this.selectedLogCategories));
 
       series.push({
         name: severity == 2 ? 'Critical logs' : (severity == 1 ? 'Warning logs' : 'Info logs'),
@@ -386,10 +389,7 @@ export class ChartsPage implements OnInit, OnDestroy {
     }
 
     this.deviceLogs = deviceLogs;
-    this.deviceLogCategories.clear();
-    this.deviceLogs.forEach(log =>
-      log.categories?.forEach(category => this.deviceLogCategories.add(category))
-    );
+    this.deviceLogCategories = collectLogCategories(this.deviceLogs);
 
     // @ts-ignore
     this.chartOptions.chart.animation = !this.autoUpdate;
@@ -423,7 +423,7 @@ export class ChartsPage implements OnInit, OnDestroy {
       useCustom: this.useCustom?.toString() ?? '',
       timespan: this.selectedTimespan?.name ?? '',
       interval: this.selectedInterval ?? '',
-      logs: this.showLogs ? this.selectedLogCategory : '',
+      logs: this.showLogs ? this.selectedLogCategories.join(',') : '',
     };
     await this.router.navigate(['device', this.device_id, 'charts'], { queryParams, replaceUrl: true });
   }
@@ -543,15 +543,13 @@ export class ChartsPage implements OnInit, OnDestroy {
       let result: (DeviceLog & { count?: number; })[] = this.deviceLogs.filter(log => {
 
         const anyLogSelected = ignoreSelection ? false : this.selectedLogs.length > 0;
-        const anyCategorySelected = this.selectedLogCategory && this.selectedLogCategory !== 'all'
         const thisLogSelected = anyLogSelected && this.selectedLogs.find(selectedLog => selectedLog._id === log._id);
-        const thisCategorySelected = anyCategorySelected && log.categories?.includes(this.selectedLogCategory);
 
         if (thisLogSelected) {
           return true;
         }
 
-        return !anyLogSelected && (!anyCategorySelected || thisCategorySelected);
+        return !anyLogSelected && matchesLogCategory(log, this.selectedLogCategories);
       });
 
       const originalResult = result;
@@ -606,7 +604,8 @@ export class ChartsPage implements OnInit, OnDestroy {
     );
   }
 
-  logCategoryChanged() {
+  logCategoryChanged(selectedCategories?: string[]) {
+    this.selectedLogCategories = selectedCategories && selectedCategories.length > 0 ? selectedCategories : [];
     this.selectedLogs.splice(0, this.selectedLogs.length);
     void this.loadData();
   }
@@ -629,7 +628,7 @@ export class ChartsPage implements OnInit, OnDestroy {
     return this.devices.getDeviceImageUrl(this.device_id, 'user/jpeg', undefined, undefined, imageId);
   }
 
-  async openImageModal(log: LogEntry, index: number): Promise<void> {
+  async openImageModal(log: DeviceLog, index: number): Promise<void> {
     const imageUrls = log.images?.map(imageId => this.imageIdToImageUrl[imageId]) ?? [];
 
     const modal = await this.modalController.create({
@@ -645,6 +644,4 @@ export class ChartsPage implements OnInit, OnDestroy {
 
     await modal.present();
   }
-
-  protected readonly getDiaryDataFieldUnit = getDiaryDataFieldUnit;
 }

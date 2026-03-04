@@ -11,6 +11,7 @@ import { HighchartsChartModule } from 'highcharts-angular';
 import { ChartsPage } from './charts.page';
 import { PipesModule } from 'src/app/pipes/pipes.module';
 import { TranslateModule } from '@ngx-translate/core';
+import { LogEntryViewerModule } from '../log-entry-viewer/log-entry-viewer.module';
 
 @NgModule({
   imports: [
@@ -21,7 +22,8 @@ import { TranslateModule } from '@ngx-translate/core';
     HighchartsChartModule,
     ChartsPageRoutingModule,
     PipesModule,
-    TranslateModule.forChild()
+    TranslateModule.forChild(),
+    LogEntryViewerModule,
   ],
   declarations: [ChartsPage]
 })

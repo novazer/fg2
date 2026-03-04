@@ -17,6 +17,7 @@ import { DiaryEntryModalComponent } from './diary-entry-modal/diary-entry-modal.
 import { DiaryEntriesReportComponent } from './diary-entries-report/diary-entries-report.component';
 import { ImageViewerModalComponent } from './image-viewer-modal/image-viewer-modal.component';
 import { GrowReportComponent } from './grow-report/grow-report.component';
+import { LogEntryViewerModule } from '../log-entry-viewer/log-entry-viewer.module';
 
 @NgModule({
   imports: [
@@ -28,7 +29,8 @@ import { GrowReportComponent } from './grow-report/grow-report.component';
     DiaryPageRoutingModule,
     PipesModule,
     TranslateModule,
-    DevicesModule
+    DevicesModule,
+    LogEntryViewerModule,
   ],
   declarations: [
     DiaryPage,

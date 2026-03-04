@@ -1,0 +1,11 @@
+<ion-item lines="none">
+  <ion-label>{{ 'diary.labels.categories' | translate }}</ion-label>
+  <ion-select
+    [ngModel]="selectedCategories || []"
+    (ngModelChange)="onSelectedCategoryChange($event)"
+    multiple="true"
+    [interfaceOptions]="{ 'cssClass': 'wider-popover' }"
+  >
+    <ion-select-option *ngFor="let category of availableCategories" [value]="category">{{ category }}</ion-select-option>
+  </ion-select>
+</ion-item>
