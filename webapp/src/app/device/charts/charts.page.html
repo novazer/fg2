@@ -47,7 +47,6 @@
         style="cursor: pointer;"
         [class.on]="autoUpdate"
         (click)="toggleAutoUpdate()"
-        [hidden]="offset < 0"
         title="Auto update">
         <img class="icon-on" src="assets/icon/autoUpdate.png" alt="Auto update on" />
         <img class="icon-off" src="assets/icon/autoUpdate_off.png" alt="Auto update off" style="opacity: 0.3" />
@@ -102,18 +101,24 @@
         </ion-item>
       </ion-col>
 
-      <ion-col [hidden]="offset >= 0 && !offsetFocused && !showLightOffsetControls()">
+      <ion-col>
         <ion-item lines="none">
           <ion-label>{{'charts.offset' | translate}}</ion-label>
-          <ion-input
-            type="number"
-            style="width: 4em; text-align: center;"
-            [(ngModel)]="offset"
-            (ionChange)="offsetChanged()"
-            (ionBlur)="offsetFocused = false"
-            (ionFocus)="offsetFocused = true"
-            [disabled]="autoUpdate"
-          ></ion-input>
+          <ion-button id="charts-date-trigger" fill="clear" size="small">
+            {{ selectedDate ? (selectedDate | date: 'medium') : '' }}
+          </ion-button>
+
+          <ion-modal trigger="charts-date-trigger" [keepContentsMounted]="true">
+            <ng-template>
+              <ion-datetime
+                id="charts-date"
+                presentation="date-time"
+                [max]="getDatePickerMaxDate()"
+                [(ngModel)]="selectedDate"
+                (ionChange)="dateChanged()"
+              ></ion-datetime>
+            </ng-template>
+          </ion-modal>
         </ion-item>
       </ion-col>
 
@@ -128,7 +133,7 @@
         <ion-button
           color="light"
           (click)="nextOffset()"
-          [disabled]="offset >= 0 || autoUpdate"
+          [disabled]="isSelectedAtOrAfterNow() || autoUpdate"
         >
           &#8594;
         </ion-button>

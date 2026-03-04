@@ -104,11 +104,10 @@ export class ChartsPage implements OnInit, OnDestroy {
 
   public autoUpdate:boolean = false;
 
-  public offset: number = 0;
+  // Empty date means live mode: start is now minus the selected timespan.
+  public selectedDate: string = '';
 
   public vpdMode: 'all' | 'day' | 'night' = 'all';
-
-  public offsetFocused: boolean = false;
 
   public useCustom = false;
 
@@ -219,9 +218,6 @@ export class ChartsPage implements OnInit, OnDestroy {
       this.showImage = selectedMeasures.includes('image');
       this.showLogs = selectedMeasures.includes('logs');
     }
-    if (this.route.snapshot.queryParams?.['offset']) {
-      this.offset = parseInt(this.route.snapshot.queryParams['offset']);
-    }
     if (this.route.snapshot.queryParams?.['vpdMode']) {
       this.vpdMode = this.route.snapshot.queryParams['vpdMode'] as 'all' | 'day' | 'night';
     }
@@ -238,10 +234,16 @@ export class ChartsPage implements OnInit, OnDestroy {
     if (this.route.snapshot.queryParams?.['interval']) {
       this.selectedInterval = this.route.snapshot.queryParams['interval'];
     }
-    if (this.route.snapshot.queryParams?.['logs']) {
-      const logsParam = this.route.snapshot.queryParams['logs'];
-      this.selectedLogCategories = logsParam ? logsParam.split(',').filter((c: string) => c.length > 0) : [];
+    if (this.route.snapshot.queryParams?.['date']) {
+      this.selectedDate = this.route.snapshot.queryParams['date'];
+    } else {
+      this.selectedDate = '';
     }
+
+    if (!this.isSelectedAtOrAfterNow()) {
+      this.autoUpdate = false;
+    }
+
     this.devicesSub = this.devices.devices.subscribe((devices) => {
       const device = devices.find((device) => device.device_id == this.device_id);
       this.device_type = device?.device_type || '';
@@ -252,13 +254,14 @@ export class ChartsPage implements OnInit, OnDestroy {
 
         setTimeout(() => this.loadData(), 10)
         this.interval = setInterval(() => {
-          if (this.autoUpdate && !this.offsetFocused && this.offset >= 0) {
-            this.currentImageTimestamp = undefined;
-            this.selectedLogs.splice(0, this.selectedLogs.length);
-            void this.loadDeviceImage();
-            void this.loadData();
-          }
-        }, 10000)
+          if (this.autoUpdate) {
+            this.selectedDate = '';
+             this.currentImageTimestamp = undefined;
+             this.selectedLogs.splice(0, this.selectedLogs.length);
+             void this.loadDeviceImage();
+             void this.loadData();
+           }
+         }, 10000)
       }
     });
   }
@@ -278,21 +281,77 @@ export class ChartsPage implements OnInit, OnDestroy {
     return this.timespans.filter(ts => !showImageControls || ts.imageIntervalMs);
   }
 
-  private async loadData() {
-    const thisDataLoadStartTime = this.currentDataLoadStartTime = Date.now();
-
-    const toValue = this.offset * this.selectedTimespan.durationValue;
-    const fromValue = -this.selectedTimespan.durationValue + toValue;
-    const from = String(fromValue) + this.selectedTimespan.durationUnit;
-    const to = String(toValue) + this.selectedTimespan.durationUnit;
+  private getSelectedTimespanDurationMs() {
     const unitMs = (
       this.selectedTimespan.durationUnit === 'm' ? 60000 :
       this.selectedTimespan.durationUnit === 'h' ? 3600000 :
       this.selectedTimespan.durationUnit === 'd' ? 86400000 :
       this.selectedTimespan.durationUnit === 'y' ? 31536000000 : 0
     );
-    const fromMs = Date.now() + fromValue * unitMs;
-    const toMs = Date.now() + toValue * unitMs;
+
+    return this.selectedTimespan.durationValue * unitMs;
+  }
+
+  private getSelectedDateMs() {
+    const selectedDateMs = Date.parse(this.selectedDate);
+    if (!Number.isNaN(selectedDateMs)) {
+      return selectedDateMs;
+    }
+
+    // Empty/invalid date means a live window ending now.
+    return Date.now() - this.getSelectedTimespanDurationMs();
+  }
+
+  private clampSelectedDateToNow() {
+    if (!this.selectedDate) {
+      return;
+    }
+
+    const latestAllowedStartMs = Date.now() - this.getSelectedTimespanDurationMs();
+    if (this.getSelectedDateMs() > latestAllowedStartMs) {
+      this.selectedDate = new Date(latestAllowedStartMs).toISOString();
+    }
+  }
+
+  public isSelectedAtOrAfterNow() {
+    const selectedPeriodEndMs = this.getSelectedDateMs() + this.getSelectedTimespanDurationMs();
+    return selectedPeriodEndMs >= Date.now();
+  }
+
+  private shiftSelectedDateByTimespan(direction: -1 | 1) {
+    const durationMs = this.getSelectedTimespanDurationMs();
+    if (durationMs <= 0) {
+      return;
+    }
+
+    const shiftedMs = this.getSelectedDateMs() + direction * durationMs;
+    this.selectedDate = new Date(shiftedMs).toISOString();
+    this.clampSelectedDateToNow();
+  }
+
+  public dateChanged() {
+    this.clampSelectedDateToNow();
+    this.autoUpdate = this.isSelectedAtOrAfterNow() && this.autoUpdate;
+    this.offsetChanged();
+  }
+
+  public getDatePickerMaxDate() {
+    return new Date(Date.now() - this.getSelectedTimespanDurationMs()).toISOString();
+  }
+
+  private async loadData() {
+    const thisDataLoadStartTime = this.currentDataLoadStartTime = Date.now();
+
+    if (this.autoUpdate) {
+      this.selectedDate = '';
+    }
+
+    this.clampSelectedDateToNow();
+
+    const fromMs = this.getSelectedDateMs();
+    const toMs = fromMs + this.getSelectedTimespanDurationMs();
+    const from = new Date(fromMs).toISOString();
+    const to = new Date(toMs).toISOString();
 
     let active = 0;
     for(let m of this.measures) {
@@ -417,7 +476,7 @@ export class ChartsPage implements OnInit, OnDestroy {
         ...(this.showImage ? ['image'] : []),
         ...(this.showLogs ? ['logs'] : []),
       ].join(','),
-      offset: this.offset?.toString() ?? '',
+       date: this.selectedDate ?? '',
       vpdMode: this.isMeasureEnabled('vpd') ? this.vpdMode : '',
       autoUpdate: this.autoUpdate?.toString() ?? '',
       useCustom: this.useCustom?.toString() ?? '',
@@ -433,42 +492,45 @@ export class ChartsPage implements OnInit, OnDestroy {
   }
 
   public prevOffset() {
-    this.offset--;
+    this.autoUpdate = false;
+    this.shiftSelectedDateByTimespan(-1);
     this.offsetChanged();
   }
 
   public nextOffset() {
-    this.offset++;
+    this.shiftSelectedDateByTimespan(1);
     this.offsetChanged();
   }
 
   toggleAutoUpdate() {
     this.autoUpdate = !this.autoUpdate;
-    this.offsetChanged();
-  }
+    this.selectedDate = '';
+     this.offsetChanged();
+   }
 
-  public offsetChanged() {
-    this.selectedLogs.splice(0, this.selectedLogs.length);
-    this.loadData().then(() => {
-      this.chartInstance?.zoomOut();
+   public offsetChanged() {
+    this.clampSelectedDateToNow();
+     this.selectedLogs.splice(0, this.selectedLogs.length);
+     this.loadData().then(() => {
+       this.chartInstance?.zoomOut();
 
-      if (this.isAnimatedImage()) {
-        this.currentImageTimestamp = Math.ceil(Date.now() / 5000) * 5000 + this.offset * (this.selectedTimespan?.imageIntervalMs ?? 0);
-        void this.loadDeviceImage(this.currentImageTimestamp);
-      }
-    });
-  }
+       if (this.isAnimatedImage()) {
+         this.currentImageTimestamp = Math.ceil(this.getSelectedDateMs() / 5000) * 5000;
+         void this.loadDeviceImage(this.currentImageTimestamp);
+       }
+     });
+   }
 
   public intervalChanged() {
     void this.loadData();
   }
 
   public timespanChanged() {
-    this.offset = 0;
-    this.selectedInterval = this.selectedTimespan.defaultInterval;
-    this.selectedLogs.splice(0, this.selectedLogs.length);
-    this.loadData().then(() => this.chartInstance?.zoomOut());
-  }
+     this.selectedInterval = this.selectedTimespan.defaultInterval;
+    this.clampSelectedDateToNow();
+     this.selectedLogs.splice(0, this.selectedLogs.length);
+     this.loadData().then(() => this.chartInstance?.zoomOut());
+   }
 
   public vpdModeChanged() {
     void this.loadData();
