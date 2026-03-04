@@ -152,7 +152,7 @@
     },
     "timespan": "Zeitraum",
     "interval": "Intervall",
-    "offset": "Datum/Uhrzeit",
+    "offset": "Datum",
     "logsTitle": "Log-Meldungen",
     "logsShowAll": "Alle anzeigen",
     "logsNoEntries": "Keine Log-Meldungen für den gewählten Zeitraum",

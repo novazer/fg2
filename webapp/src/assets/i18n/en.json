@@ -155,7 +155,7 @@
     },
     "timespan": "Time span",
     "interval": "Interval",
-    "offset": "Date/time",
+    "offset": "Date",
     "logsTitle": "Log messages",
     "logsShowAll": "Show all",
     "logsNoEntries": "No log messages for the selected timespan",
