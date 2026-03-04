@@ -16,6 +16,7 @@ import { Co2ReportComponent } from './co2-report/co2-report.component';
 import { DiaryEntryModalComponent } from './diary-entry-modal/diary-entry-modal.component';
 import { DiaryEntriesReportComponent } from './diary-entries-report/diary-entries-report.component';
 import { ImageViewerModalComponent } from './image-viewer-modal/image-viewer-modal.component';
+import { GrowReportComponent } from './grow-report/grow-report.component';
 
 @NgModule({
   imports: [
@@ -35,6 +36,7 @@ import { ImageViewerModalComponent } from './image-viewer-modal/image-viewer-mod
     DiaryEntryModalComponent,
     DiaryEntriesReportComponent,
     ImageViewerModalComponent,
+    GrowReportComponent,
   ]
 })
 export class DiaryPageModule {}

@@ -10,7 +10,12 @@
 <ion-content class="ion-padding">
   <ion-item>
     <ion-label>{{ 'diary.labels.categories' | translate }}</ion-label>
-    <ion-select [(ngModel)]="category" multiple="false" [interfaceOptions]="{ cssClass: 'wider-popover' }">
+    <ion-select
+      [(ngModel)]="category"
+      (ionChange)="checkFixedLifecycleName()"
+      multiple="false"
+      [interfaceOptions]="{ cssClass: 'wider-popover' }"
+    >
       <ion-select-option value="plant-log">{{ 'diary.categories.plantLog' | translate }}</ion-select-option>
       <ion-select-option value="plant-lifecycle">{{ 'diary.categories.plantLifecycle' | translate }}</ion-select-option>
       <ion-select-option value="fridge-log">{{ 'diary.categories.fridgeLog' | translate }}</ion-select-option>
@@ -49,7 +54,11 @@
 
   <ion-item *ngIf="isFieldEditable('data.newLifecycleStage')">
     <ion-label>{{ 'diary.labels.newLifecycleStage' | translate }}</ion-label>
-    <ion-select [(ngModel)]="data.newLifecycleStage" [interfaceOptions]="{ cssClass: 'wider-popover' }">
+    <ion-select
+      [(ngModel)]="data.newLifecycleStage"
+      (ionChange)="checkFixedLifecycleName()"
+      [interfaceOptions]="{ cssClass: 'wider-popover' }"
+    >
       <ion-select-option value="germination">{{ 'diary.lifecycleStages.germination' | translate }}</ion-select-option>
       <ion-select-option value="seedling">{{ 'diary.lifecycleStages.seedling' | translate }}</ion-select-option>
       <ion-select-option value="vegetative">{{ 'diary.lifecycleStages.vegetative' | translate }}</ion-select-option>
@@ -57,6 +66,12 @@
       <ion-select-option value="drying">{{ 'diary.lifecycleStages.drying' | translate }}</ion-select-option>
       <ion-select-option value="curing">{{ 'diary.lifecycleStages.curing' | translate }}</ion-select-option>
     </ion-select>
+  </ion-item>
+
+  <ion-item *ngIf="isFieldEditable('data.lifecycleName')">
+    <ion-label>{{ 'diary.labels.lifecycleName' | translate }}</ion-label>
+    <ion-input [(ngModel)]="data.lifecycleName" [hidden]="fixedLifecycleName" class="ion-text-right"></ion-input>
+    <ion-input [(ngModel)]="fixedLifecycleName" [hidden]="!fixedLifecycleName" disabled=true readonly="readonly" class="ion-text-right"></ion-input>
   </ion-item>
 
   <ion-item *ngIf="isFieldEditable('data.lightMeasurement')">

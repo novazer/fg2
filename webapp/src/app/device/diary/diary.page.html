@@ -22,6 +22,7 @@
           class="ion-float-right"
         >
           <ion-select-option value="entries">{{ 'diary.entriesReport' | translate}}</ion-select-option>
+          <ion-select-option value="growreport">{{ 'diary.growReport' | translate}}</ion-select-option>
           <ion-select-option value="co2report">{{ 'diary.co2Report' | translate}}</ion-select-option>
         </ion-select>
       </ion-card-content>
@@ -33,6 +34,12 @@
       [cloudSettings]="cloudSettings"
       [lastUpdated]="lastUpdated"
     ></app-co2-report>
+
+    <app-grow-report
+      *ngIf="selectedReport === 'growreport'"
+      [deviceId]="deviceId"
+      [lastUpdated]="lastUpdated"
+    ></app-grow-report>
 
     <app-diary-entries-report
       *ngIf="selectedReport === 'entries'"

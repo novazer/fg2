@@ -2,17 +2,19 @@ import {Component, ElementRef, Input, OnInit, ViewChild} from '@angular/core';
 import {ModalController} from '@ionic/angular';
 import {DeviceService} from 'src/app/services/devices.service';
 import {HttpErrorResponse} from "@angular/common/http";
+import {LIFECYCLE_EVENT_ORDER} from "../grow-report/grow-report.component";
 
-type DiaryEntryData = {
-  co2FillingRest: number | undefined;
-  co2FillingInitial: number | undefined;
-  newLifecycleStage: undefined | 'germination' | 'seedling' | 'vegetative' | 'flowering' | 'drying' | 'curing';
-  lightMeasurement: number | undefined;
-  distanceMeasurement: number | undefined;
-  tdsMeasurement: number | undefined;
-  ecMeasurement: number | undefined;
-  outsideTemperatureMeasurement: number | undefined;
-  phMeasurement: number | undefined;
+export type DiaryEntryData = {
+  co2FillingRest: number;
+  co2FillingInitial: number;
+  newLifecycleStage: 'germination' | 'seedling' | 'vegetative' | 'flowering' | 'drying' | 'curing';
+  lifecycleName: string;
+  lightMeasurement: number;
+  distanceMeasurement: number;
+  tdsMeasurement: number;
+  ecMeasurement: number;
+  outsideTemperatureMeasurement: number;
+  phMeasurement: number;
 };
 
 export type DiaryEntry = {
@@ -68,9 +70,12 @@ export const defaultDiaryEntries : Record<string, Partial<DiaryEntry> & { defaul
     message: '',
     data: {
       newLifecycleStage: 'seedling',
+      lifecycleName: 'My Strain',
     },
   },
-}
+};
+
+const LOADING_PLACEHOLDER = 'loading...';
 
 @Component({
   selector: 'app-diary-entry-modal',
@@ -89,13 +94,11 @@ export class DiaryEntryModalComponent implements OnInit {
   public title = ''
   public time = new Date().toISOString();
   public category = 'plant-log';
-  public data: Partial<DiaryEntryData> = {
-    co2FillingRest: 0,
-    co2FillingInitial: 425,
-  };
+  public data: {[K in keyof DiaryEntryData]?: DiaryEntryData[K] | undefined} = {};
   public images: string[] = [];
   public uploading = false;
   public uploadErrors: string[] = [];
+  public fixedLifecycleName: string | undefined = undefined;
 
   public imageIdToImageUrl: Record<string, string> = {};
 
@@ -110,16 +113,57 @@ export class DiaryEntryModalComponent implements OnInit {
     this.data = {
       co2FillingRest: this.entry?.data?.co2FillingRest || 0,
       co2FillingInitial: this.entry?.data?.co2FillingInitial || 425,
-      newLifecycleStage: this.entry?.data?.newLifecycleStage,
-      lightMeasurement : this.entry?.data?.lightMeasurement,
-      distanceMeasurement : this.entry?.data?.distanceMeasurement,
-      tdsMeasurement : this.entry?.data?.tdsMeasurement,
-      ecMeasurement : this.entry?.data?.ecMeasurement,
-      outsideTemperatureMeasurement : this.entry?.data?.outsideTemperatureMeasurement,
-      phMeasurement : this.entry?.data?.phMeasurement,
+      lifecycleName: this.entry?.data?.lifecycleName ?? 'My Strain',
+      ...(this.entry?.data ?? {}),
     },
     this.images = this.entry?.images ? this.entry.images : [];
     void this.loadImageUrls();
+    void this.checkFixedLifecycleName();
+  }
+
+  async checkFixedLifecycleName() {
+    this.fixedLifecycleName = LOADING_PLACEHOLDER;
+
+    if (!this.deviceId) {
+      return;
+    }
+
+    if (this.category === 'plant-lifecycle') {
+      if (this.data.newLifecycleStage) {
+        const lifecycleLogs = await this.devices.getLogs(this.deviceId, undefined, new Date(this.time).getTime(), true, ['plant-lifecycle']);
+
+        let lifecycleOrder = LIFECYCLE_EVENT_ORDER[this.data.newLifecycleStage];
+        for (const log of lifecycleLogs.reverse()) {
+          const currentLifecycleOrder = log.data?.newLifecycleStage ? LIFECYCLE_EVENT_ORDER[log.data.newLifecycleStage] : Number.MAX_SAFE_INTEGER;
+
+          if (currentLifecycleOrder < lifecycleOrder) {
+            lifecycleOrder = currentLifecycleOrder;
+            this.fixedLifecycleName = log.data?.lifecycleName || this.fixedLifecycleName;
+          } else {
+            break;
+          }
+        }
+      }
+    } else {
+      const lifecycleLogs = await this.devices.getLogs(this.deviceId, undefined, new Date(this.time).getTime(), true, ['plant-lifecycle']);
+
+      if (!this.data.newLifecycleStage) {
+        const previousLifecycleStage = lifecycleLogs.reverse().find(l => l.data?.newLifecycleStage);
+        if (previousLifecycleStage?.data?.newLifecycleStage && previousLifecycleStage?.data?.newLifecycleStage in LIFECYCLE_EVENT_ORDER) {
+          const previousLifecycleOrder = LIFECYCLE_EVENT_ORDER[previousLifecycleStage.data.newLifecycleStage] ?? -1;
+          const nextLifecycleOrder = (previousLifecycleOrder + 1) % Object.keys(LIFECYCLE_EVENT_ORDER).length;
+          const nextLifecycleStage = Object.entries(LIFECYCLE_EVENT_ORDER).find(([key, order]) => order === nextLifecycleOrder)?.[0];
+
+          if (nextLifecycleStage) {
+            this.data.newLifecycleStage = nextLifecycleStage as DiaryEntryData['newLifecycleStage'];
+          }
+        }
+      }
+    }
+
+    if (this.fixedLifecycleName === LOADING_PLACEHOLDER) {
+      this.fixedLifecycleName = undefined;
+    }
   }
 
   cancel() {
@@ -167,9 +211,12 @@ export class DiaryEntryModalComponent implements OnInit {
   }
 
   save() {
-    const data = Object.fromEntries(Object.entries(this.data).filter(([key, value]) =>
+    const data: Partial<DiaryEntryData> = Object.fromEntries(Object.entries(this.data).filter(([key, value]) =>
       value !== undefined && value !== null && this.isFieldEditable('data.' + key)
     ));
+    if (data.lifecycleName && this.fixedLifecycleName) {
+      delete data.lifecycleName;
+    }
 
     const entry: DiaryEntry = {
       category: this.category,
@@ -178,7 +225,7 @@ export class DiaryEntryModalComponent implements OnInit {
       ...(this.isFieldEditable('message') ? {message: this.message} : {}),
       ...(this.images.length > 0 ? {images: this.images} : {}),
       ...(Object.keys(data).length > 0 ? {data} : {}),
-      ...(defaultDiaryEntries[this.category].defaults ?? {})
+      ...(defaultDiaryEntries[this.category].defaults ?? {}),
     };
 
     void this.modalController.dismiss(entry, 'save');

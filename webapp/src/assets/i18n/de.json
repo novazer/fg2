@@ -346,6 +346,7 @@
     "title": "Tagebuch",
     "addEntry": "Eintrag hinzufügen",
     "co2Report": "CO2 Bericht",
+    "growReport": "Grow Bericht",
     "entriesReport": "Einträge",
     "entriesIncludeSystem": "Systemeinträge anzeigen",
     "categories": {
@@ -390,7 +391,13 @@
       "co2RefillTitle": "CO2 Flasche wurde nachgefüllt"
     },
     "co2ReportNoData": "Noch keine CO2 Nachfüllungen.",
-    "entriesNoData": "Noch keine Tagebuch-Einträge."
+    "entriesNoData": "Noch keine Tagebuch-Einträge.",
+    "growReportNoData": "Noch keine Pflanzen-Phase Ereignisse.",
+    "selectGrowCycle": "Grow Zyklus auswählen",
+    "startDate": "Startdatum",
+    "endDate": "Enddatum",
+    "eventCount": "Anzahl der Ereignisse",
+    "events": "Ereignisse"
   },
 
   "message-lost-connection-title": "Verbindungsproblem",

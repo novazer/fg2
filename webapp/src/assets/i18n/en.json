@@ -362,6 +362,7 @@
     "title": "Diary",
     "addEntry": "Add entry",
     "co2Report": "CO2 report",
+    "growReport": "Grow report",
     "entriesReport": "Entries",
     "entriesIncludeSystem": "Include system entries",
     "categories": {
@@ -379,6 +380,7 @@
       "co2FillingInitial": "New cylinder filling",
       "message": "Comment",
       "newLifecycleStage": "New phase",
+      "lifecycleName": "Plant name",
       "lightMeasurement": "Light measurement",
       "distanceMeasurement": "Distance measurement",
       "tdsMeasurement": "TDS measurement",
@@ -407,7 +409,13 @@
       "co2RefillTitle": "CO2 cylinder was refilled"
     },
     "co2ReportNoData": "No CO2 refill data yet.",
-    "entriesNoData": "No diary entries yet."
+    "entriesNoData": "No diary entries yet.",
+    "growReportNoData": "No plant lifecycle events yet.",
+    "selectGrowCycle": "Select grow cycle",
+    "startDate": "Start date",
+    "endDate": "End date",
+    "eventCount": "Number of events",
+    "events": "Events"
   },
 
   "message-lost-connection-title": "Connection problem",

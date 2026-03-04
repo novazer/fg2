@@ -25,7 +25,7 @@ export class DiaryPage implements OnInit, OnDestroy {
   public cloudSettings: any = {};
   public lastUpdated: number | undefined;
 
-  public selectedReport: 'co2report' | 'entries' = 'entries';
+  public selectedReport: 'co2report' | 'entries' | 'growreport' = 'entries';
 
   private devicesSub: Subscription | undefined;
 
@@ -75,7 +75,7 @@ export class DiaryPage implements OnInit, OnDestroy {
         images: result.data?.images,
         severity: 0,
         deleted: true,
-      }
+      };
       await this.devices.addLog(this.deviceId, data);
       this.lastUpdated = Date.now();
     }

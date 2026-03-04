@@ -1,0 +1,67 @@
+<ion-card>
+  <ion-card-header>
+    <ion-card-title>{{ 'diary.growReport' | translate }}</ion-card-title>
+  </ion-card-header>
+  <ion-card-content>
+    <ion-item *ngIf="growCycles.length > 0">
+      <ion-label>{{ 'diary.selectGrowCycle' | translate }}</ion-label>
+      <ion-select
+        [(ngModel)]="selectedCycleIndex"
+        (ionChange)="onCycleSelected($event)"
+        [interfaceOptions]="{'cssClass': 'wider-popover'}"
+      >
+        <ion-select-option *ngFor="let cycle of growCycles; let index = index" [value]="index">
+          {{ cycle.name }}
+        </ion-select-option>
+      </ion-select>
+    </ion-item>
+
+    <div *ngIf="growCycles.length === 0" class="ion-padding">
+      <p>{{ 'diary.growReportNoData' | translate }}</p>
+    </div>
+
+    <div *ngIf="selectedCycle" class="ion-padding-top">
+      <ion-card>
+        <ion-card-header>
+          <ion-card-subtitle>{{ selectedCycle.name }}</ion-card-subtitle>
+        </ion-card-header>
+        <ion-card-content>
+          <ion-list>
+            <ion-item>
+              <ion-label>
+                <h3>{{ 'diary.startDate' | translate }}</h3>
+                <p>{{ selectedCycle.timestampStart | date:'medium' }}</p>
+              </ion-label>
+            </ion-item>
+            <ion-item *ngIf="selectedCycle.timestampEnd">
+              <ion-label>
+                <h3>{{ 'diary.endDate' | translate }}</h3>
+                <p>{{ selectedCycle.timestampEnd | date:'medium' }}</p>
+              </ion-label>
+            </ion-item>
+            <ion-item>
+              <ion-label>
+                <h3>{{ 'diary.eventCount' | translate }}</h3>
+                <p>{{ selectedCycleEventsOrdered.length }}</p>
+              </ion-label>
+            </ion-item>
+          </ion-list>
+
+          <div class="ion-padding-top">
+            <h4>{{ 'diary.events' | translate }}</h4>
+            <ion-item *ngFor="let item of selectedCycleEventsOrdered">
+              <ion-label>
+                <h3>
+                  {{ ('diary.lifecycleStages.' + item.stage) | translate }}
+                  <span class="day-count">({{ item.dayCount }} {{ item.dayCount === 1 ? 'day' : 'days' }}<span *ngIf="item.untilNow"> until today</span>)</span>
+                </h3>
+                <p>{{ item.event.time | date:'medium' }}<span *ngIf="item.event.message"> - {{ item.event.message }}</span></p>
+              </ion-label>
+            </ion-item>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </div>
+  </ion-card-content>
+</ion-card>
+
