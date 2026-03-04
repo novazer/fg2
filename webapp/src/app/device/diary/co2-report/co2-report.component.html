@@ -8,8 +8,8 @@
     <ion-item *ngFor="let cylinder of cylinders; let first = first">
       <ion-text [color]="first ? 'primary' : undefined" class="ion-padding-bottom ion-padding-top">
         {{ cylinder.timestampStart | date:'medium' }} |
-        {{ cylinder.fillingEnd !== undefined ? cylinder.fillingStart - cylinder.fillingEnd : 'n/a' }} g CO₂ used |
-        {{ (cylinder.ticksReleased | number: '1.0') ?? 'n/a' }} ticks released |
+        {{ cylinder.fillingEnd !== undefined ? ((cylinder.fillingStart - cylinder.fillingEnd) | number:'1.0-0') : 'n/a' }} g CO₂ used |
+        {{ (cylinder.ticksReleased | number: '1.0-0') ?? 'n/a' }} ticks released |
         {{ cylinder.ticksPerFilling ? (cylinder.ticksPerFilling | number:'1.0-0') + ' ticks/g CO₂' : ((cylinder.fillingEnd | number:'1.0-0') ?? 'n/a') + ' g CO₂ remaining' + (first ? ' (estimated)' : '') }}
       </ion-text>
       <ion-spinner name="dots" *ngIf="first"></ion-spinner>

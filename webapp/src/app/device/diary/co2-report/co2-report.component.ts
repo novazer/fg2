@@ -81,10 +81,19 @@ export class Co2ReportComponent implements OnInit, OnDestroy, OnChanges {
         if (cylinder.fillingEnd !== undefined) {
           cylinder.ticksPerFilling = (cylinder.ticksReleased ?? 0) / (cylinder.fillingStart - cylinder.fillingEnd);
 
-          const averageTicksPerFilling = this.cylinders
-            .filter(c => c.ticksPerFilling !== undefined && c.ticksPerFilling > 0)
-            .map(c => c.ticksPerFilling ?? 0);
-          this.averageTicksPerFilling = averageTicksPerFilling.reduce((a, b) => a + b, 0) / averageTicksPerFilling.length;
+          // Now we update the average to show data while loading
+          const cylindersWithRealData = this.cylinders.filter(c =>
+            c.fillingStart !== undefined && c.fillingEnd !== undefined && c.ticksPerFilling !== undefined && c.ticksPerFilling > 0
+          );
+          const totalCo2Used = cylindersWithRealData.reduce(
+            (sum, c) => sum + ((c.fillingStart - (c.fillingEnd ?? c.fillingStart)) ?? 0),
+            0
+          );
+          const totalTicksReleased = cylindersWithRealData.reduce(
+            (sum, c) => sum + (c.ticksReleased ?? 0),
+            0
+          );
+          this.averageTicksPerFilling = totalTicksReleased / totalCo2Used;
         }
       } catch (e) {
         console.log('Error fetching series for cylinder', cylinder, e);
