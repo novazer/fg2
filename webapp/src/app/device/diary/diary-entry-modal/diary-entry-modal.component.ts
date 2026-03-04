@@ -92,7 +92,8 @@ export class DiaryEntryModalComponent implements OnInit {
 
   public message = '';
   public title = ''
-  public time = new Date().toISOString();
+  // Keep ion-datetime value in local wall-time format (without timezone suffix).
+  public time = DiaryEntryModalComponent.toLocalDateTimeInputValue(new Date());
   public category = 'plant-log';
   public data: {[K in keyof DiaryEntryData]?: DiaryEntryData[K] | undefined} = {};
   public images: string[] = [];
@@ -108,7 +109,7 @@ export class DiaryEntryModalComponent implements OnInit {
   ngOnInit() {
     this.message = this.entry?.message || '';
     this.title = this.entry?.title || '';
-    this.time = this.entry?.time ? this.entry.time.toISOString() : new Date().toISOString();
+    this.time = DiaryEntryModalComponent.toLocalDateTimeInputValue(this.entry?.time ?? new Date());
     this.category = this.entry?.category || 'plant-log';
     this.data = {
       co2FillingRest: this.entry?.data?.co2FillingRest || 0,
@@ -220,7 +221,7 @@ export class DiaryEntryModalComponent implements OnInit {
 
     const entry: DiaryEntry = {
       category: this.category,
-      time: new Date(this.time),
+      time: DiaryEntryModalComponent.parseDateTimeInputValue(this.time),
       title: this.title,
       ...(this.isFieldEditable('message') ? {message: this.message} : {}),
       ...(this.images.length > 0 ? {images: this.images} : {}),
@@ -274,6 +275,21 @@ export class DiaryEntryModalComponent implements OnInit {
   }
 
   protected readonly getDiaryDataFieldUnit = getDiaryDataFieldUnit;
+
+  private static toLocalDateTimeInputValue(time: Date | string): string {
+    const date = time instanceof Date ? time : new Date(time);
+    if (Number.isNaN(date.getTime())) {
+      return DiaryEntryModalComponent.toLocalDateTimeInputValue(new Date());
+    }
+
+    const pad2 = (value: number) => value.toString().padStart(2, '0');
+    return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}T${pad2(date.getHours())}:${pad2(date.getMinutes())}:${pad2(date.getSeconds())}`;
+  }
+
+  private static parseDateTimeInputValue(value: string): Date {
+    const parsedDate = new Date(value);
+    return Number.isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
+  }
 }
 
 export const getDiaryDataFieldUnit = (field: keyof DiaryEntryData | string) => {
