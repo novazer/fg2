@@ -287,6 +287,10 @@ export class ChartsPage implements OnInit, OnDestroy {
         this.filtered_measures = this.measures
           .filter((measure) => measure.types.includes(this.device_type));
 
+        if (!this.cloudSettings.rtspStream) {
+          this.showImage = false;
+        }
+
         setTimeout(() => this.loadData(), 10)
         if (this.interval) {
           clearInterval(this.interval);
