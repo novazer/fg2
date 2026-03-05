@@ -336,7 +336,7 @@ class DeviceController {
           req.user_id,
           req.is_admin,
           Number(req.query.from ?? 0),
-          Number(req.query.to ?? Date.now()),
+          Number(req.query.to ?? 0),
           Boolean(req.query.deleted ?? false),
           req.query.categories ? String(req.query.categories).split(',') : undefined,
         );

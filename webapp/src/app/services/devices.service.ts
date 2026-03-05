@@ -193,7 +193,7 @@ export class DeviceService {
   }
 
   public async getLogs(device_id:string, timestampFrom?: number, timestampTo?: number, deleted?: boolean, categories?: string[]): Promise<DeviceLog[]> {
-    return await firstValueFrom( this.http.get<DeviceLog[]>(environment.API_URL + '/device/logs/' + device_id + '?from=' + Number(timestampFrom ?? 0) + '&to=' + Number(timestampTo ?? Date.now()) + '&deleted=' + (deleted ? '1' : '') + (categories ? '&categories=' + categories.join(',') : '')) );
+    return await firstValueFrom( this.http.get<DeviceLog[]>(environment.API_URL + '/device/logs/' + device_id + '?from=' + (Number(timestampFrom ?? 0) || '') + '&to=' + (Number(timestampTo ?? 0) || '') + '&deleted=' + (deleted ? '1' : '') + (categories ? '&categories=' + categories.join(',') : '')) );
   }
 
   public async getDeviceImageUrl(device_id: string, format: 'mp4' | 'jpeg' | 'user/jpeg', timestamp?: number, duration?: string, imageId?: string): Promise<string> {

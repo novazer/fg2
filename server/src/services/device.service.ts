@@ -453,7 +453,14 @@ class DeviceService {
       const logs = await deviceLogModel
         .find({
           device_id: device_id,
-          time: { $gte: new Date(timestampFrom), $lt: new Date(timestampTo) },
+          ...(timestampTo || timestampFrom
+            ? {
+                time: {
+                  ...(timestampFrom ? { $gte: new Date(timestampFrom) } : {}),
+                  ...(timestampTo ? { $lt: new Date(timestampTo) } : {}),
+                },
+              }
+            : {}),
           ...(deleted ? {} : { deleted: { $ne: true } }),
           ...(categories ? { categories: { $in: categories } } : {}),
         })
