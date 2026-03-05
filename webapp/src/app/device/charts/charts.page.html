@@ -47,6 +47,7 @@
         style="cursor: pointer;"
         [class.on]="autoUpdate"
         (click)="toggleAutoUpdate()"
+        [hidden]="hasFixedDateRange()"
         title="Auto update">
         <img class="icon-on" src="assets/icon/autoUpdate.png" alt="Auto update on" />
         <img class="icon-off" src="assets/icon/autoUpdate_off.png" alt="Auto update off" style="opacity: 0.3" />
@@ -56,7 +57,7 @@
 
   <ion-row [hidden]="(!useCustom && !showLightOffsetControls()) || (autoUpdate && (showImage || showLogs) && !hasEnabledMeasures())">
     <ng-container>
-      <ion-col>
+      <ion-col [hidden]="hasFixedDateRange()">
         <ion-item lines="none">
           <ion-label>{{'charts.timespan' | translate}}</ion-label>
           <ion-select
@@ -101,7 +102,7 @@
         </ion-item>
       </ion-col>
 
-      <ion-col>
+      <ion-col [hidden]="hasFixedDateRange()">
         <ion-item lines="none">
           <ion-label style="cursor: pointer;" (click)="openDateModal()">{{'charts.offset' | translate}}</ion-label>
           <ion-button id="charts-date-trigger" fill="clear" size="small">
@@ -139,7 +140,7 @@
         </ion-item>
       </ion-col>
 
-      <ion-col>
+      <ion-col [hidden]="hasFixedDateRange()">
         <ion-button
           color="light"
           (click)="prevOffset()"
@@ -158,7 +159,7 @@
     </ng-container>
   </ion-row>
 
-  <ion-row [hidden]="useCustom || !hasEnabledMeasures()">
+  <ion-row [hidden]="useCustom || !hasEnabledMeasures() || hasFixedDateRange()">
     <ion-col>
       <ion-button
         *ngFor="let tf of timespans"

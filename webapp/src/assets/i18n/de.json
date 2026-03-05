@@ -405,7 +405,9 @@
     "day": "Tag",
     "days": "Tage",
     "untilToday": "bis heute",
-    "today": "Heute"
+    "today": "Heute",
+    "viewChart": "Chart anzeigen",
+    "viewCycleChart": "Zyklus-Chart anzeigen"
   },
 
   "message-lost-connection-title": "Verbindungsproblem",

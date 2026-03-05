@@ -3,6 +3,7 @@ import {DeviceLog, DeviceService} from "../../../services/devices.service";
 import {Subscription} from "rxjs";
 import {DiaryEntryData, defaultDiaryEntries} from "../diary-entry-modal/diary-entry-modal.component";
 import {collectLogCategories, filterLogsByCategory, LogEntryViewerLog} from "../../log-entry-viewer/log-entry-viewer.component";
+import {Router} from "@angular/router";
 
 export const LIFECYCLE_EVENT_ORDER: Record<DiaryEntryData['newLifecycleStage'], number> = {
   germination: 0,
@@ -75,7 +76,7 @@ export class GrowReportComponent implements OnInit, OnDestroy, OnChanges {
   private allLogs: LogEntryViewerLog[] = [];
   private lifecycleLogs: LogEntryViewerLog[] = [];
 
-  constructor(private devices: DeviceService) {
+  constructor(private devices: DeviceService, private router: Router) {
   }
 
   ngOnInit() {
@@ -332,6 +333,71 @@ export class GrowReportComponent implements OnInit, OnDestroy, OnChanges {
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+  }
+
+  navigateToCharts(summary: PhaseSummary): void {
+    const timeline = this.selectedCycleTimeline;
+    if (!timeline || !this.deviceId) {
+      return;
+    }
+
+    const phase = timeline.phaseTimeline.find(p => p.stage === summary.stage);
+    if (!phase || !phase.eventsByDay.length) {
+      return;
+    }
+
+    const startDate = summary.startDate;
+
+    // Find the end date: either next phase start or last event in this phase + 1 day
+    const currentIndex = timeline.phaseTimeline.indexOf(phase);
+    const nextPhase = timeline.phaseTimeline[currentIndex + 1];
+
+    let endDate: Date;
+    if (nextPhase && nextPhase.eventsByDay[0]) {
+      endDate = nextPhase.eventsByDay[0].date;
+    } else {
+      const lastDay = phase.eventsByDay[phase.eventsByDay.length - 1];
+      endDate = new Date(lastDay.date);
+      endDate.setDate(endDate.getDate() + 1);
+    }
+
+    this.navigateToChartsWithDateRange(startDate, endDate);
+  }
+
+  navigateToChartsForCycle(): void {
+    const timeline = this.selectedCycleTimeline;
+    if (!timeline || !this.deviceId) {
+      return;
+    }
+
+    const startDate = timeline.timestampStart;
+
+    // End date is either the cycle end date, last event date + 1 day, or now
+    let endDate: Date;
+    if (timeline.timestampEnd) {
+      endDate = new Date(timeline.timestampEnd);
+    } else if (timeline.lastEventDate) {
+      endDate = new Date(timeline.lastEventDate);
+      endDate.setDate(endDate.getDate() + 1);
+    } else {
+      endDate = new Date();
+    }
+
+    this.navigateToChartsWithDateRange(startDate, endDate);
+  }
+
+  private navigateToChartsWithDateRange(startDate: Date, endDate: Date): void {
+    const queryParams = {
+      date: startDate.toISOString(),
+      dateEnd: endDate.toISOString(),
+      measures: 'temperature,image,logs',
+      useCustom: 'true',
+      vpdMode: 'day',
+      interval: '1h',
+      logs: this.selectedLogCategories?.join(',') || '',
+    };
+
+    void this.router.navigate(['device', this.deviceId, 'charts'], { queryParams });
   }
 
   private isWithinCycle(time: string | number | Date, start: Date, end?: Date): boolean {

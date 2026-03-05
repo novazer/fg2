@@ -423,7 +423,9 @@
     "day": "day",
     "days": "days",
     "untilToday": "until today",
-    "today": "Today"
+    "today": "Today",
+    "viewChart": "View chart",
+    "viewCycleChart": "View cycle chart"
   },
 
   "message-lost-connection-title": "Connection problem",

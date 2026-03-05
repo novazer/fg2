@@ -129,6 +129,10 @@ export class ChartsPage implements OnInit, OnDestroy {
   // Empty date means live mode: start is now minus the selected timespan.
   public selectedDate: string = '';
 
+  // If set, the chart shows a fixed range from selectedDate to selectedDateEnd.
+  // Timespan/date controls are hidden in this mode.
+  public selectedDateEnd: string = '';
+
   public vpdMode: 'all' | 'day' | 'night' = 'all';
 
   public useCustom = false;
@@ -261,6 +265,14 @@ export class ChartsPage implements OnInit, OnDestroy {
     } else {
       this.selectedDate = '';
     }
+    if (this.route.snapshot.queryParams?.['dateEnd']) {
+      this.selectedDateEnd = this.route.snapshot.queryParams['dateEnd'];
+    } else {
+      this.selectedDateEnd = '';
+    }
+    if (this.route.snapshot.queryParams?.['logs']) {
+      this.selectedLogCategories = String(this.route.snapshot.queryParams['logs']).split(',');
+    }
 
     if (this.selectedDate) {
       this.autoUpdate = false;
@@ -303,7 +315,20 @@ export class ChartsPage implements OnInit, OnDestroy {
     return this.timespans.filter(ts => !showImageControls || ts.imageIntervalMs);
   }
 
+  public hasFixedDateRange(): boolean {
+    return !!this.selectedDate && !!this.selectedDateEnd;
+  }
+
   private getSelectedTimespanDurationMs() {
+    // When dateEnd is set, calculate duration from date range
+    if (this.selectedDateEnd) {
+      const startMs = Date.parse(this.selectedDate);
+      const endMs = Date.parse(this.selectedDateEnd);
+      if (!Number.isNaN(startMs) && !Number.isNaN(endMs)) {
+        return endMs - startMs;
+      }
+    }
+
     const unitMs = (
       this.selectedTimespan.durationUnit === 'm' ? 60000 :
         this.selectedTimespan.durationUnit === 'h' ? 3600000 :
@@ -498,6 +523,7 @@ export class ChartsPage implements OnInit, OnDestroy {
         ...(this.showLogs ? ['logs'] : []),
       ].join(','),
       date: this.selectedDate ?? '',
+      dateEnd: this.selectedDateEnd ?? '',
       vpdMode: this.isMeasureEnabled('vpd') ? this.vpdMode : '',
       autoUpdate: this.autoUpdate?.toString() ?? '',
       useCustom: this.useCustom?.toString() ?? '',
