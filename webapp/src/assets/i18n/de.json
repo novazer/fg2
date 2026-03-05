@@ -114,6 +114,8 @@
     "rtspStreamHint": "Trage hier die URL deiner Webcam ein um Webcam Streaming im Portal zu aktivieren, z.B. \"rtsp://user:password@my-public-hostname-or-ip.com:554/\". Die Eingabe hier muss durch FFMPEG verarbeitet werden können.",
     "rtspStreamTransport": "RTSP Transportprotokoll",
     "logRtspStreamErrors": "Webcam Stream Fehler loggen",
+    "maintenanceWebcamOff": "Webcam AUS bei Wartungsmodus",
+    "maintenanceWebcamOffHint": "Falls aktiviert, stoppt die Webcam automatisch die Aufnahme wenn das Gerät im Wartungsmodus ist.",
     "tunnelRtspStream": "Webcam Stream tunneln",
     "tunnelRtspStreamHint": "Falls aktiviert, wird der Webcam Stream durch das Modul getunnelt, was hilfreich sein kann wenn dein Modul hinter einem NAT oder einer Firewall ist.",
     "dangerZone": "Gefahrenzone",

@@ -84,6 +84,25 @@
         (ngModelChange)="cloudSettingsChange.emit(cloudSettings)"
       ></ion-checkbox>
     </ion-item>
+    <ion-item lines="none" [hidden]="!cloudSettings?.rtspStream">
+      <ion-label>
+        {{'settings.maintenanceWebcamOff' | translate}}
+        <ion-button fill="clear" id="cloudSettings-maintenanceWebcamOff-popover">
+          <ion-icon name="help-circle-outline"></ion-icon>
+        </ion-button>
+      </ion-label>
+      <ion-checkbox
+        [(ngModel)]="cloudSettings.maintenanceWebcamOff"
+        (ngModelChange)="cloudSettingsChange.emit(cloudSettings)"
+      ></ion-checkbox>
+      <ion-popover trigger="cloudSettings-maintenanceWebcamOff-popover" [dismissOnSelect]="true">
+        <ng-template>
+          <ion-content>
+            {{'settings.maintenanceWebcamOffHint' | translate}}
+          </ion-content>
+        </ng-template>
+      </ion-popover>
+    </ion-item>
     <ion-item lines="none">
       <ion-label>{{'settings.autoFirmwareUpdate' | translate}}</ion-label>
       <ion-checkbox

@@ -126,6 +126,10 @@ class ImageService {
         this.deviceIdToLastRtspState.set(device.device_id, { lastTry: 0, failureCount: 0 });
       }
 
+      if (device.cloudSettings?.maintenanceWebcamOff && device.maintenance_mode_until && device.maintenance_mode_until > Date.now()) {
+        continue;
+      }
+
       const state = this.deviceIdToLastRtspState.get(device.device_id);
       if (
         (state?.lastTry ?? 0) <=
