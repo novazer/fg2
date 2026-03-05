@@ -126,7 +126,8 @@
     "account": "Account",
     "logout": "Logout",
     "diagnostics": "Diagnostics",
-    "fleet": "Fleet"
+    "fleet": "Fleet",
+    "darkMode": "Dark mode"
   },
   "account": {
     "title": "Account",

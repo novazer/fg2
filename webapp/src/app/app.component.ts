@@ -20,6 +20,9 @@ export class AppComponent {
   ];
   public appPages:any = [];
   public authenticated = false;
+  public darkMode = false;
+
+  private readonly themeStorageKey = 'app-dark-mode';
 
   constructor(
     public auth: AuthService,
@@ -27,6 +30,8 @@ export class AppComponent {
     private _route: ActivatedRoute,
     private translate: TranslateService
   ) {
+    this.initTheme();
+
     auth.authenticated.subscribe((authenticated) => {
       this.authenticated = authenticated;
       if(!authenticated) {
@@ -63,5 +68,21 @@ export class AppComponent {
     else {
       this.translate.use('en');
     }
+  }
+
+  private initTheme() {
+    const savedPreference = localStorage.getItem(this.themeStorageKey);
+    this.darkMode = savedPreference === 'true';
+    this.setDarkMode(this.darkMode);
+  }
+
+  public onDarkModeChange(enabled: boolean) {
+    this.setDarkMode(enabled);
+    localStorage.setItem(this.themeStorageKey, String(enabled));
+  }
+
+  private setDarkMode(enabled: boolean) {
+    this.darkMode = enabled;
+    document.body.classList.toggle('dark', enabled);
   }
 }

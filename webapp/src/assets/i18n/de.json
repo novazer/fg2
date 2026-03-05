@@ -123,7 +123,8 @@
   "menu": {
     "devices": "Geräte",
     "account": "Benutzer",
-    "logout": "Ausloggen"
+    "logout": "Ausloggen",
+    "darkMode": "Dark Mode"
   },
   "account": {
     "title": "Benutzer",

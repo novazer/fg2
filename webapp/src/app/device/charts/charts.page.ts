@@ -25,6 +25,33 @@ const IS_TOUCH_DEVICE = window.matchMedia("(pointer: coarse)").matches;
 
 const IMAGE_LOAD_DELAY_MS = 500;
 
+type ChartTheme = {
+  isDark: boolean;
+  backgroundColor: string;
+  textColor: string;
+  mutedTextColor: string;
+  gridLineColor: string;
+  axisLineColor: string;
+  tooltipBackground: string;
+  tooltipBorder: string;
+  navigatorMaskFill: string;
+  navigatorOutlineColor: string;
+  navigatorSeriesColor: string;
+  navigatorSeriesFill: string;
+  rangeButtonFill: string;
+  rangeButtonStroke: string;
+  rangeButtonText: string;
+  rangeButtonHoverFill: string;
+  rangeButtonSelectedFill: string;
+  noDataColor: string;
+  measureColorOverrides: Record<string, string>;
+  logColors: {
+    info: string;
+    warning: string;
+    critical: string;
+  };
+};
+
 @Component({
   selector: 'app-charts',
   templateUrl: './charts.page.html',
@@ -36,6 +63,7 @@ export class ChartsPage implements OnInit, OnDestroy {
   chartOptions: Highcharts.Options;
 
   private devicesSub: Subscription | undefined;
+  private themeObserver?: MutationObserver;
 
   public timespans = [
     {name: '20m', durationValue: 20, durationUnit: 'm', defaultInterval: '5s'},
@@ -234,6 +262,187 @@ export class ChartsPage implements OnInit, OnDestroy {
         enabled: window.innerHeight > 600 && !IS_TOUCH_DEVICE,
       }
     };
+
+    this.applyChartTheme();
+  }
+
+  private isDarkModeEnabled(): boolean {
+    const bodyDark = document.body.classList.contains('dark');
+    const stored = localStorage.getItem('app-dark-mode');
+    return bodyDark || stored === 'true';
+  }
+
+  private getChartTheme(): ChartTheme {
+    if (!this.isDarkModeEnabled()) {
+      return {
+        isDark: false,
+        backgroundColor: '#ffffff',
+        textColor: '#1f2430',
+        mutedTextColor: '#5d6678',
+        gridLineColor: '#e3e7ef',
+        axisLineColor: '#c8cfda',
+        tooltipBackground: '#ffffff',
+        tooltipBorder: '#ced4e0',
+        navigatorMaskFill: 'rgba(125, 140, 170, 0.2)',
+        navigatorOutlineColor: '#c8cfda',
+        navigatorSeriesColor: '#4f74d9',
+        navigatorSeriesFill: 'rgba(79, 116, 217, 0.12)',
+        rangeButtonFill: '#f3f5f9',
+        rangeButtonStroke: '#cfd6e2',
+        rangeButtonText: '#283044',
+        rangeButtonHoverFill: '#e7ebf3',
+        rangeButtonSelectedFill: '#d8e0ef',
+        noDataColor: '#5d6678',
+        measureColorOverrides: {},
+        logColors: {
+          info: '#1e78d5',
+          warning: '#d99212',
+          critical: '#d0344f',
+        }
+      };
+    }
+
+    return {
+      isDark: true,
+      backgroundColor: '#161a22',
+      textColor: '#e7ecf5',
+      mutedTextColor: '#b8c1d4',
+      gridLineColor: '#313a4a',
+      axisLineColor: '#4a5568',
+      tooltipBackground: '#1d2330',
+      tooltipBorder: '#3b475c',
+      navigatorMaskFill: 'rgba(122, 138, 172, 0.28)',
+      navigatorOutlineColor: '#58657d',
+      navigatorSeriesColor: '#8fb0ff',
+      navigatorSeriesFill: 'rgba(143, 176, 255, 0.2)',
+      rangeButtonFill: '#232a38',
+      rangeButtonStroke: '#424f66',
+      rangeButtonText: '#dde5f4',
+      rangeButtonHoverFill: '#2f3a4f',
+      rangeButtonSelectedFill: '#3a4862',
+      noDataColor: '#b8c1d4',
+      measureColorOverrides: {
+        co2: '#b7c6ff',
+        out_co2: '#b7c6ff',
+        out_light: '#f3e27b',
+        day: '#f3e27b',
+        'out_fan-external': '#ffe082',
+      },
+      logColors: {
+        info: '#6db3ff',
+        warning: '#ffbe55',
+        critical: '#ff7486',
+      }
+    };
+  }
+
+  private applyChartTheme() {
+    const theme = this.getChartTheme();
+
+    this.chartOptions = {
+      ...this.chartOptions,
+      chart: {
+        ...this.chartOptions.chart,
+        backgroundColor: theme.backgroundColor,
+        plotBackgroundColor: theme.backgroundColor,
+        style: {
+          color: theme.textColor,
+        }
+      },
+      xAxis: {
+        type: 'datetime',
+        lineColor: theme.axisLineColor,
+        tickColor: theme.axisLineColor,
+        gridLineColor: theme.gridLineColor,
+        labels: {
+          style: {
+            color: theme.mutedTextColor,
+          }
+        },
+        title: {
+          style: {
+            color: theme.textColor,
+          }
+        }
+      },
+      legend: {
+        itemStyle: {
+          color: theme.textColor,
+        },
+        itemHoverStyle: {
+          color: theme.textColor,
+        },
+        itemHiddenStyle: {
+          color: theme.mutedTextColor,
+        }
+      },
+      tooltip: {
+        backgroundColor: theme.tooltipBackground,
+        borderColor: theme.tooltipBorder,
+        style: {
+          color: theme.textColor,
+        }
+      },
+      rangeSelector: {
+        ...this.chartOptions.rangeSelector,
+        buttonTheme: {
+          fill: theme.rangeButtonFill,
+          stroke: theme.rangeButtonStroke,
+          r: 4,
+          style: {
+            color: theme.rangeButtonText,
+          },
+          states: {
+            hover: {
+              fill: theme.rangeButtonHoverFill,
+              style: {
+                color: theme.textColor,
+              }
+            },
+            select: {
+              fill: theme.rangeButtonSelectedFill,
+              style: {
+                color: theme.textColor,
+              }
+            }
+          }
+        },
+        labelStyle: {
+          color: theme.mutedTextColor,
+        },
+      },
+      navigator: {
+        ...this.chartOptions.navigator,
+        maskFill: theme.navigatorMaskFill,
+        outlineColor: theme.navigatorOutlineColor,
+        series: {
+          color: theme.navigatorSeriesColor,
+          fillOpacity: 0.2,
+          fillColor: theme.navigatorSeriesFill,
+          lineColor: theme.navigatorSeriesColor,
+        },
+        xAxis: {
+          lineColor: theme.axisLineColor,
+          tickColor: theme.axisLineColor,
+          gridLineColor: theme.gridLineColor,
+          labels: {
+            style: {
+              color: theme.mutedTextColor,
+            }
+          }
+        },
+        yAxis: {
+          gridLineColor: theme.gridLineColor,
+        }
+      },
+      noData: {
+        style: {
+          color: theme.noDataColor,
+        }
+      },
+    };
+
+    this.updateFlag = true;
   }
 
   ngOnInit() {
@@ -278,6 +487,12 @@ export class ChartsPage implements OnInit, OnDestroy {
       this.autoUpdate = false;
     }
 
+    this.themeObserver = new MutationObserver(() => {
+      this.applyChartTheme();
+      this.redrawChart();
+    });
+    this.themeObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
     this.devicesSub = this.devices.devices.subscribe((devices) => {
       const device = devices.find((device) => device.device_id == this.device_id);
       this.device_type = device?.device_type || '';
@@ -315,6 +530,9 @@ export class ChartsPage implements OnInit, OnDestroy {
       clearInterval(this.interval);
       this.interval = undefined;
     }
+
+    this.themeObserver?.disconnect();
+    this.themeObserver = undefined;
 
     this.devicesSub?.unsubscribe();
     this.devicesSub = undefined;
@@ -394,6 +612,7 @@ export class ChartsPage implements OnInit, OnDestroy {
 
   private async loadData() {
     const thisDataLoadStartTime = this.currentDataLoadStartTime = Date.now();
+    const theme = this.getChartTheme();
 
     if (this.autoUpdate) {
       this.selectedDate = '';
@@ -419,12 +638,13 @@ export class ChartsPage implements OnInit, OnDestroy {
     const yAxis: YAxisOptions[] = [];
     for (let axis = 0; axis < this.filtered_measures.length; axis++) {
       let measure = this.filtered_measures[axis]
+      const measureColor = theme.measureColorOverrides[measure.name] ?? measure.color;
 
       yAxis.push({
         labels: {
           format: '{value}' + measure.unit,
           style: {
-            color: measure.color,
+            color: measureColor,
             fontSize: '8px'
           }
         },
@@ -433,6 +653,9 @@ export class ChartsPage implements OnInit, OnDestroy {
         opposite: measure.right,
         visible: (this.spacer?.nativeElement.offsetWidth || 0) > 320 ? measure.enabled : false,
         zoomEnabled: false,
+        gridLineColor: theme.gridLineColor,
+        lineColor: theme.axisLineColor,
+        tickColor: theme.axisLineColor,
       })
 
       measure.axis = axis;
@@ -449,13 +672,14 @@ export class ChartsPage implements OnInit, OnDestroy {
       }
 
       data = data.sort((a: any, b: any) => a[0] - b[0]);
+      const measureColor = theme.measureColorOverrides[measure.name] ?? measure.color;
 
       return {
         name: measure.title,
         type: "area",
         data,
         yAxis: measure.axis,
-        color: measure.color,
+        color: measureColor,
         fillOpacity: 0.1,
         threshold: null,
         visible: measure.enabled,
@@ -480,7 +704,7 @@ export class ChartsPage implements OnInit, OnDestroy {
         type: 'column',
         data: logs.map(log => [Date.parse(log.time), 1]) as [[number, number]],
         yAxis: yAxis.length,
-        color: severity == 2 ? 'crimson' : (severity == 1 ? 'orange' : 'dodgerblue'),
+        color: severity == 2 ? theme.logColors.critical : (severity == 1 ? theme.logColors.warning : theme.logColors.info),
         visible: true,
         grouping: true,
         states: {
@@ -495,6 +719,9 @@ export class ChartsPage implements OnInit, OnDestroy {
         softMax: 1,
         visible: false,
         zoomEnabled: false,
+        gridLineColor: theme.gridLineColor,
+        lineColor: theme.axisLineColor,
+        tickColor: theme.axisLineColor,
       });
     });
 
@@ -508,6 +735,7 @@ export class ChartsPage implements OnInit, OnDestroy {
 
     // @ts-ignore
     this.chartOptions.chart.animation = !this.autoUpdate;
+    this.applyChartTheme();
     this.chartOptions.yAxis = yAxis;
     this.chartOptions.series = series;
     this.updateFlag = true;
@@ -724,8 +952,8 @@ export class ChartsPage implements OnInit, OnDestroy {
   }
 
   private redrawChart() {
-    this.chartInstance.reflow();
-    this.chartInstance.redraw();
+    this.chartInstance?.reflow();
+    this.chartInstance?.redraw();
     window.setTimeout(() => {
       window.dispatchEvent(new Event('resize'));
       void this.loadDeviceImage(this.currentImageTimestamp);

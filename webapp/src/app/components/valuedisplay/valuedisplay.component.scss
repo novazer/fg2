@@ -24,5 +24,18 @@ i {
   top: 57%;
   left: 43%;
   right: 43%;
-  bottom: 0%;  
+  bottom: 0%;
+}
+
+:host {
+  --value-display-text-primary: var(--ion-text-color, #f3f5f8);
+  --value-display-text-secondary: var(--ion-color-step-700, #c4c4c4);
+}
+
+svg .primary-text {
+  fill: var(--value-display-text-primary);
+}
+
+svg .secondary-text {
+  fill: var(--value-display-text-secondary);
 }

@@ -14,6 +14,18 @@
               <ion-label>{{ p.title | translate }}</ion-label>
             </ion-item>
           </ion-menu-toggle>
+
+          <ion-item lines="none" detail="false" class="theme-toggle-item">
+            <ion-icon slot="start" [ios]="'moon-outline'" [md]="'moon-sharp'"></ion-icon>
+            <ion-label>{{ 'menu.darkMode' | translate }}</ion-label>
+            <ion-toggle
+              slot="end"
+              [checked]="darkMode"
+              (ionChange)="onDarkModeChange($any($event).detail.checked)"
+              aria-label="Dark mode"
+            ></ion-toggle>
+          </ion-item>
+
           <ion-item routerDirection="root" lines="none" (click)="auth.logout()" detail="false">
             <ion-icon slot="start" [ios]="'user-outline'" [md]="'user-sharp'"></ion-icon>
             <ion-label>{{ 'menu.logout' | translate }}</ion-label>

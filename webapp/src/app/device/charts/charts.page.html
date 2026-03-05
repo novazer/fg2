@@ -17,7 +17,7 @@
 
   <ion-row>
     <ng-container *ngFor="let m of filtered_measures">
-      <ion-col class="onoff cooling" style="cursor: pointer;" [class.on]="m.enabled" (click)="toggleMeasure(m)">
+      <ion-col [class]="'onoff ' + m.name" style="cursor: pointer;" [class.on]="m.enabled" (click)="toggleMeasure(m)">
         <img class="icon-on" src="assets/icon/{{m.icon}}.svg" [alt]="'Measure ' + m.name + ' on'" />
         <img class="icon-off" src="assets/icon/{{m.icon}}_off.svg" [alt]="'Measure ' + m.name + ' off'" />
       </ion-col>

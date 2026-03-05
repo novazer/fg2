@@ -151,3 +151,20 @@ chart {
     color: #ffe300;
   }
 }
+
+:host-context(body.dark) .onoff {
+  &.out_light {
+    .icon-on, .icon-off {
+      filter: brightness(0.75) contrast(0.95);
+    }
+    .icon-on {
+      filter: brightness(2) contrast(0.6) saturate(10);
+    }
+  }
+  &.deviceImage, &.showLogs, &.autoUpdate {
+    .icon-off {
+      filter: brightness(2) contrast(0);
+      opacity: 1 !important;
+    }
+  }
+}
