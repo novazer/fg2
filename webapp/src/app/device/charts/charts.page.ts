@@ -1,22 +1,15 @@
 import {Component, ElementRef, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { ChartConfiguration, ChartEvent, ChartType } from 'chart.js';
-import { BaseChartDirective } from 'ng2-charts';
-import { firstValueFrom, Subscription } from 'rxjs';
+import {ChartType} from 'chart.js';
+import {BaseChartDirective} from 'ng2-charts';
+import {Subscription} from 'rxjs';
 import 'chartjs-adapter-luxon';
 import {ActivatedRoute, Router} from '@angular/router';
-import { environment } from 'src/environments/environment';
-import { DataService } from 'src/app/services/data.service';
+import {DataService} from 'src/app/services/data.service';
 import * as Highcharts from 'highcharts/highstock';
+import {YAxisOptions} from 'highcharts/highstock';
 import {DeviceLog, DeviceService} from 'src/app/services/devices.service';
-import {PlotLineOrBand, XAxisPlotLinesOptions} from "highcharts";
-import {YAxisOptions} from "highcharts/highstock";
-import {ImageViewerModalComponent} from "../diary/image-viewer-modal/image-viewer-modal.component";
-import {IonModal, ModalController} from "@ionic/angular";
-import {
-  collectLogCategories,
-  matchesLogCategory,
-} from '../log-entry-viewer/log-entry-viewer.component';
+import {IonModal} from "@ionic/angular";
+import {collectLogCategories, matchesLogCategory,} from '../log-entry-viewer/log-entry-viewer.component';
 
 declare var require: any;
 let Boost = require('highcharts/modules/boost');
@@ -32,36 +25,53 @@ const IS_TOUCH_DEVICE = window.matchMedia("(pointer: coarse)").matches;
 
 const IMAGE_LOAD_DELAY_MS = 500;
 
-const LOGS_MAX_DISPLAY_COUNT = 100;
-
 @Component({
   selector: 'app-charts',
   templateUrl: './charts.page.html',
   styleUrls: ['./charts.page.scss'],
 })
 export class ChartsPage implements OnInit, OnDestroy {
-  protected readonly LOGS_MAX_DISPLAY_COUNT = LOGS_MAX_DISPLAY_COUNT;
-
   Highcharts: typeof Highcharts = Highcharts;
-  updateFlag:boolean = false;
+  updateFlag: boolean = false;
   chartOptions: Highcharts.Options;
 
   private devicesSub: Subscription | undefined;
 
   public timespans = [
-    { name: '20m', durationValue: 20, durationUnit: 'm', defaultInterval:'5s' },
-    { name: '1h', durationValue: 1, durationUnit: 'h', defaultInterval:'10s', highlight: true },
-    { name: '6h', durationValue: 6, durationUnit: 'h', defaultInterval:'10s' },
-    { name: '12h', durationValue: 12, durationUnit: 'h', defaultInterval:'10s' },
-    { name: '1d', durationValue: 24, durationUnit: 'h', defaultInterval:'20s', highlight: true, imageIntervalMs: 86400000 },
-    { name: '3d', durationValue: 3, durationUnit: 'd', defaultInterval:'1m', highlight: true },
-    { name: '1w', durationValue: 7, durationUnit: 'd', defaultInterval:'15m', highlight: true, imageIntervalMs: 7 * 86400000 },
-    { name: '2w', durationValue: 14, durationUnit: 'd', defaultInterval:'30m' },
-    { name: '1m', durationValue: 30, durationUnit: 'd', defaultInterval:'1h', highlight: true, imageIntervalMs: 30 * 86400000 },
-    { name: '3m', durationValue: 90, durationUnit: 'd', defaultInterval:'4h' },
-    { name: '6m', durationValue: 180, durationUnit: 'd', defaultInterval:'1d' },
-    { name: '1y', durationValue: 1, durationUnit: 'y', defaultInterval:'1w' },
-    { name: '3y', durationValue: 3, durationUnit: 'y', defaultInterval:'1w' },
+    {name: '20m', durationValue: 20, durationUnit: 'm', defaultInterval: '5s'},
+    {name: '1h', durationValue: 1, durationUnit: 'h', defaultInterval: '10s', highlight: true},
+    {name: '6h', durationValue: 6, durationUnit: 'h', defaultInterval: '10s'},
+    {name: '12h', durationValue: 12, durationUnit: 'h', defaultInterval: '10s'},
+    {
+      name: '1d',
+      durationValue: 24,
+      durationUnit: 'h',
+      defaultInterval: '20s',
+      highlight: true,
+      imageIntervalMs: 86400000
+    },
+    {name: '3d', durationValue: 3, durationUnit: 'd', defaultInterval: '1m', highlight: true},
+    {
+      name: '1w',
+      durationValue: 7,
+      durationUnit: 'd',
+      defaultInterval: '15m',
+      highlight: true,
+      imageIntervalMs: 7 * 86400000
+    },
+    {name: '2w', durationValue: 14, durationUnit: 'd', defaultInterval: '30m'},
+    {
+      name: '1m',
+      durationValue: 30,
+      durationUnit: 'd',
+      defaultInterval: '1h',
+      highlight: true,
+      imageIntervalMs: 30 * 86400000
+    },
+    {name: '3m', durationValue: 90, durationUnit: 'd', defaultInterval: '4h'},
+    {name: '6m', durationValue: 180, durationUnit: 'd', defaultInterval: '1d'},
+    {name: '1y', durationValue: 1, durationUnit: 'y', defaultInterval: '1w'},
+    {name: '3y', durationValue: 3, durationUnit: 'y', defaultInterval: '1w'},
   ];
 
   public intervals = ['5s', '10s', '20s', '1m', '5m', '15m', '30m', '1h', '4h', '1d', '1w'];
@@ -71,7 +81,19 @@ export class ChartsPage implements OnInit, OnDestroy {
   public selectedInterval = this.selectedTimespan.defaultInterval;
 
   public measures = [
-    { title: 'Temperature', icon: 'temperature', color: '#f00', name: 'temperature', txt: 'T', unit: '°C', enabled: true, right: false, nav: false, types: ['fridge', 'fridge2', 'fan', 'light', 'plug', 'dryer', 'controller'], max: 30},
+    {
+      title: 'Temperature',
+      icon: 'temperature',
+      color: '#f00',
+      name: 'temperature',
+      txt: 'T',
+      unit: '°C',
+      enabled: true,
+      right: false,
+      nav: false,
+      types: ['fridge', 'fridge2', 'fan', 'light', 'plug', 'dryer', 'controller'],
+      max: 30
+    },
     // { title: 'AVG', icon: 'temperature', color: '#f00', name: 'avg', txt: 'avg', unit: '°C', enabled: true, right: false, nav: false, types: ['fridge']},
     { title: 'Humidity', icon: 'humidity', color: '#00f', name: 'humidity', txt: 'H', unit: '%', enabled: false, right: false, nav: false, types: ['fridge', 'fridge2', 'fan', 'light', 'plug', 'dryer', 'controller'], max: 100},
     { title: 'VPD', icon: 'vpd', color: '#0f0', name: 'vpd', txt: 'V', unit: 'kPa', enabled: false, right: false, nav: false, types: ['fridge', 'fridge2', 'fan', 'light', 'plug', 'dryer', 'controller'], max: 1.6},
@@ -98,11 +120,11 @@ export class ChartsPage implements OnInit, OnDestroy {
   public end_ts = 0;
 
   public loaded = false;
-  public device_id:string = "";
-  public device_type:string = "";
+  public device_id: string = "";
+  public device_type: string = "";
   public cloudSettings: any = {};
 
-  public autoUpdate:boolean = false;
+  public autoUpdate: boolean = false;
 
   // Empty date means live mode: start is now minus the selected timespan.
   public selectedDate: string = '';
@@ -139,16 +161,14 @@ export class ChartsPage implements OnInit, OnDestroy {
 
   private currentDataLoadStartTime: number = 0;
 
-  public imageIdToImageUrl: Record<string, string> = {};
-
   @ViewChild(BaseChartDirective) chart?: BaseChartDirective;
-  @ViewChild('spacer') spacer? : ElementRef;
+  @ViewChild('spacer') spacer?: ElementRef;
 
   private interval?: NodeJS.Timeout;
 
   public selectedLogs: DeviceLog[] = [];
 
-  constructor(private route: ActivatedRoute, private router: Router, private data: DataService, private devices: DeviceService, private modalController: ModalController) {
+  constructor(private route: ActivatedRoute, private router: Router, private data: DataService, private devices: DeviceService) {
     this.chartOptions = {
       chart: {
         animation: true,
@@ -212,7 +232,7 @@ export class ChartsPage implements OnInit, OnDestroy {
     };
   }
 
-  ngOnInit(){
+  ngOnInit() {
     this.device_id = this.route.snapshot.paramMap.get('device_id') || '';
     if (this.route.snapshot.queryParams?.['measures']) {
       const selectedMeasures = String(this.route.snapshot.queryParams['measures']).split(',');
@@ -242,7 +262,7 @@ export class ChartsPage implements OnInit, OnDestroy {
       this.selectedDate = '';
     }
 
-    if (!this.isSelectedAtOrAfterNow()) {
+    if (this.selectedDate) {
       this.autoUpdate = false;
     }
 
@@ -250,7 +270,7 @@ export class ChartsPage implements OnInit, OnDestroy {
       const device = devices.find((device) => device.device_id == this.device_id);
       this.device_type = device?.device_type || '';
       this.cloudSettings = device?.cloudSettings || {};
-      if(this.device_type != "") {
+      if (this.device_type != "") {
         this.filtered_measures = this.measures
           .filter((measure) => measure.types.includes(this.device_type));
 
@@ -258,18 +278,18 @@ export class ChartsPage implements OnInit, OnDestroy {
         this.interval = setInterval(() => {
           if (this.autoUpdate) {
             this.selectedDate = '';
-             this.currentImageTimestamp = undefined;
-             this.selectedLogs.splice(0, this.selectedLogs.length);
-             void this.loadDeviceImage();
-             void this.loadData();
-           }
-         }, 10000)
+            this.currentImageTimestamp = undefined;
+            this.selectedLogs.splice(0, this.selectedLogs.length);
+            void this.loadDeviceImage();
+            void this.loadData();
+          }
+        }, 10000)
       }
     });
   }
 
   ngOnDestroy() {
-    if(this.interval) {
+    if (this.interval) {
       clearInterval(this.interval);
       this.interval = undefined;
     }
@@ -286,9 +306,9 @@ export class ChartsPage implements OnInit, OnDestroy {
   private getSelectedTimespanDurationMs() {
     const unitMs = (
       this.selectedTimespan.durationUnit === 'm' ? 60000 :
-      this.selectedTimespan.durationUnit === 'h' ? 3600000 :
-      this.selectedTimespan.durationUnit === 'd' ? 86400000 :
-      this.selectedTimespan.durationUnit === 'y' ? 31536000000 : 0
+        this.selectedTimespan.durationUnit === 'h' ? 3600000 :
+          this.selectedTimespan.durationUnit === 'd' ? 86400000 :
+            this.selectedTimespan.durationUnit === 'y' ? 31536000000 : 0
     );
 
     return this.selectedTimespan.durationValue * unitMs;
@@ -315,11 +335,6 @@ export class ChartsPage implements OnInit, OnDestroy {
     }
   }
 
-  public isSelectedAtOrAfterNow() {
-    const selectedPeriodEndMs = this.getSelectedDateMs() + this.getSelectedTimespanDurationMs();
-    return selectedPeriodEndMs >= Date.now();
-  }
-
   private shiftSelectedDateByTimespan(direction: -1 | 1) {
     const durationMs = this.getSelectedTimespanDurationMs();
     if (durationMs <= 0) {
@@ -333,13 +348,9 @@ export class ChartsPage implements OnInit, OnDestroy {
 
   public dateChanged(dateModal?: { dismiss: () => Promise<boolean> }) {
     this.clampSelectedDateToNow();
-    this.autoUpdate = this.isSelectedAtOrAfterNow() && this.autoUpdate;
+    this.autoUpdate = !this.selectedDate && this.autoUpdate;
     this.offsetChanged();
     void dateModal?.dismiss();
-  }
-
-  public getDatePickerMaxDate() {
-    return new Date(Date.now() - this.getSelectedTimespanDurationMs()).toISOString();
   }
 
   public openDateModal(): Promise<void> {
@@ -361,8 +372,8 @@ export class ChartsPage implements OnInit, OnDestroy {
     const to = new Date(toMs).toISOString();
 
     let active = 0;
-    for(let m of this.measures) {
-      if(m.enabled) {
+    for (let m of this.measures) {
+      if (m.enabled) {
         m.nav = active == 0;
         m.right = (active++ % 2) != 0;
       }
@@ -371,15 +382,15 @@ export class ChartsPage implements OnInit, OnDestroy {
     // @ts-ignore
 
     const yAxis: YAxisOptions[] = [];
-    for(let axis = 0; axis < this.filtered_measures.length; axis++) {
+    for (let axis = 0; axis < this.filtered_measures.length; axis++) {
       let measure = this.filtered_measures[axis]
 
       yAxis.push({
         labels: {
           format: '{value}' + measure.unit,
           style: {
-              color: measure.color,
-              fontSize: '8px'
+            color: measure.color,
+            fontSize: '8px'
           }
         },
         softMin: 0,
@@ -392,7 +403,9 @@ export class ChartsPage implements OnInit, OnDestroy {
       measure.axis = axis;
     }
 
-    const series = await Promise.all(this.filtered_measures.map(async (measure:any):Promise<Highcharts.SeriesOptionsType & { data: [number, number][] }> => {
+    const series = await Promise.all(this.filtered_measures.map(async (measure: any): Promise<Highcharts.SeriesOptionsType & {
+      data: [number, number][]
+    }> => {
       const requestedMeasure = measure.name + (measure.name === 'vpd' && this.vpdMode !== 'all' ? `_${this.vpdMode}` : '');
       let data = measure.enabled ? await this.data.getSeries(this.device_id, requestedMeasure, from, this.selectedInterval, to, measure.method) : []
 
@@ -454,7 +467,8 @@ export class ChartsPage implements OnInit, OnDestroy {
       return;
     }
 
-    this.deviceLogs = deviceLogs;
+    this.deviceLogs.splice(0, this.deviceLogs.length);
+    this.deviceLogs.push(...deviceLogs);
     this.deviceLogCategories = collectLogCategories(this.deviceLogs);
 
     // @ts-ignore
@@ -483,7 +497,7 @@ export class ChartsPage implements OnInit, OnDestroy {
         ...(this.showImage ? ['image'] : []),
         ...(this.showLogs ? ['logs'] : []),
       ].join(','),
-       date: this.selectedDate ?? '',
+      date: this.selectedDate ?? '',
       vpdMode: this.isMeasureEnabled('vpd') ? this.vpdMode : '',
       autoUpdate: this.autoUpdate?.toString() ?? '',
       useCustom: this.useCustom?.toString() ?? '',
@@ -491,7 +505,7 @@ export class ChartsPage implements OnInit, OnDestroy {
       interval: this.selectedInterval ?? '',
       logs: this.showLogs ? this.selectedLogCategories.join(',') : '',
     };
-    await this.router.navigate(['device', this.device_id, 'charts'], { queryParams, replaceUrl: true });
+    await this.router.navigate(['device', this.device_id, 'charts'], {queryParams, replaceUrl: true});
   }
 
   public hasEnabledMeasures() {
@@ -512,32 +526,32 @@ export class ChartsPage implements OnInit, OnDestroy {
   toggleAutoUpdate() {
     this.autoUpdate = !this.autoUpdate;
     this.selectedDate = '';
-     this.offsetChanged();
-   }
+    this.offsetChanged();
+  }
 
-   public offsetChanged() {
+  public offsetChanged() {
     this.clampSelectedDateToNow();
-     this.selectedLogs.splice(0, this.selectedLogs.length);
-     this.loadData().then(() => {
-       this.chartInstance?.zoomOut();
+    this.selectedLogs.splice(0, this.selectedLogs.length);
+    this.loadData().then(() => {
+      this.chartInstance?.zoomOut();
 
-       if (this.isAnimatedImage()) {
-         this.currentImageTimestamp = Math.ceil(this.getSelectedDateMs() / 5000) * 5000;
-         void this.loadDeviceImage(this.currentImageTimestamp);
-       }
-     });
-   }
+      if (this.isAnimatedImage()) {
+        this.currentImageTimestamp = Math.ceil(this.getSelectedDateMs() / 5000) * 5000;
+        void this.loadDeviceImage(this.currentImageTimestamp);
+      }
+    });
+  }
 
   public intervalChanged() {
     void this.loadData();
   }
 
   public timespanChanged() {
-     this.selectedInterval = this.selectedTimespan.defaultInterval;
+    this.selectedInterval = this.selectedTimespan.defaultInterval;
     this.clampSelectedDateToNow();
-     this.selectedLogs.splice(0, this.selectedLogs.length);
-     this.loadData().then(() => this.chartInstance?.zoomOut());
-   }
+    this.selectedLogs.splice(0, this.selectedLogs.length);
+    this.loadData().then(() => this.chartInstance?.zoomOut());
+  }
 
   public vpdModeChanged() {
     void this.loadData();
@@ -547,7 +561,7 @@ export class ChartsPage implements OnInit, OnDestroy {
     return this.measures.find(m => m.name === measure)?.enabled;
   }
 
-  public toggleMeasure(measure:any) {
+  public toggleMeasure(measure: any) {
     measure.enabled = !measure.enabled;
 
     if (!this.hasEnabledMeasures()) {
@@ -608,7 +622,9 @@ export class ChartsPage implements OnInit, OnDestroy {
   }
 
   filterLogs() {
-    const getFilteredLogs = (ignoreSelection?: boolean, ignoreGrouping?: boolean): (DeviceLog & { count?: number; })[] => {
+    const getFilteredLogs = (ignoreSelection?: boolean, ignoreGrouping?: boolean): (DeviceLog & {
+      count?: number;
+    })[] => {
       let result: (DeviceLog & { count?: number; })[] = this.deviceLogs.filter(log => {
 
         const anyLogSelected = ignoreSelection ? false : this.selectedLogs.length > 0;
@@ -658,19 +674,6 @@ export class ChartsPage implements OnInit, OnDestroy {
     this.filteredLogs = getFilteredLogs();
     this.filteredLogsUngroupedCount = getFilteredLogs(undefined, true).length;
     this.filteredLogsSelectionFiltered = this.filteredLogs.length < getFilteredLogs(true).length;
-
-    this.filteredLogs.forEach(l =>
-      l.images?.forEach(imageId => {
-
-        if (this.imageIdToImageUrl[imageId] === undefined) {
-          this.getLogEntryImageUrl(imageId)
-            .then(url =>
-              this.imageIdToImageUrl[imageId] = url
-            )
-        }
-
-      })
-    );
   }
 
   logCategoryChanged(selectedCategories?: string[]) {
@@ -691,26 +694,5 @@ export class ChartsPage implements OnInit, OnDestroy {
       window.dispatchEvent(new Event('resize'));
       void this.loadDeviceImage(this.currentImageTimestamp);
     }, 10);
-  }
-
-  getLogEntryImageUrl(imageId: string): Promise<string> {
-    return this.devices.getDeviceImageUrl(this.device_id, 'user/jpeg', undefined, undefined, imageId);
-  }
-
-  async openImageModal(log: DeviceLog, index: number): Promise<void> {
-    const imageUrls = log.images?.map(imageId => this.imageIdToImageUrl[imageId]) ?? [];
-
-    const modal = await this.modalController.create({
-      component: ImageViewerModalComponent,
-      componentProps: {
-        imageUrls,
-        startIndex: index,
-      },
-      cssClass: 'dialog-fullscreen',
-      initialBreakpoint: 1,
-      breakpoints: [0, 1],
-    });
-
-    await modal.present();
   }
 }

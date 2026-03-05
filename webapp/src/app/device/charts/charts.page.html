@@ -122,7 +122,6 @@
                 <ion-datetime
                   id="charts-date"
                   presentation="date-time"
-                  [max]="getDatePickerMaxDate()"
                   [(ngModel)]="selectedDate"
                 ></ion-datetime>
               </ion-content>
@@ -151,7 +150,7 @@
         <ion-button
           color="light"
           (click)="nextOffset()"
-          [disabled]="isSelectedAtOrAfterNow() || autoUpdate"
+          [disabled]="autoUpdate"
         >
           &#8594;
         </ion-button>
@@ -228,14 +227,8 @@
           </ion-item>
           <app-log-entry-viewer
             [logs]="filteredLogs"
-            [itemsPerPage]="LOGS_MAX_DISPLAY_COUNT"
-            [showPagination]="filteredLogs.length > LOGS_MAX_DISPLAY_COUNT"
             [selectedCategories]="selectedLogCategories"
-            [imageIdToImageUrl]="imageIdToImageUrl"
-            [showCount]="true"
-            [showGroupingHint]="true"
             (showAll)="disableLogGrouping()"
-            (imageOpen)="openImageModal($event.log, $event.imageIndex)"
           ></app-log-entry-viewer>
         </ion-list>
       </div>

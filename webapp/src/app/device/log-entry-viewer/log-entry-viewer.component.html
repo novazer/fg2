@@ -1,90 +1,15 @@
-<ng-template #entryTemplate let-entry>
-  <ion-label style="white-space: normal">
-    <ion-row>
-      <ion-col>
-        <h3 [style.color]="entry.severity === 1 ? 'orange' : entry.severity === 2 ? 'crimson' : 'dodgerblue'">
-          {{ entry.raw
-          ? entry.title
-          : (entry.title + '-title' | translate) !== entry.title + '-title'
-            ? (entry.title + '-title' | translate)
-            : (entry.title?.split(':')?.[0] + '-title' | translate: { value: entry.title?.split(':')?.[1] })
-          }}
-
-          {{ showCount && (entry.count ?? 0) > 1 ? '(' + entry.count + 'x)' : '' }}
-        </h3>
-      </ion-col>
-      <ion-col class="ion-text-right">
-        {{ entry.time | date: 'medium' }}
-      </ion-col>
-    </ion-row>
-
-    <ion-row *ngIf="entry.message">
-      <ion-col
-        aria-colspan="3"
-        [style.white-space]="entry.categories?.includes('configuration') ? 'pre-wrap' : 'normal'"
-      >{{ entry.raw
-        ? entry.message
-        : (entry.message + '-text' | translate) !== entry.message + '-text'
-          ? (entry.message + '-text' | translate)
-          : (entry.message?.split(':')?.[0] + '-text' | translate: { value: entry.message?.split(':')?.[1] })
-      }}</ion-col>
-    </ion-row>
-
-    <ion-row *ngIf="showGroupingHint && (entry.count ?? 0) > 1">
-      <ion-col>
-        <p>
-          (Message appeared {{ entry.count }} times consecutively
-          - <a href="#" (click)="onShowAll($event, entry)">show all</a>)
-        </p>
-      </ion-col>
-    </ion-row>
-
-    <ion-row *ngIf="entry.data">
-      <ion-col aria-colspan="3">
-        <ul>
-          <li *ngFor="let measurement of entry.data | keyvalue">
-            {{ 'diary.labels.' + measurement.key | translate }}:
-            {{ measurement.key === 'newLifecycleStage' ? ('diary.lifecycleStages.' + measurement.value | translate) : measurement.value }}
-            {{ getDiaryDataFieldUnit(measurement.key?.toString() ?? '') }}
-          </li>
-        </ul>
-      </ion-col>
-    </ion-row>
-
-    <ion-row *ngIf="entry.images?.length">
-      <ion-col>
-        <a
-          *ngFor="let imageId of entry.images; let i = index"
-          [href]="resolveImageUrl(entry, imageId, i) | async"
-          target="_blank"
-          (click)="onImageClick($event, i, entry)"
-        >
-          <img [src]="resolveImageUrl(entry, imageId, i) | async" alt="Log image" style="height: 100px; margin-right: 5px;"/>
-        </a>
-      </ion-col>
-    </ion-row>
-
-    <ion-row *ngIf="showCategories && entry.categories?.length">
-      <ion-col>
-        <ion-chip *ngFor="let category of entry.categories">{{ category }}</ion-chip>
-      </ion-col>
-      <ion-col size="auto">
-        <ion-button *ngIf="showEdit && canEdit(entry)" color="primary" (click)="edit.emit(entry)">
-          <ion-icon name="pencil-outline"></ion-icon>&nbsp;
-          {{ 'diary.actions.edit' | translate }}
-        </ion-button>
-        <ion-button *ngIf="showDelete" color="danger" (click)="delete.emit(entry)">
-          <ion-icon name="trash-outline"></ion-icon>&nbsp;
-          {{ 'diary.actions.delete' | translate }}
-        </ion-button>
-      </ion-col>
-    </ion-row>
-  </ion-label>
-</ng-template>
-
 <!-- Common entry rendering for paginated list or single log -->
-<ion-item lines="full" *ngFor="let entry of getDisplayLogs()">
-  <ng-container *ngTemplateOutlet="entryTemplate; context: { $implicit: entry }"></ng-container>
+<ion-item lines="full" *ngFor="let entry of displayLogs; trackBy: trackById">
+  <app-log-entry-item
+    [entry]="entry"
+    [showCategories]="showCategories"
+    [showEdit]="showEdit"
+    [showDelete]="showDelete"
+    [editable]="editable"
+    (showAll)="showAll.emit($event)"
+    (edit)="edit.emit($event)"
+    (delete)="delete.emit($event)"
+  ></app-log-entry-item>
 </ion-item>
 
 <!-- Pagination controls -->

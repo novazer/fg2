@@ -5,11 +5,15 @@ import { IonicModule } from '@ionic/angular';
 import { TranslateModule } from '@ngx-translate/core';
 import { LogEntryViewerComponent } from './log-entry-viewer.component';
 import { LogCategorySelectorComponent } from './log-category-selector.component';
+import { LogEntryItemComponent } from './log-entry-item.component';
+import { ImageViewerModalComponent } from '../diary/image-viewer-modal/image-viewer-modal.component';
 
 @NgModule({
   declarations: [
     LogEntryViewerComponent,
     LogCategorySelectorComponent,
+    LogEntryItemComponent,
+    ImageViewerModalComponent,
   ],
   imports: [
     CommonModule,
@@ -20,6 +24,8 @@ import { LogCategorySelectorComponent } from './log-category-selector.component'
   exports: [
     LogEntryViewerComponent,
     LogCategorySelectorComponent,
+    LogEntryItemComponent,
+    ImageViewerModalComponent,
   ],
 })
 export class LogEntryViewerModule {}

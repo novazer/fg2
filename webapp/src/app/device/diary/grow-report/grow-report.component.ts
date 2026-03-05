@@ -1,7 +1,8 @@
 import {Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges} from '@angular/core';
 import {DeviceLog, DeviceService} from "../../../services/devices.service";
 import {Subscription} from "rxjs";
-import {DiaryEntryData} from "../diary-entry-modal/diary-entry-modal.component";
+import {DiaryEntryData, defaultDiaryEntries} from "../diary-entry-modal/diary-entry-modal.component";
+import {collectLogCategories, filterLogsByCategory, LogEntryViewerLog} from "../../log-entry-viewer/log-entry-viewer.component";
 
 export const LIFECYCLE_EVENT_ORDER: Record<DiaryEntryData['newLifecycleStage'], number> = {
   germination: 0,
@@ -19,6 +20,29 @@ export type GrowCycle = {
   events: Partial<Record<DiaryEntryData['newLifecycleStage'], DeviceLog>>;
 }
 
+type TimelineEvent = {
+  log: LogEntryViewerLog;
+  time: Date;
+  stage: DiaryEntryData['newLifecycleStage'];
+  isLifecycle: boolean;
+};
+
+type TimelineDayGroup = {
+  dayKey: string;
+  date: Date;
+  dayNumberInCycle: number;
+  events: TimelineEvent[];
+  gapSincePreviousDays?: number;
+  gapLabel?: string;
+};
+
+type TimelinePhaseGroup = {
+  stage: DiaryEntryData['newLifecycleStage'];
+  eventsByDay: TimelineDayGroup[];
+};
+
+type GrowCycleTimeline = GrowCycle & { phaseTimeline: TimelinePhaseGroup[] };
+
 @Component({
   selector: 'app-grow-report',
   templateUrl: './grow-report.component.html',
@@ -31,7 +55,15 @@ export class GrowReportComponent implements OnInit, OnDestroy, OnChanges {
   private devicesSubscription: Subscription | undefined;
 
   public growCycles: GrowCycle[] = [];
+  public cycleTimelines: GrowCycleTimeline[] = [];
   public selectedCycleIndex: number = 0;
+  public loading = false;
+  public includeSystemEntries = false;
+  public availableLogCategories: string[] = [];
+  public selectedLogCategories: string[] = [];
+
+  private allLogs: LogEntryViewerLog[] = [];
+  private lifecycleLogs: LogEntryViewerLog[] = [];
 
   constructor(private devices: DeviceService) {
   }
@@ -47,40 +79,208 @@ export class GrowReportComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['lastUpdated'] && !changes['lastUpdated'].firstChange) {
+    if ((changes['lastUpdated'] && !changes['lastUpdated'].firstChange)
+      || (changes['deviceId'] && !changes['deviceId'].firstChange)) {
       void this.loadData();
     }
   }
 
   async loadData() {
-    const entries = await this.devices.getLogs(this.deviceId, undefined, undefined, true, ['plant-lifecycle']);
-    this.growCycles = this.convertEventsToGrowCycles(entries);
+    if (!this.deviceId) {
+      this.growCycles = [];
+      this.cycleTimelines = [];
+      this.availableLogCategories = [];
+      this.selectedLogCategories = [];
+      return;
+    }
+
+    this.loading = true;
+    try {
+      const categories = this.includeSystemEntries
+        ? undefined
+        : ['plant-lifecycle', 'diary', ...Object.keys(defaultDiaryEntries)];
+
+      const logs = await this.devices.getLogs(this.deviceId, undefined, undefined, true, categories);
+
+      this.allLogs = logs;
+      this.lifecycleLogs = logs.filter(log => this.isLifecycleLog(log) && !!log.data?.newLifecycleStage);
+      this.growCycles = this.convertEventsToGrowCycles(this.lifecycleLogs);
+      this.availableLogCategories = collectLogCategories(logs);
+      this.ensureSelectedCategories();
+      this.rebuildTimelines();
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  onIncludeSystemEntriesChange(): void {
+    void this.loadData();
+  }
+
+  onCategoryChanged(selectedCategories?: string[]): void {
+    this.selectedLogCategories = selectedCategories && selectedCategories.length > 0
+      ? selectedCategories
+      : (this.availableLogCategories.includes('diary') ? ['diary'] : []);
+    this.rebuildTimelines();
+  }
+
+  private ensureSelectedCategories(): void {
+    if (!this.availableLogCategories.length) {
+      this.selectedLogCategories = [];
+      return;
+    }
+
+    if (!this.selectedLogCategories.length || !this.selectedLogCategories.some(cat => this.availableLogCategories.includes(cat))) {
+      this.selectedLogCategories = this.availableLogCategories.includes('diary') ? ['diary'] : [...this.availableLogCategories];
+    }
+  }
+
+  private rebuildTimelines(): void {
+    const filtered = filterLogsByCategory(this.allLogs, this.selectedLogCategories);
+    const merged = this.mergeLifecycleLogs(filtered).sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
+
+    this.cycleTimelines = this.growCycles.map((cycle, index) => this.buildTimelineForCycle(cycle, merged, index));
+  }
+
+  private mergeLifecycleLogs(logs: LogEntryViewerLog[]): LogEntryViewerLog[] {
+    const merged: LogEntryViewerLog[] = [...logs] as LogEntryViewerLog[];
+    const ids = new Set(merged.map(log => log._id));
+    this.lifecycleLogs.forEach(log => {
+      if (!ids.has(log._id)) {
+        merged.push(log as LogEntryViewerLog);
+      }
+    });
+    return merged;
+  }
+
+  private buildTimelineForCycle(cycle: GrowCycle, logs: LogEntryViewerLog[], cycleIndex: number): GrowCycleTimeline {
+    const cycleStart = new Date(cycle.timestampStart);
+    const cycleEnd = this.growCycles[cycleIndex + 1]?.timestampStart
+      ? new Date(this.growCycles[cycleIndex + 1].timestampStart)
+      : (cycle.timestampEnd ? new Date(cycle.timestampEnd) : undefined);
+
+    const lifecycleEvents = this.lifecycleLogs
+      .filter(log => this.isWithinCycle(log.time, cycleStart, cycleEnd) && log.data?.newLifecycleStage)
+      .sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
+
+    const eventsInCycle: TimelineEvent[] = logs
+      .filter(log => this.isWithinCycle(log.time, cycleStart, cycleEnd))
+      .sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime())
+      .map(log => ({
+        log: log as LogEntryViewerLog,
+        time: new Date(log.time),
+        stage: this.getStageForTime(new Date(log.time), lifecycleEvents),
+        isLifecycle: this.isLifecycleLog(log),
+      }))
+      .filter(item => !!item.stage) as TimelineEvent[];
+
+    const phaseMap = new Map<DiaryEntryData['newLifecycleStage'], TimelinePhaseGroup>();
+    const phaseTimeline: TimelinePhaseGroup[] = [];
+    let previousDay: Date | undefined;
+
+    for (const event of eventsInCycle) {
+      const stage = event.stage as DiaryEntryData['newLifecycleStage'];
+      let phaseGroup = phaseMap.get(stage);
+      if (!phaseGroup) {
+        phaseGroup = { stage, eventsByDay: [] };
+        phaseMap.set(stage, phaseGroup);
+        phaseTimeline.push(phaseGroup);
+      }
+
+      const dayKey = this.toDayKey(event.time);
+      let dayGroup = phaseGroup.eventsByDay.find(day => day.dayKey === dayKey);
+      if (!dayGroup) {
+        const dayDate = this.toStartOfDay(event.time);
+        const gapDays = previousDay ? this.calculateDayCount(previousDay, dayDate) : undefined;
+        dayGroup = {
+          dayKey,
+          date: dayDate,
+          dayNumberInCycle: this.calculateDayCount(this.toStartOfDay(cycleStart), dayDate) + 1,
+          events: [],
+          gapSincePreviousDays: gapDays,
+          gapLabel: gapDays && gapDays > 0 ? this.formatGapLabel(gapDays) : undefined,
+        };
+        phaseGroup.eventsByDay.push(dayGroup);
+        previousDay = dayDate;
+      }
+
+      dayGroup.events.push(event);
+    }
+
+    return {
+      ...cycle,
+      phaseTimeline,
+    };
+  }
+
+  private isWithinCycle(time: string | number | Date, start: Date, end?: Date): boolean {
+    const timestamp = new Date(time).getTime();
+    const startTime = start.getTime();
+    const endTime = end ? new Date(end).getTime() : undefined;
+
+    return timestamp >= startTime && (endTime === undefined || timestamp < endTime);
+  }
+
+  private toDayKey(date: Date): string {
+    return this.toStartOfDay(date).toISOString();
+  }
+
+  private toStartOfDay(date: Date): Date {
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }
+
+  private getStageForTime(time: Date, lifecycleEvents: DeviceLog[]): DiaryEntryData['newLifecycleStage'] | undefined {
+    let currentStage = lifecycleEvents[0]?.data?.newLifecycleStage;
+
+    for (const lifecycleEvent of lifecycleEvents) {
+      const lifecycleTime = new Date(lifecycleEvent.time);
+      if (lifecycleTime.getTime() <= time.getTime() && lifecycleEvent.data?.newLifecycleStage) {
+        currentStage = lifecycleEvent.data.newLifecycleStage;
+      } else {
+        break;
+      }
+    }
+
+    return currentStage;
   }
 
   private convertEventsToGrowCycles(entries: DeviceLog[]): GrowCycle[] {
+    const sortedEntries = [...entries].sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
     const cycles: GrowCycle[] = [];
 
-    let previousLifecycleOrder = Number.MAX_SAFE_INTEGER;
-    for (const entry of entries) {
-      if (!entry.data?.newLifecycleStage) {
+    let previousLifecycleOrder = -1;
+    let currentCycle: GrowCycle | null = null;
+
+    for (const entry of sortedEntries) {
+      const stage = entry.data?.newLifecycleStage;
+      if (!stage) {
         continue;
       }
 
-      const lifecycleOrder = LIFECYCLE_EVENT_ORDER[entry.data.newLifecycleStage];
-      if (previousLifecycleOrder >= lifecycleOrder) {
-        cycles.unshift({
-          timestampStart: new Date(entries[0].time),
-          timestampEnd: entries.length > 1 ? new Date(entries[entries.length - 1].time) : undefined,
+      const lifecycleOrder = LIFECYCLE_EVENT_ORDER[stage];
+      const startNewCycle = currentCycle && lifecycleOrder <= previousLifecycleOrder;
+
+      if (!currentCycle || startNewCycle) {
+        if (currentCycle) {
+          currentCycle.timestampEnd = new Date(entry.time);
+        }
+
+        currentCycle = {
+          timestampStart: new Date(entry.time),
+          timestampEnd: undefined,
           events: {},
-          name: '',
-        });
+          name: entry.data?.lifecycleName || '',
+        };
+        cycles.push(currentCycle);
       }
 
-      cycles[0].events[entry.data.newLifecycleStage] = entry;
-      if (!cycles[0].name) {
-        cycles[0].name = entry.data.lifecycleName || '';
-
+      currentCycle.events[stage] = entry;
+      if (!currentCycle.name) {
+        currentCycle.name = entry.data?.lifecycleName || '';
       }
+
       previousLifecycleOrder = lifecycleOrder;
     }
 
@@ -93,43 +293,27 @@ export class GrowReportComponent implements OnInit, OnDestroy, OnChanges {
     return cycles;
   }
 
-
   get selectedCycle(): GrowCycle | undefined {
     return this.growCycles.length > 0 ? this.growCycles[Math.min(this.selectedCycleIndex, this.growCycles.length - 1)] : undefined;
   }
 
-  get selectedCycleEventsOrdered(): Array<{stage: DiaryEntryData['newLifecycleStage']; event: DeviceLog; dayCount: number; untilNow?: boolean}> {
-    if (!this.selectedCycle) {
-      return [];
+  get selectedCycleTimeline(): GrowCycleTimeline | undefined {
+    return this.cycleTimelines.length > 0 ? this.cycleTimelines[Math.min(this.selectedCycleIndex, this.cycleTimelines.length - 1)] : undefined;
+  }
+
+  get totalEventsInSelectedCycle(): number {
+    const timeline = this.selectedCycleTimeline;
+    if (!timeline) {
+      return 0;
     }
 
-    const orderedEvents = (Object.entries(this.selectedCycle.events) as Array<[DiaryEntryData['newLifecycleStage'], DeviceLog | undefined]>)
-      .filter(([, event]) => !!event)
-      .sort(([stageA], [stageB]) => LIFECYCLE_EVENT_ORDER[stageA] - LIFECYCLE_EVENT_ORDER[stageB])
-      .map(([stage, event]) => ({stage, event: event as DeviceLog}));
-
-    return orderedEvents.map((item, index) => {
-      const currentDate = new Date(item.event.time);
-      const nextDate = index < orderedEvents.length - 1
-        ? new Date(orderedEvents[index + 1].event.time)
-        : new Date(); // Today for the last stage
-
-      const dayCount = this.calculateDayCount(currentDate, nextDate);
-      const daysUntilNow = index === orderedEvents.length - 1 ? dayCount : undefined;
-
-      return {
-        ...item,
-        dayCount,
-        untilNow: daysUntilNow !== undefined,
-      };
-    });
+    return timeline.phaseTimeline.reduce((sum, phase) => sum + phase.eventsByDay.reduce((count, day) => count + day.events.length, 0), 0);
   }
 
   private calculateDayCount(startDate: Date, endDate: Date): number {
     const start = new Date(startDate);
     const end = new Date(endDate);
 
-    // Reset time to midnight to count full days
     start.setHours(0, 0, 0, 0);
     end.setHours(0, 0, 0, 0);
 
@@ -139,7 +323,32 @@ export class GrowReportComponent implements OnInit, OnDestroy, OnChanges {
     return Math.max(0, diffDays);
   }
 
+  private formatGapLabel(days: number): string {
+    if (days <= 0) {
+      return '';
+    }
+
+    const weeks = Math.floor(days / 7);
+    const remainingDays = days % 7;
+    const parts: string[] = [];
+
+    if (weeks > 0) {
+      parts.push(`${weeks} ${weeks === 1 ? 'week' : 'weeks'}`);
+    }
+
+    if (remainingDays > 0) {
+      parts.push(`${remainingDays} ${remainingDays === 1 ? 'day' : 'days'}`);
+    }
+
+    return parts.join(' ') + ' later';
+  }
+
+  private isLifecycleLog(log: DeviceLog): boolean {
+    return Array.isArray(log.categories) && log.categories.includes('plant-lifecycle');
+  }
+
   onCycleSelected(event: any) {
     this.selectedCycleIndex = event.detail.value;
   }
+
 }

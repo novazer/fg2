@@ -7,11 +7,8 @@ import {
   defaultDiaryEntries,
 } from "../diary-entry-modal/diary-entry-modal.component";
 import {TranslateService} from '@ngx-translate/core';
-import { ImageViewerModalComponent } from '../image-viewer-modal/image-viewer-modal.component';
-import {
-  collectLogCategories,
-  filterLogsByCategory,
-} from '../../log-entry-viewer/log-entry-viewer.component';
+
+import { collectLogCategories } from '../../log-entry-viewer/log-entry-viewer.component';
 
 export type LogEntry = DeviceLog & {
   imageUrls?: undefined | Promise<string>[];
@@ -75,7 +72,7 @@ export class DiaryEntriesReportComponent implements OnInit, OnChanges {
         this.selectedLogCategories = this.availableLogCategories.includes('diary') ? ['diary'] : [];
       }
 
-      this.applyCategoryFilter();
+      this.logs = this.allLogs;
     } finally {
       this.loading = false;
     }
@@ -87,11 +84,6 @@ export class DiaryEntriesReportComponent implements OnInit, OnChanges {
 
   logCategoryChanged(selectedCategories?: string[]): void {
     this.selectedLogCategories = selectedCategories && selectedCategories.length > 0 ? selectedCategories : ['diary'];
-    this.applyCategoryFilter();
-  }
-
-  private applyCategoryFilter(): void {
-    this.logs = filterLogsByCategory(this.allLogs, this.selectedLogCategories);
   }
 
   isEditableLog(log: DeviceLog): boolean {
@@ -145,7 +137,7 @@ export class DiaryEntriesReportComponent implements OnInit, OnChanges {
         this.selectedLogCategories = ['diary'];
       }
 
-      this.applyCategoryFilter();
+      this.logs = this.allLogs;
     }
   }
 
@@ -164,7 +156,7 @@ export class DiaryEntriesReportComponent implements OnInit, OnChanges {
       this.selectedLogCategories = ['diary'];
     }
 
-    this.applyCategoryFilter();
+    this.logs = this.allLogs;
   }
 
   private toDiaryEntry(log: DeviceLog): DiaryEntry {
@@ -182,25 +174,6 @@ export class DiaryEntriesReportComponent implements OnInit, OnChanges {
     return this.devices.getDeviceImageUrl(this.deviceId, 'user/jpeg', undefined, undefined, imageId);
   }
 
-  async openImageModal(log: LogEntry, index: number): Promise<void> {
-    if (!log.imageUrls?.length) {
-      return;
-    }
-
-    const imageUrls = await Promise.all(log.imageUrls);
-    const modal = await this.modalController.create({
-      component: ImageViewerModalComponent,
-      componentProps: {
-        imageUrls,
-        startIndex: index,
-      },
-      cssClass: 'dialog-fullscreen',
-      initialBreakpoint: 1,
-      breakpoints: [0, 1],
-    });
-
-    await modal.present();
-  }
 
   disableLogGrouping(): void {
     // Placeholder for future grouping logic if needed in diary report

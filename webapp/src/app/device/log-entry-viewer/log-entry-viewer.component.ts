@@ -1,12 +1,12 @@
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
-import { DeviceLog } from 'src/app/services/devices.service';
-import { getDiaryDataFieldUnit } from '../diary/diary-entry-modal/diary-entry-modal.component';
+import {Component, EventEmitter, Input, OnChanges, Output, SimpleChanges} from '@angular/core';
+import {DeviceLog} from 'src/app/services/devices.service';
+
+export const LOGS_MAX_DISPLAY_COUNT = 100;
 
 export type LogCategoryFilterValue = string[];
 
 export type LogEntryViewerLog = DeviceLog & {
   count?: number;
-  imageUrls?: Promise<string>[];
   editable?: boolean;
 };
 
@@ -34,11 +34,6 @@ export function filterLogsByCategory<T extends Pick<DeviceLog, 'categories'>>(lo
   styleUrls: ['./log-entry-viewer.component.scss'],
 })
 export class LogEntryViewerComponent implements OnChanges {
-  @Input() log: LogEntryViewerLog | null = null;
-  @Input() imageIdToImageUrl: Record<string, string> = {};
-
-  @Input() showCount = false;
-  @Input() showGroupingHint = false;
   @Input() showCategories = false;
   @Input() showEdit = false;
   @Input() showDelete = false;
@@ -46,75 +41,43 @@ export class LogEntryViewerComponent implements OnChanges {
 
   @Input() selectedCategories: LogCategoryFilterValue = [];
 
-  // Pagination inputs
-  @Input() logs: LogEntryViewerLog[] = [];
-  @Input() itemsPerPage = 100;
-  @Input() showPagination = false;
+  @Input() logs!: LogEntryViewerLog[];
 
-  @Output() imageOpen = new EventEmitter<{ log: LogEntryViewerLog; imageIndex: number }>();
   @Output() showAll = new EventEmitter<LogEntryViewerLog>();
   @Output() edit = new EventEmitter<LogEntryViewerLog>();
   @Output() delete = new EventEmitter<LogEntryViewerLog>();
 
   currentPage = 1;
-
-  private imageUrlCache = new Map<string, Promise<string>>();
-
-  get totalPages(): number {
-    return Math.ceil(this.logs.length / this.itemsPerPage);
-  }
-
-  get paginatedLogs(): LogEntryViewerLog[] {
-    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-    const endIndex = startIndex + this.itemsPerPage;
-    return this.logs.slice(startIndex, endIndex);
-  }
-
-  get showPaginationControls(): boolean {
-    return this.showPagination && this.totalPages > 1;
-  }
-
-  getDisplayLogs(): LogEntryViewerLog[] {
-    if (this.logs.length > 0) {
-      return this.paginatedLogs;
-    }
-
-    return this.log ? [this.log] : [];
-  }
-
-  resolveImageUrl(log: LogEntryViewerLog, imageId: string, index: number): Promise<string> {
-    const cacheKey = `${log._id}:${imageId}:${index}`;
-    const cached = this.imageUrlCache.get(cacheKey);
-    if (cached) {
-      return cached;
-    }
-
-    const urlPromise = log.imageUrls?.[index]
-      ?? Promise.resolve(this.imageIdToImageUrl[imageId] ?? '');
-
-    this.imageUrlCache.set(cacheKey, urlPromise);
-    return urlPromise;
-  }
-
-  onImageClick(event: Event, index: number, logEntry: LogEntryViewerLog): void {
-    event.preventDefault();
-    this.imageOpen.emit({ log: logEntry, imageIndex: index });
-  }
-
-  onShowAll(event: Event, logEntry: LogEntryViewerLog): void {
-    event.preventDefault();
-    this.showAll.emit(logEntry);
-  }
+  totalPages = 1;
+  showPaginationControls = false;
+  displayLogs: LogEntryViewerLog[] = [];
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['selectedCategories'] && !changes['selectedCategories'].firstChange) {
       this.currentPage = 1;
     }
+    this.updateDisplayLogs();
+  }
+
+  private updateDisplayLogs(): void {
+    const filtered = filterLogsByCategory(this.logs ?? [], this.selectedCategories);
+    this.totalPages = Math.ceil(filtered.length / LOGS_MAX_DISPLAY_COUNT);
+    this.showPaginationControls = this.totalPages > 1;
+
+    if (filtered.length === 0) {
+      this.displayLogs = [];
+      return;
+    }
+
+    const startIndex = (this.currentPage - 1) * LOGS_MAX_DISPLAY_COUNT;
+    const endIndex = startIndex + LOGS_MAX_DISPLAY_COUNT;
+    this.displayLogs = filtered.slice(startIndex, endIndex);
   }
 
   goToPage(page: number): void {
     if (page >= 1 && page <= this.totalPages) {
       this.currentPage = page;
+      this.updateDisplayLogs();
     }
   }
 
@@ -126,9 +89,7 @@ export class LogEntryViewerComponent implements OnChanges {
     this.goToPage(this.currentPage - 1);
   }
 
-  canEdit(entry: LogEntryViewerLog): boolean {
-    return this.editable || entry.editable === true;
+  trackById(index: number, entry: LogEntryViewerLog): string {
+    return entry?._id ?? index.toString();
   }
-
-  protected readonly getDiaryDataFieldUnit = getDiaryDataFieldUnit;
 }

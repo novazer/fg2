@@ -15,7 +15,6 @@ import {DevicesModule} from "../../devices/devices.module";
 import { Co2ReportComponent } from './co2-report/co2-report.component';
 import { DiaryEntryModalComponent } from './diary-entry-modal/diary-entry-modal.component';
 import { DiaryEntriesReportComponent } from './diary-entries-report/diary-entries-report.component';
-import { ImageViewerModalComponent } from './image-viewer-modal/image-viewer-modal.component';
 import { GrowReportComponent } from './grow-report/grow-report.component';
 import { LogEntryViewerModule } from '../log-entry-viewer/log-entry-viewer.module';
 
@@ -37,7 +36,6 @@ import { LogEntryViewerModule } from '../log-entry-viewer/log-entry-viewer.modul
     Co2ReportComponent,
     DiaryEntryModalComponent,
     DiaryEntriesReportComponent,
-    ImageViewerModalComponent,
     GrowReportComponent,
   ]
 })
