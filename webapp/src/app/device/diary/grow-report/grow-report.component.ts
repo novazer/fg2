@@ -32,6 +32,7 @@ type TimelineDayGroup = {
   dayKey: string;
   date: Date;
   dayNumberInCycle: number;
+  dayNumberInPhase: number;
   events: TimelineEvent[];
   gapToNextDays?: number;
   gapLabel?: string;
@@ -178,7 +179,7 @@ export class GrowReportComponent implements OnInit, OnDestroy, OnChanges {
     // Calculate gaps between consecutive days
     for (let i = 0; i < uniqueDays.length; i++) {
       const currentDay = uniqueDays[i];
-      const nextDay = i > uniqueDays.length - 1 ? uniqueDays[i + 1] : this.toStartOfDay(new Date());
+      const nextDay = i < uniqueDays.length - 1 ? uniqueDays[i + 1] : new Date(); // Compare last day to today
       const gapDays = this.calculateDayCount(currentDay, nextDay);
       if (gapDays > 0) {
         const dayKey = this.toDayKey(currentDay);
@@ -251,6 +252,7 @@ export class GrowReportComponent implements OnInit, OnDestroy, OnChanges {
           dayKey,
           date: dayDate,
           dayNumberInCycle: this.calculateDayCount(this.toStartOfDay(cycleStart), dayDate) + 1,
+          dayNumberInPhase: 0, // Will be calculated after sorting
           events: [],
           gapToNextDays: gap?.gapToNextDays,
           gapLabel: gap?.gapLabel,
@@ -261,9 +263,17 @@ export class GrowReportComponent implements OnInit, OnDestroy, OnChanges {
       dayGroup.events.push(event);
     }
 
-    // Sort days within each phase
+    // Sort days within each phase and calculate dayNumberInPhase
     for (const phase of phaseTimeline) {
       phase.eventsByDay.sort((a, b) => a.date.getTime() - b.date.getTime());
+
+      // Calculate day number in phase based on actual day difference from first day
+      if (phase.eventsByDay.length > 0) {
+        const firstDayInPhase = phase.eventsByDay[0].date;
+        for (const day of phase.eventsByDay) {
+          day.dayNumberInPhase = this.calculateDayCount(firstDayInPhase, day.date) + 1;
+        }
+      }
     }
 
     return {

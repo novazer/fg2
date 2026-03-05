@@ -13,7 +13,7 @@
       </h3>
     </ion-col>
     <ion-col class="ion-text-right">
-      {{ entry.time | date: 'medium' }}
+      {{ entry.time | date: (timeOnly ? 'shortTime' : 'medium') }}
     </ion-col>
   </ion-row>
 

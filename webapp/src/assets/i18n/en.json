@@ -420,6 +420,7 @@
     "eventCount": "Number of events",
     "events": "Events",
     "phaseSummary": "Phase Summary",
+    "dayInPhase": "Day in phase",
     "day": "day",
     "days": "days",
     "untilToday": "until today",

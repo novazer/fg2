@@ -108,7 +108,7 @@
             <div class="day-header">
               <div class="day-dot"></div>
               <div>
-                <div class="day-title">Day {{ day.dayNumberInCycle }} • {{ day.date | date:'mediumDate' }}</div>
+                <div class="day-title">{{ 'diary.day' | translate }} {{ day.dayNumberInCycle }} ({{ 'diary.dayInPhase' | translate }}: {{ day.dayNumberInPhase }}) • {{ day.date | date:'mediumDate' }}</div>
               </div>
             </div>
 
@@ -120,6 +120,7 @@
                   [showCategories]="true"
                   [showEdit]="false"
                   [showDelete]="false"
+                  [timeOnly]="true"
                 ></app-log-entry-item>
               </div>
             </div>
@@ -128,6 +129,13 @@
               <div class="gap-line-vertical"></div>
               <span class="gap-label">{{ day.gapLabel }}</span>
             </div>
+          </div>
+        </div>
+
+        <div class="day-header">
+          <div class="day-dot"></div>
+          <div>
+            {{ 'diary.today' | translate }}
           </div>
         </div>
       </div>

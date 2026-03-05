@@ -15,6 +15,7 @@ export class LogEntryItemComponent implements OnChanges {
   @Input() showEdit = false;
   @Input() showDelete = false;
   @Input() editable = false;
+  @Input() timeOnly = false;
 
   @Output() showAll = new EventEmitter<LogEntryViewerLog>();
   @Output() edit = new EventEmitter<LogEntryViewerLog>();
