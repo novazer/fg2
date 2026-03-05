@@ -50,7 +50,7 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
   public humidityTarget:number = NaN;
   public co2Target:number = NaN;
   public is_day:boolean = false;
-  public workmode:string = 'off';
+  public workmode:string = 'loading';
   public recipe:any = null;
   private refreshLogsTimer: NodeJS.Timeout|undefined = undefined;
 
@@ -215,7 +215,7 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
     const co2:any = cfg?.co2 || {};
 
     // keep current workmode around for the UI label and masking rules
-    const mode:string = (cfg?.workmode || 'off') + '';
+    const mode:string = (cfg?.workmode || this.workmode || 'unknown') + '';
     this.workmode = mode;
 
     let t = this.is_day ? toNum(day.temperature) : toNum(night.temperature);

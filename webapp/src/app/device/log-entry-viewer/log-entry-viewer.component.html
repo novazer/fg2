@@ -1,6 +1,7 @@
 <!-- Common entry rendering for paginated list or single log -->
 <ion-item lines="full" *ngFor="let entry of displayLogs; trackBy: trackById">
   <app-log-entry-item
+    style="width: 100%;"
     [entry]="entry"
     [showCategories]="showCategories"
     [showEdit]="showEdit"

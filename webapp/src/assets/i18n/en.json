@@ -187,6 +187,8 @@
       "workmode-dry": "Drying",
       "workmode-breed": "Germination",
       "workmode-off": "Off",
+      "workmode-loading": "Loading...",
+      "workmode-unknown": "Unknown",
       "settings": {
         "floating-day": "Use custom duration for day/night cycle",
         "float-start": "Start of first variable day",
@@ -416,7 +418,12 @@
     "startDate": "Start date",
     "endDate": "End date",
     "eventCount": "Number of events",
-    "events": "Events"
+    "events": "Events",
+    "phaseSummary": "Phase Summary",
+    "day": "day",
+    "days": "days",
+    "untilToday": "until today",
+    "today": "Today"
   },
 
   "message-lost-connection-title": "Connection problem",

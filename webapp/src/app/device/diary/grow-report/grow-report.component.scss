@@ -10,17 +10,20 @@
 }
 
 .phase-section {
-  margin-bottom: 1.5rem;
+  margin-bottom: 0;
 }
 
 .phase-header {
   font-weight: 600;
-  margin-bottom: 0.5rem;
+  font-size: 1.3em;
+  border-bottom: 2px solid var(--ion-color-step-300, #ccc);
+  margin-bottom: 0;
+  margin-left: 5px;
+  padding-left: 19px;
 }
 
 .day-section {
   position: relative;
-  padding-left: 1rem;
 }
 
 .day-header {
@@ -43,13 +46,13 @@
 }
 
 .event-list {
-  margin-left: 1.5rem;
+  margin-left: 5px;
 }
 
 .event-card {
-  border-left: 2px solid var(--ion-color-step-200, #e0e0e0);
+  border-left: 2px solid var(--ion-color-step-300, #ccc);
   padding-left: 0.75rem;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0;
 }
 
 .event-time {
@@ -72,19 +75,52 @@
   margin-top: 0.35rem;
 }
 
-.gap-line {
+.gap-indicator {
   display: flex;
-  align-items: center;
-  color: var(--ion-color-medium, #666);
-  font-size: 0.9em;
-  margin: 0.75rem 0;
+  flex-direction: column;
+  align-items: flex-start;
+  padding-left: 5px;
+  margin: 0;
 }
 
-.gap-line::before,
-.gap-line::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--ion-color-step-200, #e0e0e0);
-  margin: 0 0.75rem;
+.gap-line-vertical {
+  width: 2px;
+  height: 24px;
+  background: var(--ion-color-step-300, #ccc);
+  margin-bottom: 0;
+}
+
+.gap-label {
+  color: var(--ion-color-medium, #666);
+  font-size: 0.85em;
+  font-style: italic;
+  padding-left: 19px;
+  border-left: 2px solid var(--ion-color-step-300, #ccc);
+}
+
+.phase-summary {
+  h3 {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+}
+
+.phase-summary-item {
+  cursor: pointer;
+
+  h4 {
+    font-weight: 600;
+  }
+
+  .phase-duration {
+    color: var(--ion-color-medium, #666);
+  }
+}
+
+.days-until-today {
+  margin-top: 0.5rem;
+}
+
+.day-dot-today {
+  background: var(--ion-color-success, #2dd36f);
 }

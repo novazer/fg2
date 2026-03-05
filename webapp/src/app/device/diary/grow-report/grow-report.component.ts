@@ -32,7 +32,7 @@ type TimelineDayGroup = {
   date: Date;
   dayNumberInCycle: number;
   events: TimelineEvent[];
-  gapSincePreviousDays?: number;
+  gapToNextDays?: number;
   gapLabel?: string;
 };
 
@@ -41,7 +41,17 @@ type TimelinePhaseGroup = {
   eventsByDay: TimelineDayGroup[];
 };
 
-type GrowCycleTimeline = GrowCycle & { phaseTimeline: TimelinePhaseGroup[] };
+type PhaseSummary = {
+  stage: DiaryEntryData['newLifecycleStage'];
+  startDate: Date;
+  durationDays: number;
+};
+
+type GrowCycleTimeline = GrowCycle & {
+  phaseTimeline: TimelinePhaseGroup[];
+  phaseSummaries: PhaseSummary[];
+  lastEventDate?: Date;
+};
 
 @Component({
   selector: 'app-grow-report',
@@ -139,7 +149,46 @@ export class GrowReportComponent implements OnInit, OnDestroy, OnChanges {
     const filtered = filterLogsByCategory(this.allLogs, this.selectedLogCategories);
     const merged = this.mergeLifecycleLogs(filtered).sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
 
-    this.cycleTimelines = this.growCycles.map((cycle, index) => this.buildTimelineForCycle(cycle, merged, index));
+    // Pre-calculate gaps between consecutive days across all logs
+    const dayGaps = this.calculateDayGaps(merged);
+
+    this.cycleTimelines = this.growCycles.map((cycle, index) => this.buildTimelineForCycle(cycle, merged, index, dayGaps));
+    console.log(this.cycleTimelines);
+  }
+
+  private calculateDayGaps(logs: LogEntryViewerLog[]): Map<string, { gapToNextDays: number; gapLabel: string }> {
+    const dayGaps = new Map<string, { gapToNextDays: number; gapLabel: string }>();
+
+    // Get unique days sorted chronologically
+    const uniqueDays: Date[] = [];
+    const seenDays = new Set<string>();
+
+    for (const log of logs) {
+      const dayDate = this.toStartOfDay(new Date(log.time));
+      const dayKey = this.toDayKey(dayDate);
+      if (!seenDays.has(dayKey)) {
+        seenDays.add(dayKey);
+        uniqueDays.push(dayDate);
+      }
+    }
+
+    uniqueDays.sort((a, b) => a.getTime() - b.getTime());
+
+    // Calculate gaps between consecutive days
+    for (let i = 0; i < uniqueDays.length; i++) {
+      const currentDay = uniqueDays[i];
+      const nextDay = i > uniqueDays.length - 1 ? uniqueDays[i + 1] : this.toStartOfDay(new Date());
+      const gapDays = this.calculateDayCount(currentDay, nextDay);
+      if (gapDays > 0) {
+        const dayKey = this.toDayKey(currentDay);
+        dayGaps.set(dayKey, {
+          gapToNextDays: gapDays,
+          gapLabel: this.formatGapLabel(gapDays),
+        });
+      }
+    }
+
+    return dayGaps;
   }
 
   private mergeLifecycleLogs(logs: LogEntryViewerLog[]): LogEntryViewerLog[] {
@@ -153,10 +202,16 @@ export class GrowReportComponent implements OnInit, OnDestroy, OnChanges {
     return merged;
   }
 
-  private buildTimelineForCycle(cycle: GrowCycle, logs: LogEntryViewerLog[], cycleIndex: number): GrowCycleTimeline {
+  private buildTimelineForCycle(
+    cycle: GrowCycle,
+    logs: LogEntryViewerLog[],
+    cycleIndex: number,
+    dayGaps: Map<string, { gapToNextDays: number; gapLabel: string }>
+  ): GrowCycleTimeline {
     const cycleStart = new Date(cycle.timestampStart);
-    const cycleEnd = this.growCycles[cycleIndex + 1]?.timestampStart
-      ? new Date(this.growCycles[cycleIndex + 1].timestampStart)
+    const nextCycleStart = this.growCycles[cycleIndex + 1]?.timestampStart;
+    const cycleEnd = nextCycleStart
+      ? new Date(nextCycleStart)
       : (cycle.timestampEnd ? new Date(cycle.timestampEnd) : undefined);
 
     const lifecycleEvents = this.lifecycleLogs
@@ -176,7 +231,6 @@ export class GrowReportComponent implements OnInit, OnDestroy, OnChanges {
 
     const phaseMap = new Map<DiaryEntryData['newLifecycleStage'], TimelinePhaseGroup>();
     const phaseTimeline: TimelinePhaseGroup[] = [];
-    let previousDay: Date | undefined;
 
     for (const event of eventsInCycle) {
       const stage = event.stage as DiaryEntryData['newLifecycleStage'];
@@ -191,26 +245,93 @@ export class GrowReportComponent implements OnInit, OnDestroy, OnChanges {
       let dayGroup = phaseGroup.eventsByDay.find(day => day.dayKey === dayKey);
       if (!dayGroup) {
         const dayDate = this.toStartOfDay(event.time);
-        const gapDays = previousDay ? this.calculateDayCount(previousDay, dayDate) : undefined;
+        const gap = dayGaps.get(dayKey);
         dayGroup = {
           dayKey,
           date: dayDate,
           dayNumberInCycle: this.calculateDayCount(this.toStartOfDay(cycleStart), dayDate) + 1,
           events: [],
-          gapSincePreviousDays: gapDays,
-          gapLabel: gapDays && gapDays > 0 ? this.formatGapLabel(gapDays) : undefined,
+          gapToNextDays: gap?.gapToNextDays,
+          gapLabel: gap?.gapLabel,
         };
         phaseGroup.eventsByDay.push(dayGroup);
-        previousDay = dayDate;
       }
 
       dayGroup.events.push(event);
     }
 
+    // Sort days within each phase
+    for (const phase of phaseTimeline) {
+      phase.eventsByDay.sort((a, b) => a.date.getTime() - b.date.getTime());
+    }
+
     return {
       ...cycle,
       phaseTimeline,
+      phaseSummaries: this.buildPhaseSummaries(phaseTimeline),
+      lastEventDate: eventsInCycle.length > 0 ? eventsInCycle[eventsInCycle.length - 1].time : undefined,
     };
+  }
+
+  private buildPhaseSummaries(phaseTimeline: TimelinePhaseGroup[]): PhaseSummary[] {
+    const summaries: PhaseSummary[] = [];
+
+    for (let i = 0; i < phaseTimeline.length; i++) {
+      const phase = phaseTimeline[i];
+      const nextPhase = phaseTimeline[i + 1];
+
+      const firstDay = phase.eventsByDay[0];
+      if (!firstDay) {
+        continue;
+      }
+
+      const startDate = firstDay.date;
+      let endDate: Date;
+
+      if (nextPhase && nextPhase.eventsByDay[0]) {
+        endDate = nextPhase.eventsByDay[0].date;
+      } else {
+        const lastDay = phase.eventsByDay[phase.eventsByDay.length - 1];
+        endDate = lastDay ? lastDay.date : startDate;
+      }
+
+      const durationDays = this.calculateDayCount(startDate, endDate);
+
+      summaries.push({
+        stage: phase.stage,
+        startDate,
+        durationDays: Math.max(1, durationDays),
+      });
+    }
+
+    return summaries;
+  }
+
+  private formatGapLabelUntilToday(days: number): string {
+    if (days <= 0) {
+      return '';
+    }
+
+    const weeks = Math.floor(days / 7);
+    const remainingDays = days % 7;
+    const parts: string[] = [];
+
+    if (weeks > 0) {
+      parts.push(`${weeks} ${weeks === 1 ? 'week' : 'weeks'}`);
+    }
+
+    if (remainingDays > 0) {
+      parts.push(`${remainingDays} ${remainingDays === 1 ? 'day' : 'days'}`);
+    }
+
+    return parts.join(' ') + ' until today';
+  }
+
+  scrollToPhase(stage: DiaryEntryData['newLifecycleStage']): void {
+    const element = document.getElementById('phase-' + stage);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   }
 
   private isWithinCycle(time: string | number | Date, start: Date, end?: Date): boolean {
@@ -318,7 +439,7 @@ export class GrowReportComponent implements OnInit, OnDestroy, OnChanges {
     end.setHours(0, 0, 0, 0);
 
     const diffTime = end.getTime() - start.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
     return Math.max(0, diffDays);
   }

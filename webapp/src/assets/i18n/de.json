@@ -180,6 +180,8 @@
       "workmode-dry": "Trocknung",
       "workmode-breed": "Keimung",
       "workmode-off": "AUS",
+      "workmode-loading": "Lade...",
+      "workmode-unknown": "Unbekannt",
       "settings": {
         "floating-day": "Benutzerspezifizierte Tageslänge für Tag/Nacht Zyklus verwenden (statt 24h)",
         "float-start": "Start des ersten Tags",
@@ -398,7 +400,12 @@
     "startDate": "Startdatum",
     "endDate": "Enddatum",
     "eventCount": "Anzahl der Ereignisse",
-    "events": "Ereignisse"
+    "events": "Ereignisse",
+    "phaseSummary": "Phasenübersicht",
+    "day": "Tag",
+    "days": "Tage",
+    "untilToday": "bis heute",
+    "today": "Heute"
   },
 
   "message-lost-connection-title": "Verbindungsproblem",

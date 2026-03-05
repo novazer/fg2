@@ -1,4 +1,4 @@
-<ion-label style="white-space: normal" *ngIf="entry">
+<ion-label style="white-space: normal; width: 100%" *ngIf="entry">
   <ion-row>
     <ion-col>
       <h3 [style.color]="entry.severity === 1 ? 'orange' : entry.severity === 2 ? 'crimson' : 'dodgerblue'">
@@ -63,19 +63,19 @@
     </ion-col>
   </ion-row>
 
-<!--  <ion-row *ngIf="showCategories && entry.categories?.length">-->
-<!--    <ion-col>-->
-<!--      <ion-chip *ngFor="let category of entry.categories">{{ category }}</ion-chip>-->
-<!--    </ion-col>-->
-<!--    <ion-col size="auto">-->
-<!--      <ion-button *ngIf="showEdit && canEdit(entry)" color="primary" (click)="edit.emit(entry)">-->
-<!--        <ion-icon name="pencil-outline"></ion-icon>&nbsp;-->
-<!--        {{ 'diary.actions.edit' | translate }}-->
-<!--      </ion-button>-->
-<!--      <ion-button *ngIf="showDelete" color="danger" (click)="delete.emit(entry)">-->
-<!--        <ion-icon name="trash-outline"></ion-icon>&nbsp;-->
-<!--        {{ 'diary.actions.delete' | translate }}-->
-<!--      </ion-button>-->
-<!--    </ion-col>-->
-<!--  </ion-row>-->
+  <ion-row *ngIf="showCategories && entry.categories?.length">
+    <ion-col>
+      <ion-chip *ngFor="let category of entry.categories">{{ category }}</ion-chip>
+    </ion-col>
+    <ion-col size="auto">
+      <ion-button *ngIf="showEdit && canEdit(entry)" color="primary" (click)="edit.emit(entry)">
+        <ion-icon name="pencil-outline"></ion-icon>&nbsp;
+        {{ 'diary.actions.edit' | translate }}
+      </ion-button>
+      <ion-button *ngIf="showDelete" color="danger" (click)="delete.emit(entry)">
+        <ion-icon name="trash-outline"></ion-icon>&nbsp;
+        {{ 'diary.actions.delete' | translate }}
+      </ion-button>
+    </ion-col>
+  </ion-row>
 </ion-label>
