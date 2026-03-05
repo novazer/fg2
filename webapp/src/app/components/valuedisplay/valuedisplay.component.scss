@@ -39,3 +39,7 @@ svg .primary-text {
 svg .secondary-text {
   fill: var(--value-display-text-secondary);
 }
+
+:host-context(body.dark) svg image {
+  filter: brightness(1.5) contrast(0.1);
+}
