@@ -282,11 +282,16 @@ export class ChartsPage implements OnInit, OnDestroy {
       const device = devices.find((device) => device.device_id == this.device_id);
       this.device_type = device?.device_type || '';
       this.cloudSettings = device?.cloudSettings || {};
+
       if (this.device_type != "") {
         this.filtered_measures = this.measures
           .filter((measure) => measure.types.includes(this.device_type));
 
         setTimeout(() => this.loadData(), 10)
+        if (this.interval) {
+          clearInterval(this.interval);
+        }
+
         this.interval = setInterval(() => {
           if (this.autoUpdate) {
             this.selectedDate = '';
@@ -297,6 +302,7 @@ export class ChartsPage implements OnInit, OnDestroy {
           }
         }, 10000)
       }
+
     });
   }
 
