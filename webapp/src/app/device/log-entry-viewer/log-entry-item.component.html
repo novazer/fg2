@@ -20,7 +20,7 @@
   <ion-row *ngIf="entry.message">
     <ion-col
       aria-colspan="3"
-      [style.white-space]="entry.categories?.includes('configuration') ? 'pre-wrap' : 'normal'"
+      style="white-space: pre-wrap;"
     >{{ entry.raw
       ? entry.message
       : (entry.message + '-text' | translate) !== entry.message + '-text'
