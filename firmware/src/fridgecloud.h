@@ -21,7 +21,7 @@ namespace fg {
 
   class Fridgecloud {
 
-    static constexpr unsigned int MAX_BUFFER_LEN = 120;
+    static constexpr unsigned int MAX_BUFFER_LEN = 60;
     static constexpr unsigned int SAMPLE_INTERVAL = 5;
     static constexpr unsigned int UPLOAD_INTERVAL = 1;
 
