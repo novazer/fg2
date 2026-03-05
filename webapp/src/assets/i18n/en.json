@@ -421,6 +421,7 @@
     "events": "Events",
     "phaseSummary": "Phase Summary",
     "dayInPhase": "Day in phase",
+    "totalDay": "Total days",
     "day": "day",
     "days": "days",
     "untilToday": "until today",

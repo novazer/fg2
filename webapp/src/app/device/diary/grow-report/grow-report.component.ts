@@ -47,6 +47,7 @@ type PhaseSummary = {
   stage: DiaryEntryData['newLifecycleStage'];
   startDate: Date;
   durationDays: number;
+  totalDaysFromStart: number;
 };
 
 type GrowCycleTimeline = GrowCycle & {
@@ -279,12 +280,12 @@ export class GrowReportComponent implements OnInit, OnDestroy, OnChanges {
     return {
       ...cycle,
       phaseTimeline,
-      phaseSummaries: this.buildPhaseSummaries(phaseTimeline),
+      phaseSummaries: this.buildPhaseSummaries(phaseTimeline, cycleStart),
       lastEventDate: eventsInCycle.length > 0 ? eventsInCycle[eventsInCycle.length - 1].time : undefined,
     };
   }
 
-  private buildPhaseSummaries(phaseTimeline: TimelinePhaseGroup[]): PhaseSummary[] {
+  private buildPhaseSummaries(phaseTimeline: TimelinePhaseGroup[], cycleStart: Date): PhaseSummary[] {
     const summaries: PhaseSummary[] = [];
 
     for (let i = 0; i < phaseTimeline.length; i++) {
@@ -307,11 +308,13 @@ export class GrowReportComponent implements OnInit, OnDestroy, OnChanges {
       }
 
       const durationDays = this.calculateDayCount(startDate, endDate);
+      const totalDaysFromStart = this.calculateDayCount(this.toStartOfDay(cycleStart), startDate) + 1;
 
       summaries.push({
         stage: phase.stage,
         startDate,
         durationDays: Math.max(1, durationDays),
+        totalDaysFromStart,
       });
     }
 

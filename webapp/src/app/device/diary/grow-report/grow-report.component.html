@@ -86,7 +86,7 @@
               <h4>{{ ('diary.lifecycleStages.' + summary.stage) | translate }}</h4>
               <p>
                 {{ summary.startDate | date:'mediumDate' }}
-                <span class="phase-duration">• {{ summary.durationDays }} {{ summary.durationDays === 1 ? ('diary.day' | translate) : ('diary.days' | translate) }}</span>
+                <span class="phase-duration">• {{ summary.durationDays }} {{ summary.durationDays === 1 ? ('diary.day' | translate) : ('diary.days' | translate) }} ({{ 'diary.totalDay' | translate }}: {{ summary.totalDaysFromStart }} - {{ summary.totalDaysFromStart + summary.durationDays - 1 }})</span>
               </p>
             </ion-label>
             <ion-button fill="clear" slot="end" (click)="navigateToCharts(summary)" title="{{ 'diary.viewChart' | translate }}">

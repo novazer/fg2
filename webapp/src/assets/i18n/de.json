@@ -403,6 +403,7 @@
     "events": "Ereignisse",
     "phaseSummary": "Phasenübersicht",
     "dayInPhase": "Tag in Phase",
+    "totalDay": "Gesamttage",
     "day": "Tag",
     "days": "Tage",
     "untilToday": "bis heute",
