@@ -71,9 +71,8 @@ export class GrowReportComponent implements OnInit, OnDestroy, OnChanges {
   public cycleTimelines: GrowCycleTimeline[] = [];
   public selectedCycleIndex: number = 0;
   public loading = false;
-  public includeSystemEntries = false;
   public availableLogCategories: string[] = [];
-  public selectedLogCategories: string[] = [];
+  public selectedLogCategories: string[] = ['configuration', 'recipe', 'diary'];
 
   private allLogs: LogEntryViewerLog[] = [];
   private lifecycleLogs: LogEntryViewerLog[] = [];
@@ -109,11 +108,7 @@ export class GrowReportComponent implements OnInit, OnDestroy, OnChanges {
 
     this.loading = true;
     try {
-      const categories = this.includeSystemEntries
-        ? undefined
-        : ['plant-lifecycle', 'diary', ...Object.keys(defaultDiaryEntries)];
-
-      const logs = await this.devices.getLogs(this.deviceId, undefined, undefined, true, categories);
+      const logs = await this.devices.getLogs(this.deviceId, undefined, undefined, true);
 
       this.allLogs = logs;
       this.lifecycleLogs = logs.filter(log => this.isLifecycleLog(log) && !!log.data?.newLifecycleStage);
@@ -124,10 +119,6 @@ export class GrowReportComponent implements OnInit, OnDestroy, OnChanges {
     } finally {
       this.loading = false;
     }
-  }
-
-  onIncludeSystemEntriesChange(): void {
-    void this.loadData();
   }
 
   onCategoryChanged(selectedCategories?: string[]): void {

@@ -3,14 +3,6 @@
     <ion-card-title>{{ 'diary.entriesReport' | translate }}</ion-card-title>
   </ion-card-header>
   <ion-card-content>
-    <ion-item lines="none">
-      <ion-label>{{ 'diary.entriesIncludeSystem' | translate }}</ion-label>
-      <ion-toggle
-        [(ngModel)]="includeSystemEntries"
-        (ionChange)="onIncludeSystemEntriesChange()"
-      ></ion-toggle>
-    </ion-item>
-
     <ion-item *ngIf="loading">
       <ion-spinner name="dots"></ion-spinner>
       <ion-label>{{ 'misc.loading' | translate }}</ion-label>

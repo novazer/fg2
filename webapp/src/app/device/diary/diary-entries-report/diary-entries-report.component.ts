@@ -27,9 +27,8 @@ export class DiaryEntriesReportComponent implements OnInit, OnChanges {
   public logs: LogEntry[] = [];
   private allLogs: LogEntry[] = [];
   public loading = false;
-  public includeSystemEntries = false;
   public availableLogCategories: string[] = [];
-  public selectedLogCategories: string[] = [];
+  public selectedLogCategories: string[] = ['diary'];
 
   constructor(
     private devices: DeviceService,
@@ -59,8 +58,7 @@ export class DiaryEntriesReportComponent implements OnInit, OnChanges {
 
     this.loading = true;
     try {
-      const categories = this.includeSystemEntries ? undefined : ['diary', ...Object.keys(defaultDiaryEntries)];
-      this.allLogs = (await this.devices.getLogs(this.deviceId, undefined, undefined, true, categories)).reverse();
+      this.allLogs = (await this.devices.getLogs(this.deviceId, undefined, undefined, true)).reverse();
       this.allLogs.forEach(l => {
         l.imageUrls = l.images?.map(url => this.getImageUrl(url));
         l.editable = this.isEditableLog(l);
