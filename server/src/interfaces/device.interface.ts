@@ -22,6 +22,7 @@ export interface Alarm {
   thresholdSeconds?: number;
   reportWebhookErrors?: boolean;
   tunnelWebhook?: boolean;
+  deviceWebhook?: boolean;
 }
 
 export interface FirmwareSettings {

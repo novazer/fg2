@@ -103,6 +103,7 @@ namespace fg {
     bool registerWithCloud(std::string url, std::string password);
     void handleTunnelCloses();
     void handleTunnelReads();
+    void executeWebhook(const JsonDocument& command);
     inline bool directMode() { return custom_mqtt; }
   };
 

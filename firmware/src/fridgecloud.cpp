@@ -95,7 +95,7 @@ namespace fg {
   void Fridgecloud::connect() {
     Serial.println("connecting to cloud");
 
-    client->setMaxPacketSize(1024);
+    client->setMaxPacketSize(4096);
 
     client->subscribe(topic_configuration.c_str(), [&](const String & topic, const String & payload) {
       Serial.println("new config");
@@ -132,10 +132,15 @@ namespace fg {
     });
 
     client->subscribe(topic_command.c_str(), [&](const String & topic, const String & payload) {
-      DynamicJsonDocument doc(1024);
+      DynamicJsonDocument doc(4096);
       DeserializationError error = deserializeJson(doc, payload);
       if (error) {
         Serial.println("error parsing received command");
+        return;
+      }
+
+      if(doc["action"] == std::string("webhook")) {
+        executeWebhook(doc);
         return;
       }
 
@@ -519,6 +524,44 @@ namespace fg {
     return false;
   }
 
+
+  void Fridgecloud::executeWebhook(const JsonDocument& command) {
+    const char* url = command["url"].as<const char*>();
+    const char* method = command["method"].as<const char*>();
+    const char* payload = command["payload"].as<const char*>();
+
+    if (!url || strlen(url) == 0) {
+      Serial.println("executeWebhook: no URL provided");
+      return;
+    }
+
+    HTTPClient http;
+    http.begin(url);
+
+    String methodStr = method ? method : "POST";
+
+    if (methodStr != "GET") {
+      http.addHeader("Content-Type", "application/json");
+    }
+
+    JsonObjectConst headers = command["headers"].as<JsonObjectConst>();
+    for (JsonPairConst kv : headers) {
+      http.addHeader(kv.key().c_str(), kv.value().as<const char*>());
+    }
+
+    int httpCode = -1;
+
+    if (methodStr == "GET") {
+      httpCode = http.GET();
+    } else if (methodStr == "POST") {
+      httpCode = http.POST(payload ? payload : "");
+    } else {
+      httpCode = http.sendRequest(methodStr.c_str(), payload ? payload : "");
+    }
+
+    Serial.printf("Webhook executed: %s %s -> %d\n", methodStr.c_str(), url, httpCode);
+    http.end();
+  }
 
   void Fridgecloud::handleTunnelCloses() {
     if (!ui.isIdle()) {

@@ -144,11 +144,28 @@
               <ion-icon name="help-circle-outline"></ion-icon>
             </ion-button>
           </ion-label>
-          <ion-checkbox [(ngModel)]="alarm.tunnelWebhook" (ngModelChange)="alarmsChange.emit(alarms)" [disabled]="alarm.disabled"></ion-checkbox>
+          <ion-checkbox [(ngModel)]="alarm.tunnelWebhook" (ngModelChange)="alarmsChange.emit(alarms)" [disabled]="alarm.disabled || alarm.deviceWebhook"></ion-checkbox>
           <ion-popover trigger="tunnelWebhook-popover-{{alarm.alarmId}}" [dismissOnSelect]="true">
             <ng-template>
               <ion-content>
                 {{'settings.alarms.tunnelWebhookHint' | translate}}
+              </ion-content>
+            </ng-template>
+          </ion-popover>
+        </ion-item>
+
+        <ion-item lines="none" [hidden]="alarm.actionType !== 'webhook'">
+          <ion-label>
+            {{ 'settings.alarms.deviceWebhook' | translate }}
+            <ion-button fill="clear" id="deviceWebhook-popover-{{alarm.alarmId}}">
+              <ion-icon name="help-circle-outline"></ion-icon>
+            </ion-button>
+          </ion-label>
+          <ion-checkbox [(ngModel)]="alarm.deviceWebhook" (ngModelChange)="alarmsChange.emit(alarms)" [disabled]="alarm.disabled || alarm.tunnelWebhook"></ion-checkbox>
+          <ion-popover trigger="deviceWebhook-popover-{{alarm.alarmId}}" [dismissOnSelect]="true">
+            <ng-template>
+              <ion-content>
+                {{'settings.alarms.deviceWebhookHint' | translate}}
               </ion-content>
             </ng-template>
           </ion-popover>

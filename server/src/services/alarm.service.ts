@@ -9,6 +9,7 @@ import * as console from 'node:console';
 import { dataService } from '@services/data.service';
 import { tunnelService } from '@services/tunnel.service';
 import { Mutex, MutexInterface, withTimeout } from 'async-mutex';
+import { mqttclient } from '../databases/mqttclient';
 
 const CACHE_EXPIRATION_SECONDS = 600;
 const MAINTENANCE_MODE_COOLDOWN_MILLIS = 10 * 60 * 1000;
@@ -191,6 +192,10 @@ class AlarmService {
   }
 
   private async handleWebhookAlarm(alarm: Alarm, deviceId: string, value: number) {
+    if (alarm.deviceWebhook) {
+      return this.handleDeviceWebhookAlarm(alarm, deviceId, value);
+    }
+
     const actionTarget = this.getActionTarget(alarm);
     if (!actionTarget) {
       console.error(`No webhook URL provided for alarm on device ${deviceId}`);
@@ -261,6 +266,43 @@ class AlarmService {
 
     req.write(webhookPayload);
     req.end();
+  }
+
+  private handleDeviceWebhookAlarm(alarm: Alarm, deviceId: string, value: number) {
+    const actionTarget = this.getActionTarget(alarm);
+    if (!actionTarget) {
+      console.error(`No webhook URL provided for alarm on device ${deviceId}`);
+      return;
+    }
+
+    const defaultPayload = JSON.stringify({
+      deviceId,
+      sensorType: alarm.sensorType,
+      value: value,
+      upperThreshold: this.hasThresholds(alarm) ? alarm.upperThreshold : undefined,
+      lowerThreshold: this.hasThresholds(alarm) ? alarm.lowerThreshold : undefined,
+      timestamp: new Date().toISOString(),
+      event: alarm.isTriggered ? 'triggered' : 'resolved',
+      alarmName: alarm.name,
+      alarmId: alarm.alarmId,
+      lastTriggeredAt: alarm.lastTriggeredAt,
+      extremeValue: !alarm.isTriggered && this.hasThresholds(alarm) ? alarm.extremeValue : undefined,
+    });
+
+    const webhookPayload = alarm.isTriggered ? alarm.webhookTriggeredPayload || defaultPayload : alarm.webhookResolvedPayload || defaultPayload;
+
+    mqttclient.publish(
+      '/devices/' + deviceId + '/command',
+      JSON.stringify({
+        action: 'webhook',
+        url: actionTarget,
+        method: alarm.webhookMethod ?? 'POST',
+        headers: alarm.webhookHeaders ?? {},
+        payload: webhookPayload,
+      }),
+    );
+
+    console.log(`Device webhook command sent to device ${deviceId} for alarm ${alarm.alarmId}.`);
   }
 
   private async handleInfoAlarm(alarm: Alarm, deviceId: string, value: number) {

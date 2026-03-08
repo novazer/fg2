@@ -89,6 +89,7 @@ const deviceSchema: Schema = new Schema({
         thresholdSeconds: { type: Number, required: false },
         reportWebhookErrors: { type: Boolean, required: false },
         tunnelWebhook: { type: Boolean, required: false },
+        deviceWebhook: { type: Boolean, required: false },
       },
     ],
     required: false,
