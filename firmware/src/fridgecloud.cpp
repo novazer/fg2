@@ -1,6 +1,8 @@
 #include <memory>
 #include <queue>
 #include <sstream>
+#include <cmath>
+#include <algorithm>
 #include <EspMQTTClient.h>
 #include <HTTPClient.h>
 #include <WiFiClient.h>
@@ -67,6 +69,7 @@ namespace fg {
     topic_control = String() + "/devices/" + device_id.c_str() + "/control/#";
     topic_tunnel_read = String() + "/devices/" + device_id.c_str() + "/tunnel_read";
     topic_tunnel_write = String() + "/devices/" + device_id.c_str() + "/tunnel_write";
+    topic_alarms = String() + "/devices/" + device_id.c_str() + "/alarms";
 
     Serial.print("api url:\t");
     Serial.println(api_url.c_str());
@@ -240,6 +243,32 @@ namespace fg {
       }
     });
 
+    client->subscribe(topic_alarms.c_str(), [&](const String & topic, const String & payload) {
+      auto doc = std::make_unique<DynamicJsonDocument>(8192);
+      DeserializationError error = deserializeJson(*doc, payload);
+      if (error) {
+        Serial.println("error parsing alarms config");
+        return;
+      }
+      alarm_config = std::move(doc);
+
+      // Remove state only for alarms that are no longer in the new config,
+      // so in-progress trigger/cooldown tracking is preserved for existing alarms.
+      std::vector<std::string> newIds;
+      for (JsonObjectConst a : alarm_config->as<JsonArrayConst>()) {
+        const char* id = a["alarmId"];
+        if (id) newIds.push_back(id);
+      }
+      for (auto it = alarm_states.begin(); it != alarm_states.end(); ) {
+        if (std::find(newIds.begin(), newIds.end(), it->first) == newIds.end()) {
+          it = alarm_states.erase(it);
+        } else {
+          ++it;
+        }
+      }
+      Serial.println("alarm config updated");
+    });
+
     client->publish(topic_fetch.c_str(), "hello");
 
     Serial.println("Connected to mqtt server");
@@ -290,6 +319,8 @@ namespace fg {
   }
 
   bool Fridgecloud::updateStatus(DynamicJsonDocument status) {
+    checkAlarms(status);
+
     time_t now;
     struct tm * ptm;
     struct tm timeinfo;
@@ -561,6 +592,120 @@ namespace fg {
 
     Serial.printf("Webhook executed: %s %s -> %d\n", methodStr.c_str(), url, httpCode);
     http.end();
+  }
+
+  static float getSensorValueFromStatus(const DynamicJsonDocument& status, const char* sensorType) {
+    JsonVariantConst v;
+    if (strcmp(sensorType, "temperature") == 0)      v = status["sensors"]["temperature"];
+    else if (strcmp(sensorType, "humidity") == 0)    v = status["sensors"]["humidity"];
+    else if (strcmp(sensorType, "co2") == 0)         v = status["sensors"]["co2"];
+    else if (strcmp(sensorType, "co2_valve") == 0)   v = status["outputs"]["co2"];
+    else if (strcmp(sensorType, "dehumidifier") == 0) v = status["outputs"]["dehumidifier"];
+    else if (strcmp(sensorType, "fan") == 0)         v = status["outputs"]["fan"];
+    else if (strcmp(sensorType, "heater") == 0) {
+      JsonVariantConst h = status["outputs"]["heater"];
+      return h.isNull() ? NAN : h.as<float>() * 100.0f;
+    }
+    else if (strcmp(sensorType, "light") == 0)       v = status["outputs"]["light"];
+    else return NAN;
+    return v.isNull() ? NAN : v.as<float>();
+  }
+
+  static bool isAlarmThresholdExceeded(JsonObjectConst alarm, float sensorValue) {
+    const char* sensorType = alarm["sensorType"];
+    if (strcmp(sensorType, "dehumidifier") == 0 || strcmp(sensorType, "co2_valve") == 0) {
+      return sensorValue > 0;
+    }
+    JsonVariantConst upper = alarm["upperThreshold"];
+    JsonVariantConst lower = alarm["lowerThreshold"];
+    if (!upper.isNull() && sensorValue > upper.as<float>()) return true;
+    if (!lower.isNull() && sensorValue < lower.as<float>()) return true;
+    return false;
+  }
+
+  void Fridgecloud::checkAlarms(const DynamicJsonDocument& status) {
+    if (!alarm_config) return;
+
+    JsonArrayConst alarms = alarm_config->as<JsonArrayConst>();
+    if (alarms.isNull()) return;
+
+    for (JsonObjectConst alarm : alarms) {
+      const char* alarmId = alarm["alarmId"];
+      const char* sensorType = alarm["sensorType"];
+      if (!alarmId || !sensorType) continue;
+
+      float sensorValue = getSensorValueFromStatus(status, sensorType);
+      if (std::isnan(sensorValue)) continue;
+
+      bool exceeded = isAlarmThresholdExceeded(alarm, sensorValue);
+
+      std::string id(alarmId);
+      AlarmState& state = alarm_states[id];
+
+      if (exceeded && !state.triggered) {
+        unsigned long cooldownMs = (unsigned long)((float)(alarm["cooldownSeconds"] | 0) * 1000.0f);
+        unsigned long now = millis();
+        if (cooldownMs > 0 && (now - state.lastTriggeredMillis) < cooldownMs) continue;
+
+        state.triggered = true;
+        state.lastTriggeredMillis = now;
+        fireAlarmWebhook(alarm, sensorValue, true);
+      } else if (!exceeded && state.triggered) {
+        state.triggered = false;
+        fireAlarmWebhook(alarm, sensorValue, false);
+      }
+    }
+  }
+
+  void Fridgecloud::fireAlarmWebhook(JsonObjectConst alarm, float sensorValue, bool triggered) {
+    const char* rawTarget = alarm["actionTarget"];
+    if (!rawTarget || strlen(rawTarget) == 0) return;
+
+    std::string url(rawTarget);
+    auto pipe = url.find('|');
+    if (pipe != std::string::npos) {
+      url = triggered ? url.substr(0, pipe) : url.substr(pipe + 1);
+      size_t start = url.find_first_not_of(' ');
+      size_t end   = url.find_last_not_of(' ');
+      url = (start == std::string::npos) ? "" : url.substr(start, end - start + 1);
+    }
+    if (url.empty()) return;
+
+    const char* customPayload = triggered
+      ? alarm["webhookTriggeredPayload"].as<const char*>()
+      : alarm["webhookResolvedPayload"].as<const char*>();
+
+    String payloadStr;
+    if (!customPayload || strlen(customPayload) == 0) {
+      DynamicJsonDocument payloadDoc(1024);
+      payloadDoc["deviceId"]   = device_id.c_str();
+      payloadDoc["sensorType"] = alarm["sensorType"];
+      payloadDoc["value"]      = sensorValue;
+      if (!alarm["upperThreshold"].isNull()) payloadDoc["upperThreshold"] = alarm["upperThreshold"];
+      if (!alarm["lowerThreshold"].isNull()) payloadDoc["lowerThreshold"] = alarm["lowerThreshold"];
+      payloadDoc["event"]      = triggered ? "triggered" : "resolved";
+      payloadDoc["alarmName"]  = alarm["name"];
+      payloadDoc["alarmId"]    = alarm["alarmId"];
+      unsigned long t = (unsigned long)getTime();
+      if (t > 1000000000UL) payloadDoc["timestamp"] = t;
+      serializeJson(payloadDoc, payloadStr);
+    } else {
+      payloadStr = customPayload;
+    }
+
+    DynamicJsonDocument cmd(4096);
+    cmd["url"]     = url.c_str();
+    cmd["method"]  = alarm["webhookMethod"] | "POST";
+    cmd["payload"] = payloadStr;
+    cmd["headers"].to<JsonObject>();
+    JsonObjectConst headers = alarm["webhookHeaders"].as<JsonObjectConst>();
+    if (!headers.isNull()) {
+      for (JsonPairConst kv : headers) {
+        cmd["headers"][kv.key().c_str()] = kv.value();
+      }
+    }
+
+    executeWebhook(cmd);
   }
 
   void Fridgecloud::handleTunnelCloses() {

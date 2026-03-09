@@ -398,6 +398,9 @@ class DeviceService {
     if (device.configuration != '') {
       mqttclient.publish('/devices/' + device.device_id + '/configuration', device.configuration);
     }
+    if (device.alarms) {
+      this.publishDeviceAlarms(device.device_id, device.alarms);
+    }
   }
 
   public async logMessage(
@@ -818,6 +821,12 @@ class DeviceService {
 
     await deviceModel.updateOne({ device_id: device_id }, { alarms: alarms });
     alarmService.invalidateAlarmCache(device_id);
+    this.publishDeviceAlarms(device_id, alarms);
+  }
+
+  private publishDeviceAlarms(deviceId: string, alarms: Alarm[]) {
+    const deviceAlarms = alarms.filter(a => a.deviceWebhook && !a.disabled);
+    mqttclient.publish('/devices/' + deviceId + '/alarms', JSON.stringify(deviceAlarms));
   }
 
   public async setDeviceCloudSettings(device_id: string, user_id: string, settings: CloudSettings) {

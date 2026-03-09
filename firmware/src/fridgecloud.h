@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <queue>
+#include <map>
 #include <EspMQTTClient.h>
 #include <HTTPClient.h>
 
@@ -39,6 +40,15 @@ namespace fg {
     String topic_control;
     String topic_tunnel_read;
     String topic_tunnel_write;
+    String topic_alarms;
+
+    struct AlarmState {
+      bool triggered = false;
+      unsigned long lastTriggeredMillis = 0;
+    };
+
+    std::unique_ptr<DynamicJsonDocument> alarm_config;
+    std::map<std::string, AlarmState> alarm_states;
 
 
     std::string device_id;
@@ -104,6 +114,8 @@ namespace fg {
     void handleTunnelCloses();
     void handleTunnelReads();
     void executeWebhook(const JsonDocument& command);
+    void checkAlarms(const DynamicJsonDocument& status);
+    void fireAlarmWebhook(JsonObjectConst alarm, float sensorValue, bool triggered);
     inline bool directMode() { return custom_mqtt; }
   };
 

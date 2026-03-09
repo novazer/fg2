@@ -36,6 +36,7 @@ class AlarmService {
       }
 
       for (const alarm of device.alarms) {
+        if (alarm.deviceWebhook) continue; // handled independently by the device
         const sensorValue = this.getSensorValue(alarm, data);
         if (sensorValue !== undefined && !alarm.disabled && (alarm.latestDataPointTime ?? 0) < timestamp) {
           const thresholdExceeded = await this.isThresholdExceeded(deviceId, alarm, sensorValue, timestamp);
