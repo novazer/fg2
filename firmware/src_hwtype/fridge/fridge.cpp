@@ -886,6 +886,14 @@ namespace fg {
           out_light.set(255.0f * (state.out_light / 100.0f));
       }
 
+      SmartSocketOutputStates socket_states;
+      socket_states.dehumidifier_on = state.out_dehumidifier > 0;
+      socket_states.heater_on = state.out_heater > 0;
+      socket_states.light_on = state.out_light > 0;
+      socket_states.secondary_light_on = state.out_light > 0;
+      socket_states.co2_on = state.out_co2 > 0;
+      wifiReportSmartSocketOutputs(socket_states);
+
       if(state.co2 < CO2_LEVEL_CRITICAL) {
         if(++co2_low_count >= 60) {
           if(!co2_warning_triggered) {
@@ -1108,6 +1116,10 @@ namespace fg {
 
     // }
 
+
+    menu->addOption("Smart Sockets", ICON_SETTINGS, [ui, this](){
+      showSmartSocketsUi(ui, &cloud);
+    });
 
     menu->addOption("WiFi Connection", ICON_WIFI_FULL, [ui, this](){
       showWifiUi(ui, &cloud);
