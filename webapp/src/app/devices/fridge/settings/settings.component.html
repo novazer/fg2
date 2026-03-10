@@ -246,8 +246,20 @@
 
   <ion-card>
     <ion-card-content>
-      <ion-button color="secondary" expand="block" (click)="saveSettings();">{{'misc.save' | translate}}</ion-button>
+      <ion-text *ngIf="settingsmode === 'recipe' && !(recipe.activeSince > 0)">
+        <ion-icon name="warning" color="warning"></ion-icon>
+        Please start the recipe
+        <br/>
+      </ion-text>
+
+      <ion-button
+        color="secondary"
+        expand="block"
+        [disabled]="settingsmode === 'recipe' && !(recipe.activeSince > 0)"
+        (click)="saveSettings();"
+      >{{'misc.save' | translate}}</ion-button>
       <!-- <ion-button color="danger" expand="block" (click)="resetForm();">{{'buttons.revert' | translate}}</ion-button> -->
+
     </ion-card-content>
   </ion-card>
 
