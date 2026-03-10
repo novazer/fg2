@@ -215,7 +215,7 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
     const co2:any = cfg?.co2 || {};
 
     // keep current workmode around for the UI label and masking rules
-    const mode:string = (cfg?.workmode || this.workmode || 'unknown') + '';
+    const mode:string = (cfg ? (cfg?.workmode || 'unknown') : 'loading') + '';
     this.workmode = mode;
 
     let t = this.is_day ? toNum(day.temperature) : toNum(night.temperature);
