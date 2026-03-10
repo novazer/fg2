@@ -299,6 +299,31 @@ bool sendSmartSocketPower(const std::string& role, bool turn_on) {
   return httpGet("http://" + socket_ip + "/cm?" + auth + "cmnd=" + command);
 }
 
+static void updateSmartSocketSyncStateForRole(const std::string& role) {
+  TickType_t now = xTaskGetTickCount();
+
+  if(role == "dehumidifier") {
+    smart_socket_state_dehumidifier.last_send_tick = now;
+    smart_socket_state_dehumidifier.initialized = true;
+  }
+  else if(role == "heater") {
+    smart_socket_state_heater.last_send_tick = now;
+    smart_socket_state_heater.initialized = true;
+  }
+  else if(role == "light") {
+    smart_socket_state_light.last_send_tick = now;
+    smart_socket_state_light.initialized = true;
+  }
+  else if(role == "secondary_light") {
+    smart_socket_state_secondary_light.last_send_tick = now;
+    smart_socket_state_secondary_light.initialized = true;
+  }
+  else if(role == "co2") {
+    smart_socket_state_co2.last_send_tick = now;
+    smart_socket_state_co2.initialized = true;
+  }
+}
+
 static void showSmartSocketTestSelection(unsigned preselected_index) {
   const std::vector<std::string>& roles = getSocketRolesList();
   std::vector<std::string> assigned_roles;
@@ -342,6 +367,10 @@ static void showSmartSocketTestSelection(unsigned preselected_index) {
 
       const bool turn_on = (action_selected == 1);
       const bool ok = sendSmartSocketPower(role, turn_on);
+
+      if(ok) {
+        updateSmartSocketSyncStateForRole(role);
+      }
 
       ui_handle->push<fg::TextDisplay>(ok ? "command sent" : "command failed", 1, [role_index_for_return]() {
         ui_handle->pop();
@@ -388,7 +417,7 @@ static void runConnectSocketFlow() {
     }
 
     std::vector<std::string> role_options = getSocketRoleOptions();
-    ui_handle->push<fg::SelectInput>("select socket", 0, role_options, [=](unsigned role_selected) {
+    ui_handle->push<fg::SelectInput>("select role", 0, role_options, [=](unsigned role_selected) {
       ui_handle->pop();
 
       if(role_selected == 0) {
@@ -1079,7 +1108,7 @@ bool httpGet(const std::string& url, std::string* response) {
     return false;
   }
 
-  http.setTimeout(10000);
+  http.setTimeout(5000);
   int code = http.GET();
   if(response != nullptr && code > 0) {
     *response = std::string(http.getString().c_str());
@@ -1191,25 +1220,67 @@ bool provisionSmartSocket(const std::string& socket_role, const std::string& hom
   const std::string home_password_clean = sanitizeSettingString(home_password);
   const std::string socket_name = "socket_" + socket_role;
 
-  emit_status("wifi cfg send...");
-  delayWithWatchdog(2000);
-  std::string wifi_url = "http://192.168.4.1/wi?s1=" + urlEncode(home_ssid_clean) + "&p1=" + urlEncode(home_password_clean) + "&h=" + urlEncode(socket_name) + "&save=";
-  if(!httpGet(wifi_url)) {
-    error_message = "wifi setup fail";
+  bool reconnected_to_home = false;
+  auto reconnect_home = [&]() {
+    if(reconnected_to_home) {
+      return true;
+    }
+    emit_status("reconnect wifi");
+    if(!connectToWifi(home_ssid_clean, home_password_clean)) {
+      return false;
+    }
+    reconnected_to_home = true;
+    return true;
+  };
+
+  auto fail_with_reconnect = [&](const char* message) {
+    error_message = message;
+    if(!reconnect_home()) {
+      error_message = "reconnect fail";
+    }
     return false;
+  };
+
+  std::string mqtt_password = sanitizeSettingString(fg::settings().getStr("mqtt_pass"));
+  if(mqtt_password.empty()) {
+    fg::SettingsManager provisioning(NVS_PART, "fg_provisioning");
+    mqtt_password = sanitizeSettingString(provisioning.getStr("mqtt_password"));
   }
 
-  emit_status("sent successful");
+  if(mqtt_password.empty()) {
+    return fail_with_reconnect("mqtt pass miss");
+  }
+
+  const std::string tasmota_template = "%7B%22NAME%22%3A%22Generic%22%2C%22GPIO%22%3A%5B1%2C1%2C1%2C32%2C2720%2C2656%2C1%2C1%2C2624%2C288%2C224%2C1%2C1%2C1%5D%2C%22FLAG%22%3A0%2C%22BASE%22%3A18%7D";
+
+  emit_status("config socket...");
+  delayWithWatchdog(2000);
+  std::string config_url = "http://192.168.4.1/co?t1=" + tasmota_template + "&wp=" + urlEncode(mqtt_password) + "&b3=on&dn=" + urlEncode(socket_name) + "&a0=" + urlEncode(socket_name) + "&b2=0&save=";
+  if(!httpGet(config_url)) {
+    return fail_with_reconnect("config fail");
+  }
+
+  emit_status("config sent");
+  delayWithWatchdog(2000);
+
+  const std::string auth_query = "user=admin&password=" + urlEncode(mqtt_password) + "&";
+
+  emit_status("config wifi...");
+  delayWithWatchdog(2000);
+  std::string wifi_url = "http://192.168.4.1/wi?" + auth_query + "s1=" + urlEncode(home_ssid_clean) + "&p1=" + urlEncode(home_password_clean) + "&h=" + urlEncode(socket_name) + "&save=";
+  if(!httpGet(wifi_url)) {
+    return fail_with_reconnect("wifi config fail");
+  }
+
+  emit_status("wifi configured");
   delayWithWatchdog(2000);
   emit_status("wait for wifi...");
   delayWithWatchdog(8000);
 
   std::string ip_response;
-  bool ip_command_ok = httpGet("http://192.168.4.1/cm?cmnd=IPAddress1", &ip_response);
+  bool ip_command_ok = httpGet("http://192.168.4.1/cm?" + auth_query + "cmnd=IPAddress1", &ip_response);
 
-  // Always return to the original fridge Wi-Fi right after issuing the IPAddress1 command.
-  emit_status("reconnect wifi");
-  if(!connectToWifi(home_ssid_clean, home_password_clean)) {
+  if(!reconnect_home()) {
     error_message = "reconnect fail";
     return false;
   }
@@ -1219,57 +1290,11 @@ bool provisionSmartSocket(const std::string& socket_role, const std::string& hom
     return false;
   }
 
-  std::string mqtt_password = sanitizeSettingString(fg::settings().getStr("mqtt_pass"));
-  if(mqtt_password.empty()) {
-    fg::SettingsManager provisioning(NVS_PART, "fg_provisioning");
-    mqtt_password = sanitizeSettingString(provisioning.getStr("mqtt_password"));
-  }
-
-  if(mqtt_password.empty()) {
-    error_message = "mqtt pass miss";
-    return false;
-  }
-
-  const std::string tasmota_template = "%7B%22NAME%22%3A%22Generic%22%2C%22GPIO%22%3A%5B1%2C1%2C1%2C32%2C2720%2C2656%2C1%2C1%2C2624%2C288%2C224%2C1%2C1%2C1%5D%2C%22FLAG%22%3A0%2C%22BASE%22%3A18%7D";
-
-  emit_status("config socket");
-  delayWithWatchdog(2000);
-  std::string config_url = "http://" + socket_ip + "/co?t1=" + tasmota_template + "&wp=" + urlEncode(mqtt_password) + "&b3=on&dn=" + urlEncode(socket_name) + "&a0=" + urlEncode(socket_name) + "&b2=0&save=";
-  if(!httpGet(config_url)) {
-    error_message = "config fail";
-    return false;
-  }
-
   std::string socket_key = socketRoleKey(socket_role);
   fg::settings().setStr(socket_key.c_str(), socket_ip.c_str());
   fg::settings().commit();
 
   emit_status("socket configured");
-  delayWithWatchdog(2000);
-  emit_status("wait for socket");
-  delayWithWatchdog(6000);
-  emit_status("test power on...");
-  delayWithWatchdog(2000);
-
-  const std::string auth_query = "user=admin&password=" + urlEncode(mqtt_password) + "&";
-
-  if(!httpGet("http://" + socket_ip + "/cm?" + auth_query + "cmnd=Power%20On")) {
-    error_message = "power on fail";
-    return false;
-  }
-
-  emit_status("test success");
-  delayWithWatchdog(2000);
-  emit_status("waiting...");
-  delayWithWatchdog(6000);
-  emit_status("test power off...");
-  delayWithWatchdog(2000);
-
-  if(!httpGet("http://" + socket_ip + "/cm?" + auth_query + "cmnd=Power%20Off")) {
-    error_message = "power off fail";
-    return false;
-  }
-  emit_status("test success");
   delayWithWatchdog(2000);
 
   return true;
