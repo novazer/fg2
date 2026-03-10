@@ -221,7 +221,7 @@ class DeviceService {
     const now = Date.now();
 
     for (const device of devices) {
-      if (device.recipe.activeStepIndex < 0 || device.recipe.steps.length <= 0) {
+      if (device.recipe.activeStepIndex >= device.recipe.steps.length || (device.recipe.activeStepIndex ?? -1) < 0) {
         continue;
       }
 
