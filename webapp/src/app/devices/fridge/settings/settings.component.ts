@@ -90,6 +90,7 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
         await this.devices.setSettings(this.device_id, JSON.stringify(this.deviceSettings));
       }
       await this.devices.setRecipe(this.device_id, {
+        activeStepIndex: 0,
         ...this.recipe,
         activeSince: this.settingsmode === 'recipe' ? this.recipe.activeSince : 0,
         steps: this.recipe.steps.map((step: any) => ({
@@ -218,6 +219,9 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
   setRunning(running: boolean) {
     if (running) {
       this.recipe.activeSince = Date.now();
+      if (!this.recipe.activeStepIndex) {
+        this.recipe.activeStepIndex = 0;
+      }
       this.startTimer();
     } else {
       this.recipe.activeSince = 0;

@@ -275,12 +275,12 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
   getRecipeStepRemainingMs(step: any): number {
     const elapsedMs = Date.now() - this.recipe.activeSince;
 
-    const stepDurationMs = step.duration * 60 * 1000 * (
-      step.durationUnit === 'weeks'
+    const stepDurationMs = step?.duration * 60 * 1000 * (
+      step?.durationUnit === 'weeks'
         ? 24 * 7 * 60
-        : step.durationUnit === 'days'
+        : step?.durationUnit === 'days'
           ? 24 * 60
-          : step.durationUnit === 'hours'
+          : step?.durationUnit === 'hours'
             ? 60
             : 1
     );
@@ -289,7 +289,7 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
   }
 
   getRecipeStepRemainingDuration(step: any): string {
-    return msToDuration(this.getRecipeStepRemainingMs(step)) + (step.waitForConfirmation ? ' +confirm' : '');
+    return msToDuration(this.getRecipeStepRemainingMs(step)) + (step?.waitForConfirmation ? ' +confirm' : '');
   }
 
   getMaintenanceModeRemainingMs(): number {
