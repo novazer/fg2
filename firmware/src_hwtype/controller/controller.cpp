@@ -812,7 +812,15 @@ namespace fg {
       if (settings.lights.maintenanceOn > 0 && xTaskGetTickCount() <= pause_until_tick) {
           state.out_light = 15.0f;
           out_light.set(255.0f * (state.out_light / 100.0f));
-      }
+       }
+
+      SmartSocketOutputStates socket_states;
+      socket_states.dehumidifier_on = state.out_dehumidifier > 0;
+      socket_states.heater_on = state.out_heater > 0;
+      socket_states.light_on = state.out_light > 0;
+      socket_states.secondary_light_on = state.out_light > 0;
+      socket_states.co2_on = state.out_co2 > 0;
+      wifiReportSmartSocketOutputs(socket_states);
 
       if(state.co2 < CO2_LEVEL_CRITICAL) {
         if(++co2_low_count >= 60) {
@@ -846,6 +854,7 @@ namespace fg {
     status["outputs"]["dehumidifier"] = state.out_dehumidifier;
     status["outputs"]["heater"] = state.out_heater;
     status["outputs"]["light"] = state.out_light;
+    status["outputs"]["secondary_light"] = state.out_light;
 
     if(cloud.directMode()) {
       status["outputs"]["fan-internal"] = out_fan_internal.get() / 255.0f;
@@ -1035,6 +1044,10 @@ namespace fg {
       }
 
 
+
+    menu->addOption("Smart Sockets", ICON_SETTINGS, [ui, this](){
+      showSmartSocketsUi(ui, &cloud);
+    });
 
     menu->addOption("WiFi Connection", ICON_WIFI_FULL, [ui, this](){
       showWifiUi(ui, &cloud);

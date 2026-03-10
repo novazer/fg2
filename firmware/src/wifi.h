@@ -40,8 +40,19 @@ namespace fg {
 
 }
 
+struct SmartSocketOutputStates {
+  bool dehumidifier_on = false;
+  bool heater_on = false;
+  bool light_on = false;
+  bool secondary_light_on = false;
+  bool co2_on = false;
+};
+
 bool initializeWifi();
 void resetCredentials();
 void wifiTick();
 bool wifiIsConnected();
 void showWifiUi(fg::UserInterface* ui, fg::Fridgecloud* cloud);
+void showSmartSocketsUi(fg::UserInterface* ui, fg::Fridgecloud* cloud);
+bool sendSmartSocketPower(const std::string& role, bool turn_on);
+void wifiReportSmartSocketOutputs(const SmartSocketOutputStates& states);

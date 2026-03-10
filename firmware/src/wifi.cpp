@@ -13,6 +13,8 @@
 #include <ArduinoJson.h>
 #include <EEPROM.h>
 #include <sstream>
+#include <cctype>
+#include <HTTPClient.h>
 
 #include "fridgecloud.h"
 
@@ -20,6 +22,8 @@
 #include "html_compressed/index.html.h"
 
 #define WIFI_SCAN_TIMEOUT 30000
+
+static constexpr TickType_t SMART_SOCKET_RESEND_PERIOD = configTICK_RATE_HZ * 60;
 
 
 namespace fg {
@@ -108,6 +112,20 @@ bool loadWifiCredentials();
 void saveWifiCredentials();
 void InitalizeHTTPServer();
 std::vector<std::string> scanWifiNetworks();
+bool isHexSegment(const std::string& value, size_t expected_len);
+bool isSmartSocketSsid(const std::string& value);
+std::vector<std::string> scanSmartSocketSsids();
+std::string smartSocketDisplayName(const std::string& ssid);
+std::string sanitizeSettingString(const std::string& value);
+std::string urlEncode(const std::string& value);
+bool httpGet(const std::string& url, std::string* response = nullptr);
+bool parseSmartSocketIp(const std::string& body, std::string& socket_ip);
+void delayWithWatchdog(uint32_t delay_ms);
+bool provisionSmartSocket(const std::string& socket_role, const std::string& home_ssid, const std::string& home_password, std::string& socket_ip, std::string& error_message, const std::function<void(const char*)>& progress_callback);
+bool isSocketRoleConnected(const std::string& role);
+std::string socketRoleKey(const std::string& role);
+const std::vector<std::string>& getSocketRolesList();
+std::vector<std::string> getSocketRoleOptions();
 boolean createConfigurationAP();
 bool connectToWifi(std::string ssid, std::string password);
 
@@ -147,6 +165,22 @@ short status = WL_IDLE_STATUS;
 bool server_active = false;
 
 bool wifi_configured = false;
+
+struct SmartSocketSyncState {
+  bool initialized = false;
+  bool last_target = false;
+  TickType_t last_send_tick = 0;
+};
+
+static SmartSocketOutputStates smart_socket_output_states;
+static bool smart_socket_outputs_reported = false;
+static SmartSocketSyncState smart_socket_state_dehumidifier;
+static SmartSocketSyncState smart_socket_state_heater;
+static SmartSocketSyncState smart_socket_state_light;
+static SmartSocketSyncState smart_socket_state_secondary_light;
+static SmartSocketSyncState smart_socket_state_co2;
+
+static void syncSmartSocketRole(const char* role, bool target_on, SmartSocketSyncState& role_state);
 
 bool initializeWifi() {
   WiFi.persistent(false);
@@ -195,6 +229,34 @@ void wifiTick() {
       connectToWifi(primary_ssid, primary_password);
     }
   }
+
+  if(smart_socket_outputs_reported) {
+    syncSmartSocketRole("dehumidifier", smart_socket_output_states.dehumidifier_on, smart_socket_state_dehumidifier);
+    syncSmartSocketRole("heater", smart_socket_output_states.heater_on, smart_socket_state_heater);
+    syncSmartSocketRole("light", smart_socket_output_states.light_on, smart_socket_state_light);
+    syncSmartSocketRole("secondary_light", smart_socket_output_states.secondary_light_on, smart_socket_state_secondary_light);
+    syncSmartSocketRole("co2", smart_socket_output_states.co2_on, smart_socket_state_co2);
+  }
+}
+
+void wifiReportSmartSocketOutputs(const SmartSocketOutputStates& states) {
+  smart_socket_output_states = states;
+  smart_socket_outputs_reported = true;
+}
+
+static void syncSmartSocketRole(const char* role, bool target_on, SmartSocketSyncState& role_state) {
+  TickType_t now = xTaskGetTickCount();
+  bool state_changed = !role_state.initialized || role_state.last_target != target_on;
+  bool periodic_resend = role_state.initialized && (now - role_state.last_send_tick >= SMART_SOCKET_RESEND_PERIOD);
+
+  if(!state_changed && !periodic_resend) {
+    return;
+  }
+
+  sendSmartSocketPower(role, target_on);
+  role_state.last_target = target_on;
+  role_state.last_send_tick = now;
+  role_state.initialized = true;
 }
 
 float rssi = 0;
@@ -202,13 +264,251 @@ float rssi = 0;
 std::string ui_ssid;
 std::string ui_password;
 fg::UserInterface* ui_handle;
+fg::Fridgecloud* smart_socket_cloud_handle = nullptr;
 std::vector<std::string> scanned_ssids;
+std::vector<std::string> scanned_smart_socket_ssids;
 std::string custom_mqtt_server;
 std::string custom_mqtt_user;
 std::string custom_mqtt_port;
 std::string custom_mqtt_pass;
 std::string custom_mqtt_id;
 uint8_t custom_mqtt_enabled;
+
+static void logSmartSocketFailure(const std::string& reason) {
+  if(smart_socket_cloud_handle == nullptr) {
+    return;
+  }
+
+  std::string message = "message-smart-socket-setup-failed:" + reason;
+  smart_socket_cloud_handle->log(message, 1);
+}
+
+bool sendSmartSocketPower(const std::string& role, bool turn_on) {
+  const std::string key = socketRoleKey(role);
+  const std::string socket_ip = sanitizeSettingString(fg::settings().getStr(key.c_str()));
+  if(socket_ip.empty()) {
+    return false;
+  }
+
+  std::string mqtt_password = sanitizeSettingString(fg::settings().getStr("mqtt_pass"));
+  if(mqtt_password.empty()) {
+    fg::SettingsManager provisioning(NVS_PART, "fg_provisioning");
+    mqtt_password = sanitizeSettingString(provisioning.getStr("mqtt_password"));
+  }
+  if(mqtt_password.empty()) {
+    return false;
+  }
+
+  const std::string auth = "user=admin&password=" + urlEncode(mqtt_password) + "&";
+  const std::string command = turn_on ? "Power%20On" : "Power%20Off";
+  return httpGet("http://" + socket_ip + "/cm?" + auth + "cmnd=" + command);
+}
+
+static void showSmartSocketTestSelection(unsigned preselected_index) {
+  const std::vector<std::string>& roles = getSocketRolesList();
+  std::vector<std::string> assigned_roles;
+  assigned_roles.push_back("back");
+
+  for(size_t i = 1; i < roles.size(); ++i) {
+    if(isSocketRoleConnected(roles[i])) {
+      assigned_roles.push_back(roles[i]);
+    }
+  }
+
+  if(assigned_roles.size() == 1) {
+    ui_handle->push<fg::TextDisplay>("no role assigned", 1, []() {
+      ui_handle->pop();
+    });
+    return;
+  }
+
+  if(preselected_index >= assigned_roles.size()) {
+    preselected_index = 0;
+  }
+
+  ui_handle->push<fg::SelectInput>("test socket", preselected_index, assigned_roles, [assigned_roles](unsigned selected) {
+    ui_handle->pop();
+
+    if(selected == 0) {
+      return;
+    }
+
+    const std::string role = assigned_roles[selected];
+    const unsigned role_index_for_return = selected;
+
+    std::vector<std::string> actions = {"back", "turn on", "turn off"};
+    ui_handle->push<fg::SelectInput>(role.c_str(), 0, actions, [role, role_index_for_return](unsigned action_selected) {
+      ui_handle->pop();
+
+      if(action_selected == 0) {
+        showSmartSocketTestSelection(role_index_for_return);
+        return;
+      }
+
+      const bool turn_on = (action_selected == 1);
+      const bool ok = sendSmartSocketPower(role, turn_on);
+
+      ui_handle->push<fg::TextDisplay>(ok ? "command sent" : "command failed", 1, [role_index_for_return]() {
+        ui_handle->pop();
+        showSmartSocketTestSelection(role_index_for_return);
+      });
+    });
+  });
+}
+
+static void runConnectSocketFlow() {
+  ui_handle->push<fg::TextDisplay>("scanning...");
+  ui_handle->loop();
+
+  scanned_smart_socket_ssids = scanSmartSocketSsids();
+  std::vector<std::string> socket_options;
+  socket_options.reserve(scanned_smart_socket_ssids.size() + 1);
+  socket_options.push_back("back");
+  for(const auto& socket_ssid : scanned_smart_socket_ssids) {
+    socket_options.push_back(smartSocketDisplayName(socket_ssid));
+  }
+
+  ui_handle->pop();
+
+  if(scanned_smart_socket_ssids.empty()) {
+    ui_handle->push<fg::TextDisplay>("no smart socket found", 1, []() {
+      ui_handle->pop();
+    });
+    return;
+  }
+
+  ui_handle->push<fg::SelectInput>("select socket", 0, socket_options, [=](unsigned selected) {
+    ui_handle->pop();
+
+    if(selected == 0) {
+      return;
+    }
+
+    std::string socket_ssid = scanned_smart_socket_ssids[selected - 1];
+    if(!isSmartSocketSsid(socket_ssid)) {
+      ui_handle->push<fg::TextDisplay>("invalid socket", 1, []() {
+        ui_handle->pop();
+      });
+      return;
+    }
+
+    std::vector<std::string> role_options = getSocketRoleOptions();
+    ui_handle->push<fg::SelectInput>("select role", 0, role_options, [=](unsigned role_selected) {
+      ui_handle->pop();
+
+      if(role_selected == 0) {
+        return;
+      }
+
+      const std::vector<std::string>& roles = getSocketRolesList();
+      std::string socket_role = roles[role_selected];
+
+      ui_handle->push<fg::TextDisplay>("connecting...");
+      ui_handle->loop();
+
+      const std::string home_ssid = primary_ssid;
+      const std::string home_password = primary_password;
+
+      if(connectToWifi(socket_ssid, "")) {
+        ui_handle->pop();
+        ui_handle->push<fg::TextDisplay>("connected");
+        ui_handle->loop();
+
+        std::string socket_ip;
+        std::string error_message;
+        auto update_status = [](const char* message) {
+          ui_handle->pop();
+          ui_handle->push<fg::TextDisplay>(message);
+          ui_handle->loop();
+        };
+
+        bool provisioned = provisionSmartSocket(socket_role, home_ssid, home_password, socket_ip, error_message, update_status);
+
+        ui_handle->pop();
+        if(provisioned) {
+          ui_handle->push<fg::TextDisplay>("socket ready", 1, [socket_ip]() {
+            Serial.print("smart socket ready: ");
+            Serial.println(socket_ip.c_str());
+            ui_handle->pop();
+          });
+        }
+        else {
+          logSmartSocketFailure(error_message);
+          ui_handle->push<fg::TextDisplay>(error_message.c_str(), 1, []() {
+            ui_handle->pop();
+          });
+        }
+      }
+      else {
+        ui_handle->pop();
+        logSmartSocketFailure("connection failed");
+        ui_handle->push<fg::TextDisplay>("conn failed", 1, []() {
+          ui_handle->pop();
+        });
+      }
+    });
+  });
+}
+
+void showSmartSocketsUi(fg::UserInterface* ui, fg::Fridgecloud* cloud) {
+  using namespace fg;
+  ui_handle = ui;
+  smart_socket_cloud_handle = cloud;
+
+  auto menu = ui->push<SelectMenu>();
+  menu->addOption("back...", [ui]() { ui->pop(); });
+
+  menu->addOption("test socket", []() {
+    showSmartSocketTestSelection(0);
+  });
+
+  menu->addOption("connect socket", []() {
+    if(!wifi_configured) {
+      ui_handle->push<TextDisplay>("wifi not configured", 1, []() {
+        ui_handle->pop();
+      });
+      return;
+    }
+    runConnectSocketFlow();
+  });
+
+  menu->addOption("disconnect", []() {
+    const std::vector<std::string>& roles = getSocketRolesList();
+    std::vector<std::string> disconnect_options;
+    disconnect_options.push_back("back");
+
+    // Show only roles that currently have a socket assigned.
+    for(size_t i = 1; i < roles.size(); ++i) {
+      if(isSocketRoleConnected(roles[i])) {
+        disconnect_options.push_back(roles[i]);
+      }
+    }
+
+    if(disconnect_options.size() == 1) {
+      ui_handle->push<TextDisplay>("no role assigned", 1, []() {
+        ui_handle->pop();
+      });
+      return;
+    }
+
+    ui_handle->push<SelectInput>("disconnect role", 0, disconnect_options, [disconnect_options](unsigned selected) {
+      ui_handle->pop();
+
+      if(selected == 0) {
+        return;
+      }
+
+      const std::string selected_role = disconnect_options[selected];
+      const std::string key = socketRoleKey(selected_role);
+      fg::settings().erase(key.c_str());
+      fg::settings().commit();
+
+      ui_handle->push<TextDisplay>("role disconnected", 1, []() {
+        ui_handle->pop();
+      });
+    });
+  });
+}
 
 void showWifiUi(fg::UserInterface* ui, fg::Fridgecloud* cloud) {
   using namespace fg;
@@ -742,6 +1042,279 @@ String formatBytes(size_t bytes) {            // lesbare Anzeige der SpeichergrÃ
    } else  {
      return String(bytes / 1024.0 / 1024.0) + " MB";
    }
+}
+
+std::string sanitizeSettingString(const std::string& value) {
+  return std::string(value.c_str());
+}
+
+std::string urlEncode(const std::string& value) {
+  static const char* hex = "0123456789ABCDEF";
+  std::string encoded;
+  encoded.reserve(value.size() * 3);
+
+  for(unsigned char c : value) {
+    if((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '-' || c == '_' || c == '.' || c == '~') {
+      encoded.push_back(static_cast<char>(c));
+    }
+    else {
+      encoded.push_back('%');
+      encoded.push_back(hex[(c >> 4) & 0x0F]);
+      encoded.push_back(hex[c & 0x0F]);
+    }
+  }
+
+  return encoded;
+}
+
+bool httpGet(const std::string& url, std::string* response) {
+  HTTPClient http;
+  if(!http.begin(url.c_str())) {
+    return false;
+  }
+
+  http.setTimeout(10000);
+  int code = http.GET();
+  if(response != nullptr && code > 0) {
+    *response = std::string(http.getString().c_str());
+  }
+  http.end();
+
+  return code >= 200 && code < 300;
+}
+
+bool parseSmartSocketIp(const std::string& body, std::string& socket_ip) {
+  DynamicJsonDocument response(256);
+  if(deserializeJson(response, body.c_str())) {
+    return false;
+  }
+
+  std::string ip_field = response["IPAddress1"].as<std::string>();
+  if(ip_field.empty()) {
+    return false;
+  }
+
+  ip_field = sanitizeSettingString(ip_field);
+  auto start = ip_field.find('(');
+  auto end = ip_field.find(')', start == std::string::npos ? 0 : start + 1);
+
+  std::string parsed = ip_field;
+  if(start != std::string::npos && end != std::string::npos && end > start + 1) {
+    parsed = ip_field.substr(start + 1, end - start - 1);
+  }
+
+  if(!isIp(parsed.c_str())) {
+    return false;
+  }
+
+  socket_ip = parsed;
+  return true;
+}
+
+void delayWithWatchdog(uint32_t delay_ms) {
+  uint32_t remaining = delay_ms;
+  while(remaining > 0) {
+    uint32_t step = remaining > 200 ? 200 : remaining;
+    vTaskDelay(step / portTICK_PERIOD_MS);
+    esp_task_wdt_reset();
+    remaining -= step;
+  }
+}
+
+bool isSocketRoleConnected(const std::string& role) {
+  std::string socket_key = socketRoleKey(role);
+  return fg::settings().has(socket_key.c_str()) && !fg::settings().getStr(socket_key.c_str()).empty();
+}
+
+std::string socketRoleKey(const std::string& role) {
+  // NVS key length is limited, keep all keys <= 15 chars.
+  if(role == "dehumidifier") return "sock_dehum";
+  if(role == "heater") return "sock_heat";
+  if(role == "light") return "sock_light";
+  if(role == "secondary_light") return "sock_slight";
+  if(role == "co2") return "sock_co2";
+  if(role == "other1") return "sock_oth1";
+  if(role == "other2") return "sock_oth2";
+  if(role == "other3") return "sock_oth3";
+  return "sock_misc";
+}
+
+const std::vector<std::string>& getSocketRolesList() {
+  static const std::vector<std::string> roles = {
+    "back",
+    "dehumidifier",
+    "heater",
+    "light",
+    "secondary_light",
+    "co2",
+  };
+  return roles;
+}
+
+std::vector<std::string> getSocketRoleOptions() {
+  const std::vector<std::string>& base_roles = getSocketRolesList();
+
+  std::vector<std::string> role_options;
+  role_options.reserve(base_roles.size());
+
+  for(const auto& role : base_roles) {
+    if(role == "back") {
+      role_options.push_back(role);
+    }
+    else {
+      std::string display_name = role;
+      if(isSocketRoleConnected(role)) {
+        display_name = "* " + display_name;
+      }
+      role_options.push_back(display_name);
+    }
+  }
+
+  return role_options;
+}
+
+bool provisionSmartSocket(const std::string& socket_role, const std::string& home_ssid, const std::string& home_password, std::string& socket_ip, std::string& error_message, const std::function<void(const char*)>& progress_callback) {
+  auto emit_status = [&](const char* message) {
+    Serial.println(message);
+    if(progress_callback) {
+      progress_callback(message);
+    }
+  };
+
+  const std::string home_ssid_clean = sanitizeSettingString(home_ssid);
+  const std::string home_password_clean = sanitizeSettingString(home_password);
+  const std::string socket_name = "socket_" + socket_role;
+
+  emit_status("wifi cfg send");
+  std::string wifi_url = "http://192.168.4.1/wi?s1=" + urlEncode(home_ssid_clean) + "&p1=" + urlEncode(home_password_clean) + "&h=" + urlEncode(socket_name) + "&save=";
+  if(!httpGet(wifi_url)) {
+    error_message = "wifi setup fail";
+    return false;
+  }
+
+  emit_status("sent successful");
+  delayWithWatchdog(1000);
+  emit_status("wait for wifi");
+  delayWithWatchdog(9000);
+
+  emit_status("read new ip");
+  std::string ip_response;
+  bool ip_command_ok = httpGet("http://192.168.4.1/cm?cmnd=IPAddress1", &ip_response);
+
+  // Always return to the original fridge Wi-Fi right after issuing the IPAddress1 command.
+  emit_status("reconnect wifi");
+  if(!connectToWifi(home_ssid_clean, home_password_clean)) {
+    error_message = "reconnect fail";
+    return false;
+  }
+
+  if(!ip_command_ok || !parseSmartSocketIp(ip_response, socket_ip)) {
+    error_message = "ip lookup fail";
+    return false;
+  }
+
+  std::string mqtt_password = sanitizeSettingString(fg::settings().getStr("mqtt_pass"));
+  if(mqtt_password.empty()) {
+    fg::SettingsManager provisioning(NVS_PART, "fg_provisioning");
+    mqtt_password = sanitizeSettingString(provisioning.getStr("mqtt_password"));
+  }
+
+  if(mqtt_password.empty()) {
+    error_message = "mqtt pass miss";
+    return false;
+  }
+
+  const std::string tasmota_template = "%7B%22NAME%22%3A%22Generic%22%2C%22GPIO%22%3A%5B1%2C1%2C1%2C32%2C2720%2C2656%2C1%2C1%2C2624%2C288%2C224%2C1%2C1%2C1%5D%2C%22FLAG%22%3A0%2C%22BASE%22%3A18%7D";
+
+  emit_status("config socket");
+  std::string config_url = "http://" + socket_ip + "/co?t1=" + tasmota_template + "&wp=" + urlEncode(mqtt_password) + "&b3=on&dn=" + urlEncode(socket_name) + "&a0=" + urlEncode(socket_name) + "&b2=0&save=";
+  if(!httpGet(config_url)) {
+    error_message = "config fail";
+    return false;
+  }
+
+  std::string socket_key = socketRoleKey(socket_role);
+  fg::settings().setStr(socket_key.c_str(), socket_ip.c_str());
+  fg::settings().commit();
+
+  emit_status("socket configured");
+  delayWithWatchdog(1000);
+  emit_status("wait for socket");
+  delayWithWatchdog(9000);
+
+  const std::string auth_query = "user=admin&password=" + urlEncode(mqtt_password) + "&";
+
+  emit_status("test power on");
+  if(!httpGet("http://" + socket_ip + "/cm?" + auth_query + "cmnd=Power%20On")) {
+    error_message = "power on fail";
+    return false;
+  }
+
+  emit_status("test success");
+  delayWithWatchdog(1000);
+  emit_status("waiting 10s...");
+  delayWithWatchdog(9000);
+
+  emit_status("test power off");
+  if(!httpGet("http://" + socket_ip + "/cm?" + auth_query + "cmnd=Power%20Off")) {
+    error_message = "power off fail";
+    return false;
+  }
+  emit_status("test success");
+  delayWithWatchdog(1000);
+
+  return true;
+}
+
+bool isHexSegment(const std::string& value, size_t expected_len) {
+  if(value.size() != expected_len) {
+    return false;
+  }
+
+  for(unsigned char c : value) {
+    if(!std::isxdigit(c)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+bool isSmartSocketSsid(const std::string& value) {
+  static const std::string prefix = "cozylife-";
+  if(value.rfind(prefix, 0) != 0) {
+    return false;
+  }
+
+  std::string suffix = value.substr(prefix.size());
+  auto divider_pos = suffix.find('-');
+  if(divider_pos == std::string::npos || suffix.find('-', divider_pos + 1) != std::string::npos) {
+    return false;
+  }
+
+  return isHexSegment(suffix.substr(0, divider_pos), 6) && isHexSegment(suffix.substr(divider_pos + 1), 4);
+}
+
+std::vector<std::string> scanSmartSocketSsids() {
+  std::vector<std::string> all_ssids = scanWifiNetworks();
+  std::vector<std::string> smart_socket_ssids;
+
+  for(const auto& network_ssid : all_ssids) {
+    if(isSmartSocketSsid(network_ssid)) {
+      smart_socket_ssids.push_back(network_ssid);
+    }
+  }
+
+  return smart_socket_ssids;
+}
+
+std::string smartSocketDisplayName(const std::string& ssid) {
+  static const std::string prefix = "cozylife-";
+  if(ssid.rfind(prefix, 0) == 0) {
+    return ssid.substr(prefix.size());
+  }
+
+  return ssid;
 }
 
 std::vector<std::string> scanWifiNetworks() {
