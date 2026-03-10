@@ -504,6 +504,7 @@ class DeviceController {
           raw: true,
           severity: 0,
           categories: ['recipe'],
+          deleted: true,
         });
       }
 
