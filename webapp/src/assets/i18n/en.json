@@ -458,5 +458,9 @@
   "message-firmware-update-complete-title": "Firmware update complette",
   "message-firmware-update-complete-text": "You device's firmware update was completed",
   "message-smart-socket-cmd-failed-title": "Smart socket command failed",
-  "message-smart-socket-cmd-failed-text": "Failed to send a power command to the smart socket for role: {{value}}"
+  "message-smart-socket-cmd-failed-text": "Failed to send a power command to the smart socket for role: {{value}}",
+  "message-smart-socket-connected-title": "Smart socket connected",
+  "message-smart-socket-connected-text": "A smart socket was connected for role: {{value}}",
+  "message-smart-socket-disconnected-title": "Smart socket disconnected",
+  "message-smart-socket-disconnected-text": "The smart socket assignment was removed for role: {{value}}"
 }

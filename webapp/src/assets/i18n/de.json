@@ -440,5 +440,9 @@
   "message-firmware-update-complete-title": "Firmware-Update abgeschlossen",
   "message-firmware-update-complete-text": "Die Firmware deines Geräts wurde erfolgreich aktualisiert.",
   "message-smart-socket-cmd-failed-title": "Befehl an Smart-Steckdose fehlgeschlagen",
-  "message-smart-socket-cmd-failed-text": "Der Schaltbefehl an die Smart-Steckdose für die Rolle «{{value}}» konnte nicht gesendet werden."
+  "message-smart-socket-cmd-failed-text": "Der Schaltbefehl an die Smart-Steckdose für die Rolle «{{value}}» konnte nicht gesendet werden.",
+  "message-smart-socket-connected-title": "Smart-Steckdose verbunden",
+  "message-smart-socket-connected-text": "Eine Smart-Steckdose wurde für die Rolle «{{value}}» verbunden.",
+  "message-smart-socket-disconnected-title": "Smart-Steckdose getrennt",
+  "message-smart-socket-disconnected-text": "Die Smart-Steckdosen-Zuordnung für die Rolle «{{value}}» wurde entfernt."
 }

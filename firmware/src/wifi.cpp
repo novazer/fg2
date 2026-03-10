@@ -527,6 +527,10 @@ void showSmartSocketsUi(fg::UserInterface* ui, fg::Fridgecloud* cloud) {
       fg::settings().erase(key.c_str());
       fg::settings().commit();
 
+      if(smart_socket_cloud_handle != nullptr) {
+        smart_socket_cloud_handle->log(std::string("message-smart-socket-disconnected:") + selected_role, 0);
+      }
+
       std::string mqtt_password = sanitizeSettingString(fg::settings().getStr("mqtt_pass"));
       if(mqtt_password.empty()) {
         fg::SettingsManager provisioning(NVS_PART, "fg_provisioning");
@@ -1300,6 +1304,10 @@ bool provisionSmartSocket(const std::string& socket_role, const std::string& hom
   std::string socket_key = socketRoleKey(socket_role);
   fg::settings().setStr(socket_key.c_str(), socket_ip.c_str());
   fg::settings().commit();
+
+  if(smart_socket_cloud_handle != nullptr) {
+    smart_socket_cloud_handle->log(std::string("message-smart-socket-connected:") + socket_role, 0);
+  }
 
 
   emit_status("socket configured");
