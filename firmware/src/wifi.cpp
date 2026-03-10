@@ -1251,11 +1251,14 @@ bool provisionSmartSocket(const std::string& socket_role, const std::string& hom
     return fail_with_reconnect("mqtt pass miss");
   }
 
-  const std::string tasmota_template = "%7B%22NAME%22%3A%22Generic%22%2C%22GPIO%22%3A%5B1%2C1%2C1%2C32%2C2720%2C2656%2C1%2C1%2C2624%2C288%2C224%2C1%2C1%2C1%5D%2C%22FLAG%22%3A0%2C%22BASE%22%3A18%7D";
-
   emit_status("config socket...");
   delayWithWatchdog(2000);
-  std::string config_url = "http://192.168.4.1/co?t1=" + tasmota_template + "&wp=" + urlEncode(mqtt_password) + "&b3=on&dn=" + urlEncode(socket_name) + "&a0=" + urlEncode(socket_name) + "&b2=0&save=";
+  std::string config_url = "http://192.168.4.1/cm?cmnd=Backlog%20"
+                         + urlEncode("DeviceName " + socket_name + "; ")
+                         + urlEncode("Hostname " + socket_name + "; ")
+                         + urlEncode("WiFiTest2 " + home_ssid_clean + "+" + home_password_clean + "; ")
+                         + urlEncode("WebPassword " + mqtt_password);
+
   if(!httpGet(config_url)) {
     return fail_with_reconnect("config fail");
   }
@@ -1265,20 +1268,15 @@ bool provisionSmartSocket(const std::string& socket_role, const std::string& hom
 
   const std::string auth_query = "user=admin&password=" + urlEncode(mqtt_password) + "&";
 
-  emit_status("config wifi...");
-  delayWithWatchdog(2000);
-  std::string wifi_url = "http://192.168.4.1/wi?" + auth_query + "s1=" + urlEncode(home_ssid_clean) + "&p1=" + urlEncode(home_password_clean) + "&h=" + urlEncode(socket_name) + "&save=";
-  if(!httpGet(wifi_url)) {
-    return fail_with_reconnect("wifi config fail");
-  }
-
-  emit_status("wifi configured");
-  delayWithWatchdog(2000);
-  emit_status("wait for wifi...");
+  emit_status("wait for ip...");
   delayWithWatchdog(8000);
 
   std::string ip_response;
-  bool ip_command_ok = httpGet("http://192.168.4.1/cm?" + auth_query + "cmnd=IPAddress1", &ip_response);
+  std::string ip_url = "http://192.168.4.1/cm?" + auth_query + "cmnd=IPAddress1";
+  bool ip_command_ok = httpGet(ip_url, &ip_response);
+
+  std::string ap_url = "http://192.168.4.1/cm?" + auth_query + "cmnd=Ap%202";
+  bool ap_command_ok = httpGet(ap_url);
 
   if(!reconnect_home()) {
     error_message = "reconnect fail";
@@ -1290,9 +1288,15 @@ bool provisionSmartSocket(const std::string& socket_role, const std::string& hom
     return false;
   }
 
+  if (!ap_command_ok) {
+    emit_status("  failed disabling\n  ap mode - ignoring");
+    delayWithWatchdog(2000);
+  }
+
   std::string socket_key = socketRoleKey(socket_role);
   fg::settings().setStr(socket_key.c_str(), socket_ip.c_str());
   fg::settings().commit();
+
 
   emit_status("socket configured");
   delayWithWatchdog(2000);
