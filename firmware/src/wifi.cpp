@@ -282,7 +282,7 @@ bool sendSmartSocketPower(const std::string& role, bool turn_on) {
   const std::string key = socketRoleKey(role);
   const std::string socket_ip = sanitizeSettingString(fg::settings().getStr(key.c_str()));
   if(socket_ip.empty()) {
-    return false;
+    return true;
   }
 
   std::string mqtt_password = sanitizeSettingString(fg::settings().getStr("mqtt_pass"));
