@@ -388,7 +388,7 @@ static void runConnectSocketFlow() {
     }
 
     std::vector<std::string> role_options = getSocketRoleOptions();
-    ui_handle->push<fg::SelectInput>("select role", 0, role_options, [=](unsigned role_selected) {
+    ui_handle->push<fg::SelectInput>("select socket", 0, role_options, [=](unsigned role_selected) {
       ui_handle->pop();
 
       if(role_selected == 0) {
@@ -478,13 +478,13 @@ void showSmartSocketsUi(fg::UserInterface* ui, fg::Fridgecloud* cloud) {
     }
 
     if(disconnect_options.size() == 1) {
-      ui_handle->push<TextDisplay>("no role assigned", 1, []() {
+      ui_handle->push<TextDisplay>("no socket assigned", 1, []() {
         ui_handle->pop();
       });
       return;
     }
 
-    ui_handle->push<SelectInput>("disconnect role", 0, disconnect_options, [disconnect_options](unsigned selected) {
+    ui_handle->push<SelectInput>("disconnect socket", 0, disconnect_options, [disconnect_options](unsigned selected) {
       ui_handle->pop();
 
       if(selected == 0) {
@@ -493,10 +493,23 @@ void showSmartSocketsUi(fg::UserInterface* ui, fg::Fridgecloud* cloud) {
 
       const std::string selected_role = disconnect_options[selected];
       const std::string key = socketRoleKey(selected_role);
+      const std::string socket_ip = sanitizeSettingString(fg::settings().getStr(key.c_str()));
+
       fg::settings().erase(key.c_str());
       fg::settings().commit();
 
-      ui_handle->push<TextDisplay>("role disconnected", 1, []() {
+      std::string mqtt_password = sanitizeSettingString(fg::settings().getStr("mqtt_pass"));
+      if(mqtt_password.empty()) {
+        fg::SettingsManager provisioning(NVS_PART, "fg_provisioning");
+        mqtt_password = sanitizeSettingString(provisioning.getStr("mqtt_password"));
+      }
+
+      if(!socket_ip.empty() && !mqtt_password.empty()) {
+        const std::string auth_query = "user=admin&password=" + urlEncode(mqtt_password) + "&";
+        httpGet("http://" + socket_ip + "/cm?" + auth_query + "cmnd=Reset%201");
+      }
+
+      ui_handle->push<TextDisplay>("socket disconnected", 1, []() {
         ui_handle->pop();
       });
     });
@@ -1178,7 +1191,8 @@ bool provisionSmartSocket(const std::string& socket_role, const std::string& hom
   const std::string home_password_clean = sanitizeSettingString(home_password);
   const std::string socket_name = "socket_" + socket_role;
 
-  emit_status("wifi cfg send");
+  emit_status("wifi cfg send...");
+  delayWithWatchdog(2000);
   std::string wifi_url = "http://192.168.4.1/wi?s1=" + urlEncode(home_ssid_clean) + "&p1=" + urlEncode(home_password_clean) + "&h=" + urlEncode(socket_name) + "&save=";
   if(!httpGet(wifi_url)) {
     error_message = "wifi setup fail";
@@ -1186,11 +1200,10 @@ bool provisionSmartSocket(const std::string& socket_role, const std::string& hom
   }
 
   emit_status("sent successful");
-  delayWithWatchdog(1000);
-  emit_status("wait for wifi");
-  delayWithWatchdog(9000);
+  delayWithWatchdog(2000);
+  emit_status("wait for wifi...");
+  delayWithWatchdog(8000);
 
-  emit_status("read new ip");
   std::string ip_response;
   bool ip_command_ok = httpGet("http://192.168.4.1/cm?cmnd=IPAddress1", &ip_response);
 
@@ -1220,6 +1233,7 @@ bool provisionSmartSocket(const std::string& socket_role, const std::string& hom
   const std::string tasmota_template = "%7B%22NAME%22%3A%22Generic%22%2C%22GPIO%22%3A%5B1%2C1%2C1%2C32%2C2720%2C2656%2C1%2C1%2C2624%2C288%2C224%2C1%2C1%2C1%5D%2C%22FLAG%22%3A0%2C%22BASE%22%3A18%7D";
 
   emit_status("config socket");
+  delayWithWatchdog(2000);
   std::string config_url = "http://" + socket_ip + "/co?t1=" + tasmota_template + "&wp=" + urlEncode(mqtt_password) + "&b3=on&dn=" + urlEncode(socket_name) + "&a0=" + urlEncode(socket_name) + "&b2=0&save=";
   if(!httpGet(config_url)) {
     error_message = "config fail";
@@ -1231,30 +1245,32 @@ bool provisionSmartSocket(const std::string& socket_role, const std::string& hom
   fg::settings().commit();
 
   emit_status("socket configured");
-  delayWithWatchdog(1000);
+  delayWithWatchdog(2000);
   emit_status("wait for socket");
-  delayWithWatchdog(9000);
+  delayWithWatchdog(6000);
+  emit_status("test power on...");
+  delayWithWatchdog(2000);
 
   const std::string auth_query = "user=admin&password=" + urlEncode(mqtt_password) + "&";
 
-  emit_status("test power on");
   if(!httpGet("http://" + socket_ip + "/cm?" + auth_query + "cmnd=Power%20On")) {
     error_message = "power on fail";
     return false;
   }
 
   emit_status("test success");
-  delayWithWatchdog(1000);
-  emit_status("waiting 10s...");
-  delayWithWatchdog(9000);
+  delayWithWatchdog(2000);
+  emit_status("waiting...");
+  delayWithWatchdog(6000);
+  emit_status("test power off...");
+  delayWithWatchdog(2000);
 
-  emit_status("test power off");
   if(!httpGet("http://" + socket_ip + "/cm?" + auth_query + "cmnd=Power%20Off")) {
     error_message = "power off fail";
     return false;
   }
   emit_status("test success");
-  delayWithWatchdog(1000);
+  delayWithWatchdog(2000);
 
   return true;
 }
