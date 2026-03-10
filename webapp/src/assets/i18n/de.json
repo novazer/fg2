@@ -438,5 +438,7 @@
   "message-maintenance-mode-activated-remote-title": "Pflegemodus über Portal aktiviert",
   "message-maintenance-mode-activated-remote-text": "Das Modul wurde über das Portal manuell für {{value}} Minuten in den Pflegemodus versetzt. Alarme werden während dieser Zeit deaktiviert.",
   "message-firmware-update-complete-title": "Firmware-Update abgeschlossen",
-  "message-firmware-update-complete-text": "Die Firmware deines Geräts wurde erfolgreich aktualisiert."
+  "message-firmware-update-complete-text": "Die Firmware deines Geräts wurde erfolgreich aktualisiert.",
+  "message-smart-socket-cmd-failed-title": "Befehl an Smart-Steckdose fehlgeschlagen",
+  "message-smart-socket-cmd-failed-text": "Der Schaltbefehl an die Smart-Steckdose für die Rolle «{{value}}» konnte nicht gesendet werden."
 }

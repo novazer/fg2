@@ -179,6 +179,7 @@ static SmartSocketSyncState smart_socket_state_heater;
 static SmartSocketSyncState smart_socket_state_light;
 static SmartSocketSyncState smart_socket_state_secondary_light;
 static SmartSocketSyncState smart_socket_state_co2;
+static fg::Fridgecloud* smart_socket_cloud_handle = nullptr;
 
 static void syncSmartSocketRole(const char* role, bool target_on, SmartSocketSyncState& role_state);
 
@@ -253,7 +254,11 @@ static void syncSmartSocketRole(const char* role, bool target_on, SmartSocketSyn
     return;
   }
 
-  sendSmartSocketPower(role, target_on);
+  bool ok = sendSmartSocketPower(role, target_on);
+  if(!ok && smart_socket_cloud_handle != nullptr) {
+    std::string message = std::string("message-smart-socket-cmd-failed:") + role + ":" + (target_on ? "on" : "off");
+    smart_socket_cloud_handle->log(message, 1);
+  }
   role_state.last_target = target_on;
   role_state.last_send_tick = now;
   role_state.initialized = true;
@@ -264,7 +269,6 @@ float rssi = 0;
 std::string ui_ssid;
 std::string ui_password;
 fg::UserInterface* ui_handle;
-fg::Fridgecloud* smart_socket_cloud_handle = nullptr;
 std::vector<std::string> scanned_ssids;
 std::vector<std::string> scanned_smart_socket_ssids;
 std::string custom_mqtt_server;
@@ -273,15 +277,6 @@ std::string custom_mqtt_port;
 std::string custom_mqtt_pass;
 std::string custom_mqtt_id;
 uint8_t custom_mqtt_enabled;
-
-static void logSmartSocketFailure(const std::string& reason) {
-  if(smart_socket_cloud_handle == nullptr) {
-    return;
-  }
-
-  std::string message = "message-smart-socket-setup-failed:" + reason;
-  smart_socket_cloud_handle->log(message, 1);
-}
 
 bool sendSmartSocketPower(const std::string& role, bool turn_on) {
   const std::string key = socketRoleKey(role);
@@ -433,7 +428,6 @@ static void runConnectSocketFlow() {
           });
         }
         else {
-          logSmartSocketFailure(error_message);
           ui_handle->push<fg::TextDisplay>(error_message.c_str(), 1, []() {
             ui_handle->pop();
           });
@@ -441,7 +435,6 @@ static void runConnectSocketFlow() {
       }
       else {
         ui_handle->pop();
-        logSmartSocketFailure("connection failed");
         ui_handle->push<fg::TextDisplay>("conn failed", 1, []() {
           ui_handle->pop();
         });

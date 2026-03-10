@@ -456,5 +456,7 @@
   "message-maintenance-mode-activated-remote-title": "Maintenance mode activated via portal",
   "message-maintenance-mode-activated-remote-text": "Your device was manually put into maintenance mode for {{value}} minutes via the portal. Alarms will be disabled during this time",
   "message-firmware-update-complete-title": "Firmware update complette",
-  "message-firmware-update-complete-text": "You device's firmware update was completed"
+  "message-firmware-update-complete-text": "You device's firmware update was completed",
+  "message-smart-socket-cmd-failed-title": "Smart socket command failed",
+  "message-smart-socket-cmd-failed-text": "Failed to send a power command to the smart socket for role: {{value}}"
 }
