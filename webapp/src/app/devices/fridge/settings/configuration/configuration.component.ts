@@ -256,6 +256,7 @@ export class FridgeSettingsConfigurationComponent implements OnChanges {
 
   getDayVpd(humidityOffset = 0): number {
     return calculateVpd(
+      this.settings?.day?.temperature,
       this.settings?.day?.temperature + this.cloudSettings?.vpdLeafTempOffsetDay,
       Math.min(this.settings?.day?.humidity + humidityOffset, 90)
     );
@@ -263,6 +264,7 @@ export class FridgeSettingsConfigurationComponent implements OnChanges {
 
   getNightVpd(humidityOffset = 0): number {
     return calculateVpd(
+      this.settings?.night?.temperature,
       this.settings?.night?.temperature + this.cloudSettings?.vpdLeafTempOffsetNight,
       Math.min(this.settings?.night?.humidity + humidityOffset, 90)
     );
