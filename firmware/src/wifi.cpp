@@ -12,6 +12,7 @@
 
 #include <ArduinoJson.h>
 #include <EEPROM.h>
+#include <array>
 #include <sstream>
 #include <cctype>
 #include <HTTPClient.h>
@@ -102,6 +103,11 @@ namespace fg {
 
 #define DEFAULT_SSID_PREFIX "PLANT_"
 #define DEFAULT_HOSTNAME "plantalytix"
+
+static const std::array<std::string, 2> SMART_SOCKET_SSID_PREFIXES = {
+  "cozylife-",
+  "tasmota-",
+};
 
 std::string primary_ssid;
 std::string primary_password;
@@ -1330,13 +1336,22 @@ bool isHexSegment(const std::string& value, size_t expected_len) {
   return true;
 }
 
+static const std::string* findSmartSocketPrefix(const std::string& value) {
+  for(const auto& prefix : SMART_SOCKET_SSID_PREFIXES) {
+    if(value.rfind(prefix, 0) == 0) {
+      return &prefix;
+    }
+  }
+  return nullptr;
+}
+
 bool isSmartSocketSsid(const std::string& value) {
-  static const std::string prefix = "cozylife-";
-  if(value.rfind(prefix, 0) != 0) {
+  const std::string* prefix = findSmartSocketPrefix(value);
+  if(prefix == nullptr) {
     return false;
   }
 
-  std::string suffix = value.substr(prefix.size());
+  std::string suffix = value.substr(prefix->size());
   auto divider_pos = suffix.find('-');
   if(divider_pos == std::string::npos || suffix.find('-', divider_pos + 1) != std::string::npos) {
     return false;
@@ -1359,9 +1374,9 @@ std::vector<std::string> scanSmartSocketSsids() {
 }
 
 std::string smartSocketDisplayName(const std::string& ssid) {
-  static const std::string prefix = "cozylife-";
-  if(ssid.rfind(prefix, 0) == 0) {
-    return ssid.substr(prefix.size());
+  const std::string* prefix = findSmartSocketPrefix(ssid);
+  if(prefix != nullptr) {
+    return ssid.substr(prefix->size());
   }
 
   return ssid;
