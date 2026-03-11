@@ -765,7 +765,7 @@ class DeviceService {
         title: 'message-device-configuration-updated',
         message: `message-device-configuration-updated:${diffStr}`,
         severity: 0,
-        categories: ['device', 'configuration'],
+        categories: ['device', 'device-configuration'],
         deleted: true,
       });
       return true;
