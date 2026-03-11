@@ -62,6 +62,15 @@ const minimal_classes = [
   },
 ];
 
+const DEVICE_MESSAGE_CATEGORY_MAPPING = {
+  'message-maintenance-mode-activated': ['device-maintenance'],
+  'message-maintenance-mode-activated-remote': ['device-maintenance'],
+  'message-smart-socket-cmd-failed': ['device-socket'],
+  'message-co2-low': ['device-co2'],
+  'message-ext-sensor-fail': ['device-sensor'],
+  'message-ext-sensor-deviate': ['device-sensor'],
+} as const;
+
 class DeviceService {
   constructor() {
     void this.checkDeviceClasses();
@@ -121,7 +130,7 @@ class DeviceService {
             case 'log':
               const msg = JSON.parse(message.message);
               await this.logMessage(device.device_id, {
-                categories: msg?.message?.startsWith('message-maintenance-mode-activated') ? ['maintenance', 'device'] : ['device'],
+                categories: ['device', ...(DEVICE_MESSAGE_CATEGORY_MAPPING[msg?.message?.split(':')?.[0]] ?? [])],
                 ...msg,
               });
               break;
@@ -253,13 +262,12 @@ class DeviceService {
 
             if (device.recipe.additionalInfo) {
               await this.logMessage(device.device_id, {
-                title: `Recipe step #${device.recipe.activeStepIndex + 1} awaiting confirmation`,
-                message: `Recipe step #${device.recipe.activeStepIndex + 1} (${activeStep.name ?? ''}) is awaiting confirmation: ${
+                title: 'message-recipe-step-awaiting-confirmation',
+                message: `message-recipe-step-awaiting-confirmation:${device.recipe.activeStepIndex + 1} (${activeStep.name ?? ''}) - ${
                   activeStep.confirmationMessage || 'No additional information provided.'
                 }`,
-                raw: true,
                 severity: 0,
-                categories: ['recipe'],
+                categories: ['recipe', 'recipe-confirmation'],
               });
             }
 
@@ -283,11 +291,10 @@ class DeviceService {
 
             if (device.recipe.additionalInfo) {
               await this.logMessage(device.device_id, {
-                title: `Recipe advanced to step #${device.recipe.activeStepIndex + 1}`,
-                message: `The recipe has advanced to step #${device.recipe.activeStepIndex + 1} (${activeStep.name ?? ''})`,
-                raw: true,
+                title: 'message-recipe-advanced',
+                message: `message-recipe-advanced:${device.recipe.activeStepIndex + 1} (${activeStep.name ?? ''})`,
                 severity: 0,
-                categories: ['recipe'],
+                categories: ['recipe', 'recipe-step'],
               });
             }
           } else if (device.recipe.loop) {
@@ -306,11 +313,10 @@ class DeviceService {
 
             if (device.recipe.additionalInfo) {
               await this.logMessage(device.device_id, {
-                title: `Recipe looped to step #1`,
-                message: `The recipe has looped back to step #1 (${activeStep.name ?? ''}).`,
-                raw: true,
+                title: 'message-recipe-looped',
+                message: `message-recipe-looped:${activeStep.name ?? ''}`,
                 severity: 0,
-                categories: ['recipe'],
+                categories: ['recipe', 'recipe-step', 'recipe-looped'],
               });
             }
           } else {
@@ -327,11 +333,10 @@ class DeviceService {
 
             if (device.recipe.additionalInfo) {
               await this.logMessage(device.device_id, {
-                title: `Recipe completed`,
-                message: `The recipe has completed all steps.`,
-                raw: true,
+                title: 'message-recipe-completed',
+                message: 'message-recipe-completed',
                 severity: 0,
-                categories: ['recipe'],
+                categories: ['recipe', 'recipe-step', 'recipe-completed'],
               });
             }
           }
@@ -386,7 +391,7 @@ class DeviceService {
             await deviceService.logMessage(device.device_id, {
               message: `message-firmware-update-complete`,
               severity: 0,
-              categories: ['device', 'firmware'],
+              categories: ['device', 'device-firmware'],
             });
           } else {
             await deviceModel.findByIdAndUpdate(device._id, { current_firmware: payload.firmware_id });
@@ -757,9 +762,8 @@ class DeviceService {
     const diffStr = this.diffConfigs(oldDdevice.configuration, config);
     if (oldDdevice.configuration !== config && diffStr.length > 0) {
       await this.logMessage(device_id, {
-        title: 'Configuration updated',
-        message: 'Device configuration has been updated:\n' + diffStr,
-        raw: true,
+        title: 'message-device-configuration-updated',
+        message: `message-device-configuration-updated:${diffStr}`,
         severity: 0,
         categories: ['device', 'configuration'],
         deleted: true,

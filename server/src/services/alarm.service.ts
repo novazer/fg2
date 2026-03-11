@@ -250,10 +250,9 @@ class AlarmService {
 
       if (alarm.reportWebhookErrors) {
         void deviceService.logMessage(deviceId, {
-          title: `Webhook error for alarm ${alarm.name ?? alarm.alarmId}`,
-          message,
+          title: 'message-alarm-webhook-error',
+          message: `message-alarm-webhook-error:${alarm.name ?? alarm.alarmId} - ${message}`,
           severity: 1,
-          raw: true,
           categories: ['alarm', 'alarm-error'],
         });
       }
@@ -264,16 +263,15 @@ class AlarmService {
   }
 
   private async handleInfoAlarm(alarm: Alarm, deviceId: string, value: number) {
-    const name = `Alarm ${alarm.name ?? alarm.alarmId}`;
-    const event = alarm.isTriggered ? 'triggered' : 'resolved';
+    const name = alarm.name ?? alarm.alarmId;
+    const eventKey = alarm.isTriggered ? 'message-alarm-triggered' : 'message-alarm-resolved';
     await deviceService.logMessage(deviceId, {
-      title: `${name} ${event}`,
+      title: eventKey,
       message:
-        `${name} ${event}: Sensor ${alarm.sensorType}, value: ${value}` +
+        `${eventKey}:${name} (${alarm.sensorType}), value=${value}` +
         (this.hasThresholds(alarm) ? `, upper threshold=${alarm.upperThreshold || 'n/a'}, lower threshold=${alarm.lowerThreshold || 'n/a'}` : '') +
-        (!alarm.isTriggered && this.hasThresholds(alarm) ? `, extreme value: ${alarm.extremeValue ?? 'n/a'}` : ''),
+        (!alarm.isTriggered && this.hasThresholds(alarm) ? `, extreme value=${alarm.extremeValue ?? 'n/a'}` : ''),
       severity: alarm.isTriggered ? 1 : 0,
-      raw: true,
       categories: ['alarm', 'alarm-' + (alarm.isTriggered ? 'triggered' : 'resolved')],
     });
   }

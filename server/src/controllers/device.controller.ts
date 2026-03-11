@@ -497,11 +497,10 @@ class DeviceController {
         recipePayload?.additionalInfo
       ) {
         await deviceService.logMessage(device_id, {
-          title: `Recipe step #${recipePayload.activeStepIndex + 1} manually activated`,
-          message: `Recipe step #${recipePayload.activeStepIndex + 1} (${
+          title: 'message-recipe-step-manually-activated',
+          message: `message-recipe-step-manually-activated:${recipePayload.activeStepIndex + 1} (${
             recipePayload.steps?.[recipePayload.activeStepIndex]?.name ?? ''
-          }) has been manually activated by the user.`,
-          raw: true,
+          })`,
           severity: 0,
           categories: ['recipe'],
           deleted: true,

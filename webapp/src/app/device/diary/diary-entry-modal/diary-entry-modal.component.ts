@@ -29,7 +29,7 @@ export type DiaryEntry = {
 export const defaultDiaryEntries : Record<string, Partial<DiaryEntry> & { defaults?: Partial<Omit<DiaryEntry, 'data'>> }> = {
   'co2-refill': {
     defaults: {
-      title: 'CO2 cylinder was refilled',
+      title: 'message-diary-co2-refill',
     },
     message: '',
     data: {
@@ -39,19 +39,19 @@ export const defaultDiaryEntries : Record<string, Partial<DiaryEntry> & { defaul
   },
   'plant-log': {
     defaults: {
-      title: 'Plant log entry'
+      title: 'message-diary-plant-log'
     },
     message: '',
   },
   'fridge-log': {
     defaults: {
-      title: 'Fridge log entry'
+      title: 'message-diary-fridge-log'
     },
     message: '',
   },
   'measurement': {
     defaults: {
-      title: 'User measurement',
+      title: 'message-diary-measurement',
     },
     message: '',
     data: {
@@ -65,7 +65,7 @@ export const defaultDiaryEntries : Record<string, Partial<DiaryEntry> & { defaul
   },
   'plant-lifecycle': {
     defaults: {
-      title: 'Plant phase change',
+      title: 'message-diary-plant-lifecycle',
     },
     message: '',
     data: {

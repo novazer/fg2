@@ -363,10 +363,9 @@ class ImageService {
           if (error || !stdout || stdout.length === 0) {
             if (cloudSettings.logRtspStreamErrors) {
               void deviceService.logMessage(deviceId, {
-                title: `RTSP Stream Error`,
-                message: 'Failed to fetch image from RTSP stream: ' + stderr,
+                title: 'message-rtsp-stream-error',
+                message: `message-rtsp-stream-error:${stderr}`,
                 severity: 1,
-                raw: true,
                 categories: ['webcam', 'error'],
               });
             }
