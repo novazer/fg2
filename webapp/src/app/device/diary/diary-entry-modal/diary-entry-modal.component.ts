@@ -27,7 +27,7 @@ export type DiaryEntry = {
 };
 
 export const defaultDiaryEntries : Record<string, Partial<DiaryEntry> & { defaults?: Partial<Omit<DiaryEntry, 'data'>> }> = {
-  'co2-refill': {
+  'diary-co2-refill': {
     defaults: {
       title: 'message-diary-co2-refill',
     },
@@ -37,19 +37,19 @@ export const defaultDiaryEntries : Record<string, Partial<DiaryEntry> & { defaul
       co2FillingInitial: 425,
     },
   },
-  'plant-log': {
+  'diary-plant-log': {
     defaults: {
       title: 'message-diary-plant-log'
     },
     message: '',
   },
-  'fridge-log': {
+  'diary-fridge-log': {
     defaults: {
       title: 'message-diary-fridge-log'
     },
     message: '',
   },
-  'measurement': {
+  'diary-measurement': {
     defaults: {
       title: 'message-diary-measurement',
     },
@@ -63,7 +63,7 @@ export const defaultDiaryEntries : Record<string, Partial<DiaryEntry> & { defaul
       phMeasurement: undefined,
     },
   },
-  'plant-lifecycle': {
+  'diary-plant-lifecycle': {
     defaults: {
       title: 'message-diary-plant-lifecycle',
     },
@@ -94,7 +94,7 @@ export class DiaryEntryModalComponent implements OnInit {
   public title = ''
   // Keep ion-datetime value in local wall-time format (without timezone suffix).
   public time = DiaryEntryModalComponent.toLocalDateTimeInputValue(new Date());
-  public category = 'plant-log';
+  public category = 'diary-plant-log';
   public data: {[K in keyof DiaryEntryData]?: DiaryEntryData[K] | undefined} = {};
   public images: string[] = [];
   public uploading = false;
@@ -110,7 +110,7 @@ export class DiaryEntryModalComponent implements OnInit {
     this.message = this.entry?.message || '';
     this.title = this.entry?.title || '';
     this.time = DiaryEntryModalComponent.toLocalDateTimeInputValue(this.entry?.time ?? new Date());
-    this.category = this.entry?.category || 'plant-log';
+    this.category = this.entry?.category || 'diary-plant-log';
     this.data = {
       co2FillingRest: this.entry?.data?.co2FillingRest || 0,
       co2FillingInitial: this.entry?.data?.co2FillingInitial || 425,
@@ -129,9 +129,9 @@ export class DiaryEntryModalComponent implements OnInit {
       return;
     }
 
-    if (this.category === 'plant-lifecycle') {
+    if (this.category === 'diary-plant-lifecycle') {
       if (this.data.newLifecycleStage) {
-        const lifecycleLogs = await this.devices.getLogs(this.deviceId, undefined, new Date(this.time).getTime(), true, ['plant-lifecycle']);
+        const lifecycleLogs = await this.devices.getLogs(this.deviceId, undefined, new Date(this.time).getTime(), true, ['diary-plant-lifecycle']);
 
         let lifecycleOrder = LIFECYCLE_EVENT_ORDER[this.data.newLifecycleStage];
         for (const log of lifecycleLogs.reverse()) {
@@ -146,7 +146,7 @@ export class DiaryEntryModalComponent implements OnInit {
         }
       }
     } else {
-      const lifecycleLogs = await this.devices.getLogs(this.deviceId, undefined, new Date(this.time).getTime(), true, ['plant-lifecycle']);
+      const lifecycleLogs = await this.devices.getLogs(this.deviceId, undefined, new Date(this.time).getTime(), true, ['diary-plant-lifecycle']);
 
       if (!this.data.newLifecycleStage) {
         const previousLifecycleStage = lifecycleLogs.reverse().find(l => l.data?.newLifecycleStage);
