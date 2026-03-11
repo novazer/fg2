@@ -72,7 +72,7 @@ export class GrowReportComponent implements OnInit, OnDestroy, OnChanges {
   public selectedCycleIndex: number = 0;
   public loading = false;
   public availableLogCategories: string[] = [];
-  public selectedLogCategories: string[] = ['configuration', 'recipe', 'diary'];
+  public selectedLogCategories: string[] = ['device-configuration', 'recipe', 'diary'];
 
   private allLogs: LogEntryViewerLog[] = [];
   private lifecycleLogs: LogEntryViewerLog[] = [];
