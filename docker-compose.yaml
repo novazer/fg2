@@ -55,7 +55,8 @@ services:
 
   webapp:
     build:
-      context: ./webapp
+      context: .
+      dockerfile: webapp/Dockerfile
       args:
         API_URL_EXTERNAL: ${API_URL_EXTERNAL}
         DOCKER_NGINX_IMAGE: ${DOCKER_NGINX_IMAGE:-nginx:1-alpine}
@@ -69,7 +70,8 @@ services:
 
   server:
     build:
-      context: ./server
+      context: .
+      dockerfile: server/Dockerfile
       args:
         DOCKER_NODE_SERVER_IMAGE: ${DOCKER_NODE_SERVER_IMAGE:-node:20-alpine}
     restart: always

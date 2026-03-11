@@ -1,5 +1,5 @@
 import { model, Schema, Document } from 'mongoose';
-import { DeviceClass } from '@interfaces/device.interface';
+import { DeviceClass } from '@fg2/shared-types';
 
 const deviceClassSchema: Schema = new Schema({
   class_id: {

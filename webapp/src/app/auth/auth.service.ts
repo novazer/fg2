@@ -1,7 +1,7 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject, catchError, from, firstValueFrom, Observable, tap, Subject } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
-import { User } from '../services/users.service';
+import { UserLite } from '../services/users.service';
 import { DateTime, Interval } from "luxon";
 import { environment } from 'src/environments/environment';
 import { Router } from '@angular/router';
@@ -12,7 +12,7 @@ interface LoginData {
   userToken: any,
   refreshToken: any,
   imageToken: any,
-  user: User
+  user: UserLite
 }
 @Injectable({
   providedIn: 'root'
@@ -20,7 +20,7 @@ interface LoginData {
 export class AuthService implements OnDestroy {
 
   public authenticated: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
-  public current_user: BehaviorSubject<User|null> = new BehaviorSubject<User|null>(null);
+  public current_user: BehaviorSubject<UserLite|null> = new BehaviorSubject<UserLite|null>(null);
   private waitForToken: Promise<void> | null = null;
 
   constructor(private http: HttpClient, public router: Router) {

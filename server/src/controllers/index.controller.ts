@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { User } from '@interfaces/users.interface';
+import { User } from '@fg2/shared-types';
 import userModel from '@models/users.model';
 
 class IndexController {

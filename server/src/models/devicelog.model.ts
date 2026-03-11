@@ -1,5 +1,5 @@
 import { model, Schema, Document } from 'mongoose';
-import { Device, DeviceLog } from '@interfaces/device.interface';
+import { Device, DeviceLog } from '@fg2/shared-types';
 
 const deviceLogSchema: Schema = new Schema({
   device_id: {

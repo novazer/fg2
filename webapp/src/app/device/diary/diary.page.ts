@@ -8,12 +8,13 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {environment} from 'src/environments/environment';
 import {DataService} from 'src/app/services/data.service';
 import * as Highcharts from 'highcharts/highstock';
-import {DeviceLog, DeviceService} from 'src/app/services/devices.service';
+import {DeviceService} from 'src/app/services/devices.service';
 import {PlotLineOrBand, XAxisPlotLinesOptions} from "highcharts";
 import {YAxisOptions} from "highcharts/highstock";
 import { ModalController } from '@ionic/angular';
-import {DiaryEntry, DiaryEntryModalComponent} from './diary-entry-modal/diary-entry-modal.component';
+import {DiaryEntryModalComponent} from './diary-entry-modal/diary-entry-modal.component';
 import {OverlayEventDetail} from "@ionic/core/components";
+import type { DiaryEntry } from '@fg2/shared-types';
 
 @Component({
   selector: 'app-diary',

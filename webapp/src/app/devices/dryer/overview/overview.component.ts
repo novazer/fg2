@@ -3,7 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { IonModal } from '@ionic/angular';
 import { combineLatest } from 'rxjs';
 import { DataService } from 'src/app/services/data.service';
-import { Device, DeviceService } from 'src/app/services/devices.service';
+import { DeviceWithParsedSettings, DeviceService } from 'src/app/services/devices.service';
 import TimeAgo from 'javascript-time-ago'
 
 // English.
@@ -76,9 +76,6 @@ export class DryerOverviewComponent implements OnInit {
     })
 
     this.logs = await this.devices.getLogs(this.device_id);
-    for(let log of this.logs) {
-      log.time = timeAgo.format(new Date(log.time))
-    }
 
     this.config = await this.devices.getConfig(this.device_id);
 
@@ -104,5 +101,9 @@ export class DryerOverviewComponent implements OnInit {
     this.devices.clearLogs(this.device_id);
     this.logs = [];
     this.has_logs = false;
+  }
+
+  formatLogTime(time: Date) {
+    return timeAgo.format(time);
   }
 }

@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { combineLatest, firstValueFrom } from 'rxjs';
 import { DataService } from 'src/app/services/data.service';
-import { Device, DeviceService } from 'src/app/services/devices.service';
+import { DeviceWithParsedSettings, DeviceService } from 'src/app/services/devices.service';
 
 @Component({
   selector: 'app-testmode',

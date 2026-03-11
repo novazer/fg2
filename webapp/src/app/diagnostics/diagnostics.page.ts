@@ -117,9 +117,10 @@ export class DiagnosticsPage implements OnInit {
     this.configtext = await this.devices.getConfig(this.device_id)
     this.device_config = JSON.parse(await this.devices.getConfig(this.device_id))
     this.device_logs = await this.devices.getLogs(this.device_id)
-    for(let log of this.device_logs) {
-      log.time = timeAgo.format(new Date(log.time))
-    }
+  }
+
+  formatLogTime(time: Date) {
+    return timeAgo.format(time);
   }
 
   public async loadData() {

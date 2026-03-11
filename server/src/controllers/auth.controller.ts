@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { LoginDto, SignupDto, ActivationDto, PasswordResetDto } from '@dtos/users.dto';
 import { DataStoredInToken, RequestWithUser, RequestWithToken } from '@interfaces/auth.interface';
-import { User } from '@interfaces/users.interface';
+import { User } from '@fg2/shared-types';
 import AuthService from '@services/auth.service';
 import { SECRET_KEY } from '@/config';
 import { verify } from 'jsonwebtoken';

@@ -7,9 +7,10 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {DataService} from 'src/app/services/data.service';
 import * as Highcharts from 'highcharts/highstock';
 import {YAxisOptions} from 'highcharts/highstock';
-import {DeviceLog, DeviceService} from 'src/app/services/devices.service';
+import {DeviceService} from 'src/app/services/devices.service';
 import {IonModal} from "@ionic/angular";
 import {collectLogCategories, matchesLogCategory,} from '../log-entry-viewer/log-entry-viewer.component';
+import type { DeviceLog } from '@fg2/shared-types';
 
 declare var require: any;
 let Boost = require('highcharts/modules/boost');
@@ -239,7 +240,7 @@ export class ChartsPage implements OnInit, OnDestroy {
                   const dataGroup = target.dataGroup;
                   const timestamps = dataGroup ? [...target.series.xData].splice(dataGroup.start, dataGroup.length) : [category];
                   this.selectedLogs.splice(0, this.selectedLogs.length);
-                  this.selectedLogs.push(...this.deviceLogs.filter(log => timestamps.includes(Date.parse(log.time))));
+                  this.selectedLogs.push(...this.deviceLogs.filter(log => timestamps.includes(log.time.getTime())));
                   this.filterLogs();
                 }
               },
@@ -702,7 +703,7 @@ export class ChartsPage implements OnInit, OnDestroy {
       series.push({
         name: severity == 2 ? 'Critical logs' : (severity == 1 ? 'Warning logs' : 'Info logs'),
         type: 'column',
-        data: logs.map(log => [Date.parse(log.time), 1]) as [[number, number]],
+        data: logs.map(log => [log.time.getTime(), 1]) as [[number, number]],
         yAxis: yAxis.length,
         color: severity == 2 ? theme.logColors.critical : (severity == 1 ? theme.logColors.warning : theme.logColors.info),
         visible: true,

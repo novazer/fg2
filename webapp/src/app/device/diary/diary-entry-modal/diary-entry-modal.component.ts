@@ -3,28 +3,7 @@ import {ModalController} from '@ionic/angular';
 import {DeviceService} from 'src/app/services/devices.service';
 import {HttpErrorResponse} from "@angular/common/http";
 import {LIFECYCLE_EVENT_ORDER} from "../grow-report/grow-report.component";
-
-export type DiaryEntryData = {
-  co2FillingRest: number;
-  co2FillingInitial: number;
-  newLifecycleStage: 'germination' | 'seedling' | 'vegetative' | 'flowering' | 'drying' | 'curing';
-  lifecycleName: string;
-  lightMeasurement: number;
-  distanceMeasurement: number;
-  tdsMeasurement: number;
-  ecMeasurement: number;
-  outsideTemperatureMeasurement: number;
-  phMeasurement: number;
-};
-
-export type DiaryEntry = {
-  message?: string;
-  title: string;
-  time: Date;
-  category: string;
-  data?: Partial<DiaryEntryData>,
-  images?: string[];
-};
+import type { DiaryEntry, DiaryEntryData } from '@fg2/shared-types';
 
 export const defaultDiaryEntries : Record<string, Partial<DiaryEntry> & { defaults?: Partial<Omit<DiaryEntry, 'data'>> }> = {
   'diary-co2-refill': {
