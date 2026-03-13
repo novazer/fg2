@@ -140,7 +140,7 @@
                   <span *ngIf="parseWorkmode(step.settings?.workmode).hasDaycycle">{{ step.settings?.day?.temperature ?? 'n/a' }}&deg;/</span>{{ step.settings?.night?.temperature ?? 'n/a' }}&deg;C |
                   <span *ngIf="parseWorkmode(step.settings?.workmode).hasHumidity">
                     <span *ngIf="parseWorkmode(step.settings?.workmode).hasDaycycle">{{ step.settings?.day?.humidity ?? 'n/a' }}%/</span>{{ step.settings?.night?.humidity ?? 'n/a' }}% RLF |
-                    <span *ngIf="parseWorkmode(step.settings?.workmode).hasDaycycle">{{ getVpd(step?.settings?.day?.temperature + cloudSettings?.vpdLeafTempOffsetDay, step?.settings?.day?.humidity) }}kPa/</span>{{ getVpd(step?.settings?.night?.temperature + cloudSettings?.vpdLeafTempOffsetNight, step?.settings?.night?.humidity) }}kPa |
+                    <span *ngIf="parseWorkmode(step.settings?.workmode).hasDaycycle">{{ getVpd(step?.settings?.day?.temperature, step?.settings?.day?.temperature + cloudSettings?.vpdLeafTempOffsetDay, step?.settings?.day?.humidity) }}kPa/</span>{{ getVpd(step?.settings?.night?.temperature, step?.settings?.night?.temperature + cloudSettings?.vpdLeafTempOffsetNight, step?.settings?.night?.humidity) }}kPa |
                   </span>
                   <span *ngIf="parseWorkmode(step.settings?.workmode).hasDaycycle">Light: {{ step.settings?.lights.limit}}% | </span>
                   <span *ngIf="parseWorkmode(step.settings?.workmode).hasCo2">{{ step.settings?.co2?.target }}PPM |</span>

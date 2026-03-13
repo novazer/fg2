@@ -116,7 +116,7 @@ class DataService {
 
       if (values.temp && values.humidity && ((dayOnly && isDay) || (nightOnly && !isDay) || (!dayOnly && !nightOnly))) {
         const leafTempOffset = isDay ? cloudSettings?.vpdLeafTempOffsetDay : cloudSettings?.vpdLeafTempOffsetNight;
-        const vpd = calculateVpd(values.temp + leafTempOffset, values.humidity);
+        const vpd = calculateVpd(values.temp, values.temp + leafTempOffset, values.humidity);
         result.push({ _time: time, _value: vpd });
       } else {
         result.push({ _time: time, _value: NaN });
@@ -160,7 +160,7 @@ class DataService {
     if (temp && humidity) {
       const isDay = (light ?? 0) > 0.5;
       const leafTempOffset = isDay ? cloudSettings?.vpdLeafTempOffsetDay : cloudSettings?.vpdLeafTempOffsetNight;
-      return calculateVpd(temp + leafTempOffset, humidity);
+      return calculateVpd(temp, temp + leafTempOffset, humidity);
     }
 
     return NaN;

@@ -522,8 +522,8 @@ export class FridgeSettingComponent implements OnInit, OnDestroy {
     return timestamp;
   }
 
-  getVpd(temperature: number, humidity: number): number {
-    return calculateVpd(temperature, humidity);
+  getVpd(temperatureAir: number, temperatureLeaf: number, humidity: number): number {
+    return calculateVpd(temperatureAir, temperatureLeaf, humidity);
   }
 }
 
