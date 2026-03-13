@@ -116,7 +116,7 @@ constructorType="stockChart"
         {{message.message + '-title' | translate}}
       </ion-col>
       <ion-col>
-        {{message.time}}
+        {{ formatLogTime(message.time) }}
       </ion-col>
     </ion-row>
   </ion-col>

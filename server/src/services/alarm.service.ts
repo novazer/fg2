@@ -1,6 +1,6 @@
 import { deviceService, ONLINE_TIMEOUT, StatusMessage } from '@services/device.service';
 import deviceModel from '@models/device.model';
-import { Alarm, Device } from '@interfaces/device.interface';
+import { Alarm, Device } from '@fg2/shared-types';
 import { SMTP_SENDER } from '@config';
 import { mailTransport } from '@services/auth.service';
 import { request as httpRequest } from 'http';

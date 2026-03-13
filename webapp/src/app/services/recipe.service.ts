@@ -2,15 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { environment } from 'src/environments/environment';
-
-export interface TemplateSummary {
-  _id: string;
-  name: string;
-  owner_id?: string;
-  public: boolean;
-  createdAt?: number;
-  updatedAt?: number;
-}
+import type { RecipeTemplate } from '@fg2/shared-types';
 
 @Injectable({
   providedIn: 'root'
@@ -20,17 +12,17 @@ export class RecipeService {
 
   constructor(private http: HttpClient) {}
 
-  public async listTemplates(): Promise<TemplateSummary[]> {
-    return await firstValueFrom(this.http.get<TemplateSummary[]>(`${this.base}/recipes`));
+  public async listTemplates(): Promise<RecipeTemplate[]> {
+    return await firstValueFrom(this.http.get<RecipeTemplate[]>(`${this.base}/recipes`));
   }
 
-  public async getTemplate(id: string): Promise<any> {
-    return await firstValueFrom(this.http.get<any>(`${this.base}/recipes/${id}`));
+  public async getTemplate(id: string): Promise<RecipeTemplate> {
+    return await firstValueFrom(this.http.get<RecipeTemplate>(`${this.base}/recipes/${id}`));
   }
 
-  public async createTemplate(name: string, steps: any, isPublic: boolean) {
+  public async createTemplate(name: string, steps: RecipeTemplate['steps'], isPublic: boolean) {
     const body = { name, steps, public: isPublic };
-    return await firstValueFrom(this.http.post(`${this.base}/recipes`, body));
+    return await firstValueFrom(this.http.post<RecipeTemplate>(`${this.base}/recipes`, body));
   }
 
   public async deleteTemplate(id: string) {

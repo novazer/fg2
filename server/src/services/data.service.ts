@@ -3,7 +3,7 @@ import { INFLUXDB_BUCKET, INFLUXDB_ORG, INFLUXDB_TOKEN } from '@/config';
 import { deviceService, StatusMessage } from '@services/device.service';
 import { calculateVpd } from '@utils/calculateVpd';
 import imageModel from '@models/images.model';
-import { Image } from '@interfaces/images.interface';
+import { Image } from '@fg2/shared-types';
 
 const INFLUXDB_DB = 'devices';
 // You can generate a Token from the "Tokens Tab" in the UI

@@ -1,7 +1,8 @@
 import {Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges} from '@angular/core';
-import {DeviceLog, DeviceService} from "../../../services/devices.service";
+import {DeviceService} from "../../../services/devices.service";
 import {Subscription} from "rxjs";
 import {DataService} from "../../../services/data.service";
+import type { DeviceLog } from '@fg2/shared-types';
 
 type CylinderData = {
   timestampStart: Date;

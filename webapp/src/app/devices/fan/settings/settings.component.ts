@@ -3,7 +3,7 @@ import {ActivatedRoute, Router} from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { combineLatest } from 'rxjs';
 import { DataService } from 'src/app/services/data.service';
-import { Device, DeviceService } from 'src/app/services/devices.service';
+import { DeviceWithParsedSettings, DeviceService } from 'src/app/services/devices.service';
 
 interface Preset {
   id: string;

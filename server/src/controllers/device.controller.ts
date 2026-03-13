@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { Device, Recipe } from '@interfaces/device.interface';
+import { Device, Recipe } from '@fg2/shared-types';
 import { deviceService } from '@services/device.service';
 import { RequestWithUser } from '@/interfaces/auth.interface';
 import { AddDeviceClassDto, TestDeviceDto } from '@dtos/device.dto';

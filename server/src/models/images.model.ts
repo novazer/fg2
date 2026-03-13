@@ -1,5 +1,5 @@
 import { Document, model, Schema } from 'mongoose';
-import { Image } from '@interfaces/images.interface';
+import { Image } from '@fg2/shared-types';
 
 const imagesSchema: Schema = new Schema({
   image_id: {

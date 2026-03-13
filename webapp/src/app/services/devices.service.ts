@@ -3,50 +3,18 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Subject, firstValueFrom } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { AuthService } from '../auth/auth.service';
-import {DiaryEntry} from "../device/diary/diary-entry-modal/diary-entry-modal.component";
+import type {
+  CloudSettings,
+  DiaryEntryData,
+  DeviceLog,
+  DeviceClass,
+  Recipe,
+  Device,
+} from '@fg2/shared-types';
 
-export interface Device {
-  device_id: string;
-  device_type: string;
-  username: string;
-  password: string;
-  configuration: string;
+export type DeviceWithParsedSettings = Device & {
   settings: any;
-  name: string;
-  maintenance_mode_until?: number;
-  cloudSettings?: {
-    autoFirmwareUpdate?: boolean;
-    vpdLeafTempOffsetDay?: number;
-    vpdLeafTempOffsetNight?: number;
-  }
-}
-
-export interface DeviceLog {
-  _id: string,
-  device_id: string,
-  message?: string,
-  title?: string,
-  raw?: boolean,
-  severity: 0 | 1 | 2,
-  time: string,
-  categories?: string[],
-  images?: DiaryEntry['images'],
-  data?: DiaryEntry['data']
-  deleted?: boolean;
-}
-
-export interface DeviceClass {
-  class_id: string;
-  name: string;
-  description: string;
-  firmware_id: string;
-}
-
-export interface DeviceFirmware {
-  firmware_id: string;
-  name: string;
-  version: string;
-}
+};
 
 export const device_types = ['climatesensor', 'climatesensorpro'];
 
@@ -56,7 +24,7 @@ export const device_types = ['climatesensor', 'climatesensorpro'];
 })
 export class DeviceAdminService {
 
-  private created_devices : Device[] = [];
+  private created_devices : DeviceWithParsedSettings[] = [];
   public device_classes: BehaviorSubject<any> = new BehaviorSubject<any>([]);
 
   constructor(private http: HttpClient, private auth: AuthService) {
@@ -127,7 +95,7 @@ export class DeviceService {
 
   public settingsChanged = new Subject<{device_id: string, settings: any}>();
 
-  public devices: BehaviorSubject<Device[]> = new BehaviorSubject<Device[]>([]);
+  public devices: BehaviorSubject<DeviceWithParsedSettings[]> = new BehaviorSubject<DeviceWithParsedSettings[]>([]);
 
   constructor(private http: HttpClient, private auth: AuthService) {
     this.fetchDevices();
@@ -144,7 +112,7 @@ export class DeviceService {
     }
 
     try {
-      const devices = await firstValueFrom(this.http.get<Device[]>(environment.API_URL + '/device'))
+      const devices = await firstValueFrom(this.http.get<DeviceWithParsedSettings[]>(environment.API_URL + '/device'))
       for(let device of devices) {
         try {
           device.settings = JSON.parse(device.configuration);
@@ -161,7 +129,7 @@ export class DeviceService {
   }
 
   public async claim(claim_code:string) {
-    await firstValueFrom( this.http.post<Device>(environment.API_URL + '/device', {claim_code: claim_code}) )
+    await firstValueFrom( this.http.post<DeviceWithParsedSettings>(environment.API_URL + '/device', {claim_code: claim_code}) )
     await this.refetchDevices();
   }
 
@@ -182,18 +150,19 @@ export class DeviceService {
     return await firstValueFrom( this.http.get<string>(environment.API_URL + '/device/cloudsettings/' + device_id) )
   }
 
-  public async getRecipe(device_id:string) {
+  public async getRecipe(device_id:string): Promise<Recipe | null> {
     // returns the recipe object
-    return await firstValueFrom( this.http.get<any>(environment.API_URL + '/device/recipe/' + device_id) )
+    return await firstValueFrom( this.http.get<Recipe | null>(environment.API_URL + '/device/recipe/' + device_id) )
   }
 
-  public async setRecipe(device_id:string, recipe: any) {
+  public async setRecipe(device_id:string, recipe: Recipe) {
     const payload = { device_id, recipe };
     await firstValueFrom( this.http.post(environment.API_URL + '/device/recipe', payload) );
   }
 
   public async getLogs(device_id:string, timestampFrom?: number, timestampTo?: number, deleted?: boolean, categories?: string[]): Promise<DeviceLog[]> {
-    return await firstValueFrom( this.http.get<DeviceLog[]>(environment.API_URL + '/device/logs/' + device_id + '?from=' + (Number(timestampFrom ?? 0) || '') + '&to=' + (Number(timestampTo ?? 0) || '') + '&deleted=' + (deleted ? '1' : '') + (categories ? '&categories=' + categories.join(',') : '')) );
+    const result = await firstValueFrom( this.http.get<DeviceLog[]>(environment.API_URL + '/device/logs/' + device_id + '?from=' + (Number(timestampFrom ?? 0) || '') + '&to=' + (Number(timestampTo ?? 0) || '') + '&deleted=' + (deleted ? '1' : '') + (categories ? '&categories=' + categories.join(',') : '')) );
+    return result?.map(log => ({ ...log, time: new Date(log.time) })) ?? [];
   }
 
   public async getDeviceImageUrl(device_id: string, format: 'mp4' | 'jpeg' | 'user/jpeg', timestamp?: number, duration?: string, imageId?: string): Promise<string> {
@@ -217,11 +186,11 @@ export class DeviceService {
     return await firstValueFrom( this.http.delete(environment.API_URL + '/device/logs/' + device_id) )
   }
 
-  public async addLog(device_id: string, message: { title: string; message?: string; raw?: boolean; severity: 0 | 1 | 2 | number; categories: string[]; data?: DiaryEntry['data']; images?: DiaryEntry['images']; }) {
+  public async addLog(device_id: string, message: { title: string; message?: string; raw?: boolean; severity: 0 | 1 | 2 | number; categories: string[]; data?: Partial<DiaryEntryData>; images?: string[]; }) {
     await firstValueFrom( this.http.post(environment.API_URL + '/device/logs/' + device_id, message ) )
   }
 
-  public async updateLog(device_id: string, log_id: string, payload: { title: string; message?: string; raw?: boolean; severity: 0 | 1 | 2 | number; categories: string[]; time?: Date; data?: DiaryEntry['data']; images?: DiaryEntry['images']; deleted?: boolean }) {
+  public async updateLog(device_id: string, log_id: string, payload: { title: string; message?: string; raw?: boolean; severity: 0 | 1 | 2 | number; categories: string[]; time?: Date; data?: Partial<DiaryEntryData>; images?: string[]; deleted?: boolean }) {
     await firstValueFrom(this.http.put(environment.API_URL + '/device/logs/' + device_id + '/' + log_id, payload));
   }
 
@@ -230,7 +199,7 @@ export class DeviceService {
   }
 
   public async setSettings(device_id:string, settings: string) {
-    await firstValueFrom(this.http.post<Device>(environment.API_URL + '/device/configure', { device_id: device_id, configuration: settings }));
+    await firstValueFrom(this.http.post<DeviceWithParsedSettings>(environment.API_URL + '/device/configure', { device_id: device_id, configuration: settings }));
     // Notify subscribers that settings for this device have changed
     this.settingsChanged.next({ device_id, settings });
   }
@@ -244,7 +213,7 @@ export class DeviceService {
   }
 
   public async setName(device_id:string, name: string) {
-    await firstValueFrom( this.http.post<Device>(environment.API_URL + '/device/setname', {device_id: device_id, name: name}) )
+    await firstValueFrom( this.http.post<DeviceWithParsedSettings>(environment.API_URL + '/device/setname', {device_id: device_id, name: name}) )
   }
 
   public async testOutputs(device_id: string, outputs:{heater:number, dehumidifier:number, co2:number, lights:number}) {
@@ -255,8 +224,8 @@ export class DeviceService {
     await firstValueFrom(this.http.delete(environment.API_URL + "/device/test/" + device_id));
   }
 
-  public async getBySerial(serialnumber: string) : Promise<Device> {
-    return await firstValueFrom(this.http.get<Device>(environment.API_URL + "/device/byserial", {params: {serialnumber: serialnumber}}));
+  public async getBySerial(serialnumber: string) : Promise<DeviceWithParsedSettings> {
+    return await firstValueFrom(this.http.get<DeviceWithParsedSettings>(environment.API_URL + "/device/byserial", {params: {serialnumber: serialnumber}}));
   }
 
   public async activateMaintenanceMode(device_id: string, durationMinutes: number) {

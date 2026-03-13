@@ -16,6 +16,7 @@
     "deploy:dev": "pm2 start ecosystem.config.js --only dev"
   },
   "dependencies": {
+    "@fg2/shared-types": "file:../shared-types",
     "@influxdata/influxdb-client": "^1.33.0",
     "@types/luxon": "^3.3.0",
     "async-mutex": "^0.5.0",

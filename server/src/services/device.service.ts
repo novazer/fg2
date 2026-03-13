@@ -1,4 +1,4 @@
-import { Alarm, CloudSettings, Device, DeviceClass, DeviceFirmware, DeviceFirmwareBinary } from '@interfaces/device.interface';
+import { Alarm, CloudSettings, Device, DeviceClass, DeviceFirmware, DeviceFirmwareBinary } from '@fg2/shared-types';
 import deviceModel from '@models/device.model';
 import deviceLogModel from '@models/devicelog.model';
 import deviceClassModel from '@/models/deviceclass.model';

@@ -1,5 +1,5 @@
 import { model, Schema, Document } from 'mongoose';
-import { ClaimCode } from '@interfaces/device.interface';
+import { ClaimCode } from '@fg2/shared-types';
 
 const claimCodeSchema: Schema = new Schema({
   claim_code: {

@@ -1,9 +1,10 @@
 import {Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges} from '@angular/core';
-import {DeviceLog, DeviceService} from "../../../services/devices.service";
+import {DeviceService} from "../../../services/devices.service";
 import {Subscription} from "rxjs";
-import {DiaryEntryData, defaultDiaryEntries} from "../diary-entry-modal/diary-entry-modal.component";
+import {defaultDiaryEntries} from "../diary-entry-modal/diary-entry-modal.component";
 import {collectLogCategories, filterLogsByCategory, LogEntryViewerLog} from "../../log-entry-viewer/log-entry-viewer.component";
 import {Router} from "@angular/router";
+import type { DiaryEntryData, DeviceLog } from '@fg2/shared-types';
 
 export const LIFECYCLE_EVENT_ORDER: Record<DiaryEntryData['newLifecycleStage'], number> = {
   germination: 0,

@@ -1,5 +1,5 @@
 import { model, Schema, Document } from 'mongoose';
-import { User } from '@interfaces/users.interface';
+import { User } from '@fg2/shared-types';
 
 const userSchema: Schema = new Schema({
   username: {

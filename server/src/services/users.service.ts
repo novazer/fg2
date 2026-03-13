@@ -1,7 +1,7 @@
 import { hash } from 'bcrypt';
 import { CreateUserDto } from '@dtos/users.dto';
 import { HttpException } from '@exceptions/HttpException';
-import { User } from '@interfaces/users.interface';
+import { User } from '@fg2/shared-types';
 import userModel from '@models/users.model';
 import { isEmpty } from '@utils/util';
 import { v4 as uuidv4 } from 'uuid';

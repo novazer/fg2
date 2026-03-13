@@ -1,4 +1,4 @@
-import { Alarm, CloudSettings, Device, DeviceClass, DeviceFirmware, DeviceFirmwareBinary } from '@interfaces/device.interface';
+import { Alarm, CloudSettings, Device, DeviceClass, DeviceFirmware, DeviceFirmwareBinary } from '@fg2/shared-types';
 import deviceModel from '@models/device.model';
 import deviceLogModel from '@models/devicelog.model';
 import deviceClassModel from '@/models/deviceclass.model';
@@ -20,7 +20,7 @@ import pLimit from 'p-limit';
 import { tmpdir } from 'node:os';
 import { join } from 'path';
 import { mkdtemp, readFile, rmdir, unlink, writeFile } from 'node:fs/promises';
-import { Image } from '@interfaces/images.interface';
+import { Image } from '@fg2/shared-types';
 import { deviceService } from '@services/device.service';
 import { createServer } from 'node:net';
 import { tunnelService } from '@services/tunnel.service';
