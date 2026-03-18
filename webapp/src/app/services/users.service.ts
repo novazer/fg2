@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { environment } from 'src/environments/environment';
-import {User} from "@fg2/shared-types";
+import type { User } from '@fg2/shared-types';
 
 export type UserLite = Pick<User, 'user_id' | 'username' | 'is_admin'>;
 

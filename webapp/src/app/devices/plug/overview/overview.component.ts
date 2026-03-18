@@ -4,13 +4,6 @@ import { IonModal } from '@ionic/angular';
 import { combineLatest } from 'rxjs';
 import { DataService } from 'src/app/services/data.service';
 import { DeviceWithParsedSettings, DeviceService } from 'src/app/services/devices.service';
-import TimeAgo from 'javascript-time-ago'
-
-// English.
-import en from 'javascript-time-ago/locale/en'
-TimeAgo.addDefaultLocale(en)
-// Create formatter (English).
-const timeAgo = new TimeAgo('en-US')
 
 @Component({
   selector: 'plug-overview',
@@ -102,9 +95,5 @@ export class PlugOverviewComponent implements OnInit {
     this.devices.clearLogs(this.device_id);
     this.logs = [];
     this.has_logs = false;
-  }
-
-  formatLogTime(time: Date) {
-    return timeAgo.format(time);
   }
 }
