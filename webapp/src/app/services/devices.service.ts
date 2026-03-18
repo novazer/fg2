@@ -13,7 +13,7 @@ import type {
 } from '@fg2/shared-types';
 
 export type DeviceWithParsedSettings = Device & {
-  settings: any;
+  settings?: any;
 };
 
 export const device_types = ['climatesensor', 'climatesensorpro'];
@@ -225,7 +225,13 @@ export class DeviceService {
   }
 
   public async getBySerial(serialnumber: string) : Promise<DeviceWithParsedSettings> {
-    return await firstValueFrom(this.http.get<DeviceWithParsedSettings>(environment.API_URL + "/device/byserial", {params: {serialnumber: serialnumber}}));
+    const device = await firstValueFrom(this.http.get<DeviceWithParsedSettings>(environment.API_URL + "/device/byserial", {params: {serialnumber: serialnumber}}));
+    try {
+      device.settings = device.configuration ? JSON.parse(device.configuration) : {};
+    } catch(err) {
+      device.settings = {};
+    }
+    return device;
   }
 
   public async activateMaintenanceMode(device_id: string, durationMinutes: number) {
