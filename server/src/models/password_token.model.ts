@@ -1,5 +1,5 @@
 import { model, Schema, Document } from 'mongoose';
-import { PasswordToken } from '@interfaces/users.interface';
+import { PasswordToken } from '@fg2/shared-types';
 
 const passwordTokenSchema: Schema = new Schema({
   user_id: {

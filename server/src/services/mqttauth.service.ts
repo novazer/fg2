@@ -1,6 +1,6 @@
 import { HttpException } from '@exceptions/HttpException';
 import { AuthUserDto, AuthVhostDto, AuthResourceDto, AuthTopicDto } from '@/dtos/mqttauth.dto';
-import { Device } from '@interfaces/device.interface';
+import { Device } from '@fg2/shared-types';
 import deviceModel from '@models/device.model';
 import { isEmpty } from '@utils/util';
 import { v4 as uuidv4 } from 'uuid';

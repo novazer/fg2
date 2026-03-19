@@ -3,14 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { IonModal } from '@ionic/angular';
 import { combineLatest } from 'rxjs';
 import { DataService } from 'src/app/services/data.service';
-import { Device, DeviceService } from 'src/app/services/devices.service';
-import TimeAgo from 'javascript-time-ago'
-
-// English.
-import en from 'javascript-time-ago/locale/en'
-TimeAgo.addDefaultLocale(en)
-// Create formatter (English).
-const timeAgo = new TimeAgo('en-US')
+import { DeviceWithParsedSettings, DeviceService } from 'src/app/services/devices.service';
 
 @Component({
   selector: 'plug-overview',
@@ -77,9 +70,6 @@ export class PlugOverviewComponent implements OnInit {
     })
 
     this.logs = await this.devices.getLogs(this.device_id);
-    for(let log of this.logs) {
-      log.time = timeAgo.format(new Date(log.time))
-    }
 
     this.config = await this.devices.getConfig(this.device_id);
 

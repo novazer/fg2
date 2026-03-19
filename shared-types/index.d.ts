@@ -41,10 +41,36 @@ export interface CloudSettings {
   maintenanceWebcamOff?: boolean;
 }
 
+export type DiaryLifecycleStage = 'germination' | 'seedling' | 'vegetative' | 'flowering' | 'drying' | 'curing';
+
+export interface DiaryEntryData {
+  co2FillingRest: number;
+  co2FillingInitial: number;
+  newLifecycleStage: DiaryLifecycleStage;
+  lifecycleName: string;
+  lightMeasurement: number;
+  distanceMeasurement: number;
+  tdsMeasurement: number;
+  ecMeasurement: number;
+  outsideTemperatureMeasurement: number;
+  phMeasurement: number;
+}
+
+export interface DiaryEntry {
+  message?: string;
+  title: string;
+  time: Date;
+  category: string;
+  data?: Partial<DiaryEntryData>;
+  images?: string[];
+}
+
+export type DurationUnit = 'minutes' | 'hours' | 'days' | 'weeks';
+
 export interface RecipeStep {
   name?: string;
   settings: any;
-  durationUnit: 'minutes' | 'hours' | 'days' | 'weeks';
+  durationUnit: DurationUnit;
   duration: number;
   waitForConfirmation: boolean;
   confirmationMessage?: string;
@@ -64,6 +90,7 @@ export interface Recipe {
 
 export interface Device {
   _id?: string;
+  name?: string;
   device_id: string;
   username: string;
   password: string;
@@ -118,14 +145,52 @@ export interface DeviceFirmwareBinary {
 }
 
 export interface DeviceLog {
+  _id: string;
   device_id: string;
   message?: string;
   title?: string;
   raw?: boolean;
   severity: number;
   time: Date;
-  categories: [string];
+  categories?: string[];
   deleted?: boolean;
-  data?: Record<string, any>;
+  data?: Partial<DiaryEntryData>;
   images?: string[];
 }
+
+export interface Image {
+  image_id: string;
+  device_id: string;
+  timestamp: number;
+  timestampEnd?: number;
+  data: Buffer;
+  format?: 'jpeg' | 'mp4' | 'user/jpeg';
+  duration?: '1d' | '1w' | '1m';
+}
+
+export interface User {
+  user_id: string;
+  password: string;
+  username: string;
+  is_admin: boolean;
+  is_active: boolean;
+  activation_code: string;
+}
+
+export interface PasswordToken {
+  user_id: string;
+  token: string;
+}
+
+export type RecipeTemplateStep = Omit<RecipeStep, 'lastTimeApplied'>;
+
+export type RecipeTemplate = {
+  _id?: string;
+  name: string;
+  owner_id?: string;
+  public?: boolean;
+  createdAt?: number;
+  updatedAt?: number;
+  steps: RecipeTemplateStep[];
+};
+

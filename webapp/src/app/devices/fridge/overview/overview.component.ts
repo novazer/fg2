@@ -3,8 +3,9 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {AlertController, IonModal, ToastController} from '@ionic/angular';
 import {combineLatest} from 'rxjs';
 import {DataService} from 'src/app/services/data.service';
-import {DeviceLog, DeviceService} from 'src/app/services/devices.service';
+import {DeviceService} from 'src/app/services/devices.service';
 import TimeAgo from 'javascript-time-ago'
+import type { DeviceLog } from '@fg2/shared-types';
 
 // English.
 import en from 'javascript-time-ago/locale/en'
@@ -114,14 +115,8 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
 
     // Load logs
     this.logs = await this.loadLogs();
-    for(let log of this.logs) {
-      log.time = timeAgo.format(new Date(log.time))
-    }
     this.refreshLogsTimer = setInterval(async() => {
       this.logs = await this.loadLogs();
-      for(let log of this.logs) {
-        log.time = timeAgo.format(new Date(log.time))
-      }
       this.has_logs = this.logs.length > 0;
       this.severity = Math.max(...this.logs.map((o: { severity: number; }) => {return isNaN(o.severity) ? 0 : o.severity}))
 
@@ -194,6 +189,10 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
     this.devices.clearLogs(this.device_id);
     this.logs = [];
     this.has_logs = false;
+  }
+
+  formatLogTime(time: Date): string {
+    return timeAgo.format(time);
   }
 
   async loadDeviceImage() {

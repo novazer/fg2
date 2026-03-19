@@ -6,6 +6,7 @@ import { NoFractPipe } from './nofract.pipe';
 import { TimestampPipe, DaytimestampPipe } from './timestamp.pipe';
 import { VerbosityPipe } from './verbosity.pipe';
 import { MultiplyPipe } from './multiplay.pipe';
+import { TimeAgoPipe } from './timeago.pipe';
 
 @NgModule({
   declarations: [
@@ -15,7 +16,8 @@ import { MultiplyPipe } from './multiplay.pipe';
     TimestampPipe,
     DaytimestampPipe,
     VerbosityPipe,
-    MultiplyPipe
+    MultiplyPipe,
+    TimeAgoPipe
   ],
   exports: [
     OnoffPipe,
@@ -24,7 +26,8 @@ import { MultiplyPipe } from './multiplay.pipe';
     TimestampPipe,
     DaytimestampPipe,
     VerbosityPipe,
-    MultiplyPipe
+    MultiplyPipe,
+    TimeAgoPipe
   ],
   imports: [
     CommonModule

@@ -24,7 +24,7 @@
               <ion-accordion toggleIcon="caret-down" toggleIconSlot="start">
                 <ion-item slot="header" [color]="message.severity == 1 ? 'warning' : message.severity == 2 ? 'danger' : 'light'">
                   <ion-label>
-                    <span class="timestamp">{{message.time}}</span>
+                    <span class="timestamp">{{ formatLogTime(message.time) }}</span>
                     {{ message.count > 1 ? '(' + message.count + 'x)' : '' }}
 
                     {{message.raw

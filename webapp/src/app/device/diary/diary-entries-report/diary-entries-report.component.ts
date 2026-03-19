@@ -1,12 +1,12 @@
 import {Component, Input, OnChanges, OnInit, SimpleChanges} from '@angular/core';
-import {DeviceLog, DeviceService} from '../../../services/devices.service';
+import {DeviceService} from '../../../services/devices.service';
 import {ModalController} from '@ionic/angular';
 import {
-  DiaryEntry,
   DiaryEntryModalComponent,
   defaultDiaryEntries,
 } from "../diary-entry-modal/diary-entry-modal.component";
 import {TranslateService} from '@ngx-translate/core';
+import type { DiaryEntry, DeviceLog } from '@fg2/shared-types';
 
 import { collectLogCategories } from '../../log-entry-viewer/log-entry-viewer.component';
 
@@ -122,7 +122,7 @@ export class DiaryEntriesReportComponent implements OnInit, OnChanges {
 
       log.title = payload.title;
       log.message = payload.message;
-      log.time = payload.time?.toISOString?.() ?? log.time;
+      log.time = payload.time ?? log.time;
       log.categories = payload.categories;
       log.data = payload.data;
       log.images = payload.images;
@@ -161,7 +161,7 @@ export class DiaryEntriesReportComponent implements OnInit, OnChanges {
     return {
       title: log.title ?? '',
       message: log.message,
-      time: new Date(log.time),
+      time: log.time,
       category: log.categories?.[1] ?? '',
       data: log.data,
       images: log.images,

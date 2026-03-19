@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { DataService } from 'src/app/services/data.service';
-import { Device, DeviceService } from 'src/app/services/devices.service';
+import { DeviceWithParsedSettings, DeviceService } from 'src/app/services/devices.service';
 
 @Component({
   selector: 'app-list',
@@ -10,7 +10,7 @@ import { Device, DeviceService } from 'src/app/services/devices.service';
 export class ListPage implements OnInit {
 
 
-  public all_devices:Device[] = [];
+  public all_devices:DeviceWithParsedSettings[] = [];
   public id:string = '';
 
   private reloaded = false;

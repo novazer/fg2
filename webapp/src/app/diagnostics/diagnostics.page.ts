@@ -9,12 +9,6 @@ import { environment } from 'src/environments/environment';
 import { DataService } from 'src/app/services/data.service';
 import * as Highcharts from 'highcharts/highstock';
 import { DeviceService } from 'src/app/services/devices.service';
-import TimeAgo from 'javascript-time-ago'
-// English.
-import en from 'javascript-time-ago/locale/en'
-TimeAgo.addDefaultLocale(en)
-// Create formatter (English).
-const timeAgo = new TimeAgo('en-US')
 
 declare var require: any;
 let Boost = require('highcharts/modules/boost');
@@ -117,9 +111,6 @@ export class DiagnosticsPage implements OnInit {
     this.configtext = await this.devices.getConfig(this.device_id)
     this.device_config = JSON.parse(await this.devices.getConfig(this.device_id))
     this.device_logs = await this.devices.getLogs(this.device_id)
-    for(let log of this.device_logs) {
-      log.time = timeAgo.format(new Date(log.time))
-    }
   }
 
   public async loadData() {

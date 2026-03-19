@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Input, OnChanges, Output, SimpleChanges} from '@angular/core';
-import {DeviceLog} from 'src/app/services/devices.service';
+import type { DeviceLog } from '@fg2/shared-types';
 
 export const LOGS_MAX_DISPLAY_COUNT = 100;
 

@@ -2,13 +2,9 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { environment } from 'src/environments/environment';
+import type { User } from '@fg2/shared-types';
 
-
-export interface User {
-  user_id: string;
-  username: string;
-  is_admin: boolean;
-};
+export type UserLite = Pick<User, 'user_id' | 'username' | 'is_admin'>;
 
 export interface CreateUser {
   username: string;
@@ -23,8 +19,8 @@ export class UsersService {
 
   constructor(private http: HttpClient) { }
 
-  public async getAll() : Promise<User[]> {
-    let data = await firstValueFrom(this.http.get<User[]>(environment.API_URL + '/users'));
+  public async getAll() : Promise<UserLite[]> {
+    let data = await firstValueFrom(this.http.get<UserLite[]>(environment.API_URL + '/users'));
     console.log(data)
     return data;
 

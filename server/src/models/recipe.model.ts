@@ -1,5 +1,5 @@
 import { model, Schema, Document } from 'mongoose';
-import { RecipeTemplate } from '@interfaces/recipe.interface';
+import { RecipeTemplate } from '@fg2/shared-types';
 
 const recipeSchema: Schema = new Schema({
   name: { type: String, required: true, unique: true },
