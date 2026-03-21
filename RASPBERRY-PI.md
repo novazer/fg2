@@ -1,5 +1,30 @@
 # Running the server on a Raspberry Pi
 
+> **Note:** This project is designed for **Raspberry Pi 4 (or newer)** with a **64-bit OS**.
+
+Running this stack on a Raspberry Pi 3 or older is **not supported** due to the following technical limitations:
+
+### 1. Architecture (64-bit / ARM64)
+Modern Docker images for **MongoDB** and **InfluxDB** have dropped support for 32-bit (ARMv7) architectures. 
+* **Issue:** Raspberry Pi 3 often runs on a 32-bit OS, leading to `no matching manifest` errors.
+* **Solution:** A Raspberry Pi 4 (or 5) running **64-bit Raspberry Pi OS** is required for full compatibility.
+
+### 2. RAM Constraints
+This stack runs multiple resource-heavy database services (MongoDB + InfluxDB) simultaneously. 
+* **RPi 3:** Limited to **1 GB RAM**, causing "Out of Memory" (OOM) crashes and heavy SD-card swapping.
+* **RPi 4/5:** Available with **4GB/8GB RAM**, providing the necessary headroom for stable database operations and efficient caching.
+
+---
+
+### Recommended Setup
+| Component | Requirement |
+| :--- | :--- |
+| **Hardware** | Raspberry Pi 4 Model B (4GB+ RAM) |
+| **OS** | Raspberry Pi OS (64-bit) |
+| **Storage** | USB 3.0 SSD (Highly recommended for DB longevity) |
+
+
+
 1. `cd myfolder`
 1. `git clone https://github.com/novazer/fg2.git`
 1. `cd fg2/`
