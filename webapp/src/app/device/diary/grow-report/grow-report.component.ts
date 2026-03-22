@@ -77,6 +77,7 @@ export class GrowReportComponent implements OnInit, OnDestroy, OnChanges {
 
   private allLogs: LogEntryViewerLog[] = [];
   private lifecycleLogs: LogEntryViewerLog[] = [];
+  private static readonly LIFECYCLE_CATEGORIES = ['diary-plant-lifecycle', 'plant-lifecycle'] as const;
 
   constructor(private devices: DeviceService, private router: Router) {
   }
@@ -104,22 +105,60 @@ export class GrowReportComponent implements OnInit, OnDestroy, OnChanges {
       this.cycleTimelines = [];
       this.availableLogCategories = [];
       this.selectedLogCategories = [];
+      this.selectedCycleIndex = 0;
       return;
     }
 
     this.loading = true;
     try {
-      const logs = await this.devices.getLogs(this.deviceId, undefined, undefined, true);
+      const lifecycleLogs = await this.devices.getLogs(
+        this.deviceId,
+        undefined,
+        undefined,
+        true,
+        [...GrowReportComponent.LIFECYCLE_CATEGORIES]
+      );
+
+      this.lifecycleLogs = lifecycleLogs.filter(log => !!log.data?.newLifecycleStage);
+      this.growCycles = this.convertEventsToGrowCycles(this.lifecycleLogs);
+
+      if (!this.lifecycleLogs.length) {
+        this.allLogs = [];
+        this.cycleTimelines = [];
+        this.availableLogCategories = [];
+        this.selectedLogCategories = [];
+        this.selectedCycleIndex = 0;
+        return;
+      }
+
+      const timeframe = this.getLifecycleTimeframe();
+      const logs = await this.devices.getLogs(
+        this.deviceId,
+        timeframe.timestampFrom,
+        timeframe.timestampTo,
+        true
+      );
 
       this.allLogs = logs;
-      this.lifecycleLogs = logs.filter(log => this.isLifecycleLog(log) && !!log.data?.newLifecycleStage);
-      this.growCycles = this.convertEventsToGrowCycles(this.lifecycleLogs);
       this.availableLogCategories = collectLogCategories(logs);
+      this.selectedCycleIndex = 0;
       this.ensureSelectedCategories();
       this.rebuildTimelines();
     } finally {
       this.loading = false;
     }
+  }
+
+  private getLifecycleTimeframe(): { timestampFrom: number; timestampTo: number } {
+    const start = new Date(this.growCycles[0]?.timestampStart ?? this.lifecycleLogs[0]?.time ?? new Date());
+    const end = this.growCycles[this.growCycles.length - 1]?.timestampEnd
+      ? new Date(this.growCycles[this.growCycles.length - 1].timestampEnd as Date)
+      : new Date();
+
+    return {
+      timestampFrom: start.getTime(),
+      timestampTo: end.getTime(),
+    };
   }
 
   onCategoryChanged(selectedCategories?: string[]): void {
@@ -147,8 +186,7 @@ export class GrowReportComponent implements OnInit, OnDestroy, OnChanges {
     // Pre-calculate gaps between consecutive days across all logs
     const dayGaps = this.calculateDayGaps(merged);
 
-    this.cycleTimelines = this.growCycles.map((cycle, index) => this.buildTimelineForCycle(cycle, merged, index, dayGaps));
-    console.log(this.cycleTimelines);
+    this.cycleTimelines = this.growCycles.map((cycle) => this.buildTimelineForCycle(cycle, merged, dayGaps));
   }
 
   private calculateDayGaps(logs: LogEntryViewerLog[]): Map<string, { gapToNextDays: number; gapLabel: string }> {
@@ -200,11 +238,10 @@ export class GrowReportComponent implements OnInit, OnDestroy, OnChanges {
   private buildTimelineForCycle(
     cycle: GrowCycle,
     logs: LogEntryViewerLog[],
-    cycleIndex: number,
     dayGaps: Map<string, { gapToNextDays: number; gapLabel: string }>
   ): GrowCycleTimeline {
     const cycleStart = new Date(cycle.timestampStart);
-    const nextCycleStart = this.growCycles[cycleIndex + 1]?.timestampStart;
+    const nextCycleStart = this.findNextCycleStart(cycleStart);
     const cycleEnd = nextCycleStart
       ? new Date(nextCycleStart)
       : (cycle.timestampEnd ? new Date(cycle.timestampEnd) : undefined);
@@ -277,12 +314,30 @@ export class GrowReportComponent implements OnInit, OnDestroy, OnChanges {
     };
   }
 
+  private findNextCycleStart(cycleStart: Date): Date | undefined {
+    const currentStartTime = cycleStart.getTime();
+    let nextStart: Date | undefined;
+
+    for (const cycle of this.growCycles) {
+      const start = new Date(cycle.timestampStart);
+      if (start.getTime() <= currentStartTime) {
+        continue;
+      }
+
+      if (!nextStart || start.getTime() < nextStart.getTime()) {
+        nextStart = start;
+      }
+    }
+
+    return nextStart;
+  }
+
   private buildPhaseSummaries(phaseTimeline: TimelinePhaseGroup[], cycleStart: Date): PhaseSummary[] {
     const summaries: PhaseSummary[] = [];
+    const today = this.toStartOfDay(new Date());
 
     for (let i = 0; i < phaseTimeline.length; i++) {
       const phase = phaseTimeline[i];
-      const nextPhase = phaseTimeline[i + 1];
 
       const firstDay = phase.eventsByDay[0];
       if (!firstDay) {
@@ -290,14 +345,11 @@ export class GrowReportComponent implements OnInit, OnDestroy, OnChanges {
       }
 
       const startDate = firstDay.date;
-      let endDate: Date;
-
-      if (nextPhase && nextPhase.eventsByDay[0]) {
-        endDate = nextPhase.eventsByDay[0].date;
-      } else {
-        const lastDay = phase.eventsByDay[phase.eventsByDay.length - 1];
-        endDate = lastDay ? lastDay.date : startDate;
-      }
+      const phaseStartAnchor = this.getPhaseStartAnchor(phase, startDate);
+      const nextLifecycleEventDate = this.findNextLifecycleEventDate(phaseStartAnchor);
+      const endDate = phase.stage === 'curing'
+        ? today
+        : (nextLifecycleEventDate ? this.toStartOfDay(nextLifecycleEventDate) : today);
 
       const durationDays = this.calculateDayCount(startDate, endDate);
       const totalDaysFromStart = this.calculateDayCount(this.toStartOfDay(cycleStart), startDate) + 1;
@@ -311,6 +363,37 @@ export class GrowReportComponent implements OnInit, OnDestroy, OnChanges {
     }
 
     return summaries;
+  }
+
+  private getPhaseStartAnchor(phase: TimelinePhaseGroup, fallbackStartDate: Date): Date {
+    for (const day of phase.eventsByDay) {
+      const lifecycleEvent = day.events.find(event => event.isLifecycle && event.stage === phase.stage);
+      if (lifecycleEvent) {
+        return lifecycleEvent.time;
+      }
+    }
+
+    const firstEvent = phase.eventsByDay[0]?.events[0];
+    return firstEvent ? firstEvent.time : fallbackStartDate;
+  }
+
+  private findNextLifecycleEventDate(currentStageStart: Date): Date | undefined {
+    const currentStartTime = new Date(currentStageStart).getTime();
+    let nextEvent: Date | undefined;
+
+    for (const log of this.lifecycleLogs) {
+      const logTime = new Date(log.time);
+      const timestamp = logTime.getTime();
+      if (timestamp <= currentStartTime) {
+        continue;
+      }
+
+      if (!nextEvent || timestamp < nextEvent.getTime()) {
+        nextEvent = logTime;
+      }
+    }
+
+    return nextEvent;
   }
 
   private formatGapLabelUntilToday(days: number): string {
@@ -442,7 +525,7 @@ export class GrowReportComponent implements OnInit, OnDestroy, OnChanges {
     const sortedEntries = [...entries].sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
     const cycles: GrowCycle[] = [];
 
-    let previousLifecycleOrder = -1;
+    let previousLifecycleOrder: number | undefined = undefined;
     let currentCycle: GrowCycle | null = null;
 
     for (const entry of sortedEntries) {
@@ -451,8 +534,19 @@ export class GrowReportComponent implements OnInit, OnDestroy, OnChanges {
         continue;
       }
 
-      const lifecycleOrder = LIFECYCLE_EVENT_ORDER[stage];
-      const startNewCycle = currentCycle && lifecycleOrder <= previousLifecycleOrder;
+      const lifecycleOrder = (LIFECYCLE_EVENT_ORDER as Record<string, number | undefined>)[stage];
+      if (lifecycleOrder === undefined) {
+        continue;
+      }
+
+      const currentLifecycleName = currentCycle?.name?.trim() || '';
+      const entryLifecycleName = entry.data?.lifecycleName?.trim() || '';
+      const hasNameBoundary = !!currentCycle
+        && !!currentLifecycleName
+        && !!entryLifecycleName
+        && entryLifecycleName !== currentLifecycleName;
+      const hasOrderRollback = previousLifecycleOrder !== undefined && lifecycleOrder < previousLifecycleOrder;
+      const startNewCycle = !!currentCycle && (hasNameBoundary || hasOrderRollback);
 
       if (!currentCycle || startNewCycle) {
         if (currentCycle) {
@@ -482,7 +576,7 @@ export class GrowReportComponent implements OnInit, OnDestroy, OnChanges {
       }
     }
 
-    return cycles;
+    return cycles.reverse();
   }
 
   get selectedCycle(): GrowCycle | undefined {
@@ -536,7 +630,8 @@ export class GrowReportComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   private isLifecycleLog(log: DeviceLog): boolean {
-    return Array.isArray(log.categories) && log.categories.includes('plant-lifecycle');
+    return Array.isArray(log.categories)
+      && GrowReportComponent.LIFECYCLE_CATEGORIES.some(category => log.categories?.includes(category));
   }
 
   onCycleSelected(event: any) {
