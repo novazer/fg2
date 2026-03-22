@@ -48,7 +48,7 @@
         target="_blank"
         (click)="onImageClick($event, i)"
       >
-        <img [src]="imageIdToUrl.get(imageId)" alt="Log image" style="height: 100px; margin-right: 5px;"/>
+        <img [src]="imageIdToUrl.get(imageId) + '&height=100'" alt="Log image" style="height: 100px; margin-right: 5px;"/>
       </a>
     </ion-col>
   </ion-row>
