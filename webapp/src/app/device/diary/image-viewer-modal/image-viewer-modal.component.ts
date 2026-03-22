@@ -12,6 +12,8 @@ export class ImageViewerModalComponent implements OnInit {
 
   public imageIndex = 0;
 
+  private preloadedUrls = new Set<string>();
+
   constructor(private modalController: ModalController) {}
 
   ngOnInit(): void {
@@ -43,8 +45,31 @@ export class ImageViewerModalComponent implements OnInit {
     this.imageIndex = (this.imageIndex + 1) % this.imageUrls.length;
   }
 
+  onCurrentImageDidLoad(): void {
+    this.preloadUpcomingImages();
+  }
+
   get currentImageUrl(): string {
     return this.imageUrls[this.imageIndex] || '';
   }
-}
 
+  private preloadUpcomingImages(): void {
+    if (this.imageUrls.length < 2) {
+      return;
+    }
+
+    // Preload every following image in circular order for smooth navigation.
+    for (let offset = 1; offset < this.imageUrls.length; offset += 1) {
+      const nextIndex = (this.imageIndex + offset) % this.imageUrls.length;
+      const nextUrl = this.imageUrls[nextIndex];
+
+      if (!nextUrl || this.preloadedUrls.has(nextUrl)) {
+        continue;
+      }
+
+      const preloadImage = new Image();
+      preloadImage.src = nextUrl;
+      this.preloadedUrls.add(nextUrl);
+    }
+  }
+}

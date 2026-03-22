@@ -18,6 +18,9 @@
 </ion-header>
 
 <ion-content class="ion-padding" (click)="close()">
-  <ion-img [src]="currentImageUrl" (click)="$event.stopPropagation(); showNextImage()"></ion-img>
+  <ion-img
+    [src]="currentImageUrl"
+    (ionImgDidLoad)="onCurrentImageDidLoad()"
+    (click)="$event.stopPropagation(); showNextImage()"
+  ></ion-img>
 </ion-content>
-
