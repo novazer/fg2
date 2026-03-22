@@ -1,7 +1,7 @@
 import {Component, ElementRef, Input, OnDestroy, OnInit, Renderer2, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {AlertController, IonModal, ToastController} from '@ionic/angular';
-import {combineLatest} from 'rxjs';
+import {combineLatest, Subscription} from 'rxjs';
 import {DataService} from 'src/app/services/data.service';
 import {DeviceService} from 'src/app/services/devices.service';
 import TimeAgo from 'javascript-time-ago'
@@ -25,6 +25,7 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
   public vpd:number = 0;
   @Input() device_id:string = "";
   @Input() device_name:string = "";
+  @Input() device_type:string = "";
   @Input() maintenance_mode_until:number = 0;
   @Input() cloud_settings:any = {};
   @ViewChild("nameedit", { read: ElementRef }) private nameInput: ElementRef | undefined;
@@ -54,6 +55,8 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
   public workmode:string = 'loading';
   public recipe:any = null;
   private refreshLogsTimer: NodeJS.Timeout|undefined = undefined;
+  private co2VisibilitySubscription: Subscription | undefined = undefined;
+  public showCo2Display:boolean = true;
 
   // timer used to refresh remaining time every second
   private timerId: any = null;
@@ -81,6 +84,16 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
     if(this.device_name == "" || this.device_name == undefined) {
       this.device_name = "Plantalytix Fridgegrow 2.0"
     }
+
+    // Hide CO2 tile for controllers only after both values are loaded and both are exactly zero.
+    this.co2VisibilitySubscription = combineLatest([
+      this.data.measure(this.device_id, 'co2'),
+      this.data.measureAvg(this.device_id, 'co2')
+    ]).subscribe(([co2Current, co2Avg]) => {
+      const co2Loaded = Number.isFinite(co2Current) && Number.isFinite(co2Avg);
+      this.showCo2Display = !(this.device_type === 'controller' && co2Loaded && co2Current === 0 && co2Avg === 0);
+    });
+
     // Compute VPD and online state from live measurements
     combineLatest([
       this.data.measure(this.device_id, 'temperature'),
@@ -178,6 +191,7 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     clearInterval(this.refreshLogsTimer);
     clearInterval(this.timerId);
+    this.co2VisibilitySubscription?.unsubscribe();
   }
 
   showLogs() {

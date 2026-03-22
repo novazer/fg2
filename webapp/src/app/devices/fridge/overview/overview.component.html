@@ -126,7 +126,7 @@
         [limit-max]="vpd_h"
       ></value-display>
     </ion-col>
-    <ion-col size="6" size-sm="3" size-xl="2">
+    <ion-col size="6" size-sm="3" size-xl="2" *ngIf="showCo2Display">
       <value-display
         style="cursor: pointer;"
         (click)="measureSelected('co2')"
