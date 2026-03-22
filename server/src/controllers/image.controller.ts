@@ -2,30 +2,25 @@ import { NextFunction, Request, Response } from 'express';
 import { RequestWithUser } from '@/interfaces/auth.interface';
 import { isUserDeviceMiddelware } from '@/middlewares/auth.middleware';
 import { imageService } from '@services/image.service';
-import { readFile, unlink } from 'node:fs/promises'; // new import
-import im from 'imagemagick';
-import { readFileSync } from 'fs';
-import { tmpdir } from 'node:os';
-import { join } from 'path';
-import { v4 as uuidv4 } from 'uuid';
+import { readFile } from 'node:fs/promises';
+import sharp from 'sharp';
 
-function arrayBufferToString(buffer) {
-  return binaryToString(String.fromCharCode.apply(null, Array.prototype.slice.apply(new Uint8Array(buffer))));
-}
-
-function binaryToString(binary) {
-  let error;
-
-  try {
-    return decodeURIComponent(escape(binary));
-  } catch (_error) {
-    error = _error;
-    if (error instanceof URIError) {
-      return binary;
-    } else {
-      throw error;
-    }
+function parseResizeDimension(value: unknown, max = 4096): number | undefined {
+  if (value === undefined || value === null || value === '') {
+    return undefined;
   }
+
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) {
+    return undefined;
+  }
+
+  const normalized = Math.floor(parsed);
+  if (normalized <= 0) {
+    return undefined;
+  }
+
+  return Math.min(normalized, max);
 }
 
 class ImageController {
@@ -111,36 +106,29 @@ class ImageController {
   };
 
   private sendImage(req: Request, res: Response, image: Buffer, contentType: string) {
-    if (contentType.startsWith('image/') && (req.query.width || req.query.height)) {
-      const tmpFile = join(tmpdir(), Date.now() + '-' + uuidv4() + '.jpeg');
+    const width = parseResizeDimension(req.query.width);
+    const height = parseResizeDimension(req.query.height);
 
-      im.resize(
-        {
-          srcData: arrayBufferToString(image),
-          dstPath: tmpFile,
-          width: Number(req.query.width ?? 0),
-          height: Number(req.query.height ?? 0),
-          format: 'jpeg',
-        },
-        async (err: any, buffer: any) => {
-          try {
-            if (err) {
-              console.log('Failed resizing image:', err);
-              res.status(500).send(await readFile('assets/no-image_placeholder.png'));
-            } else {
-              const resizedBuffer = await readFile(tmpFile);
-              res.setHeader('Content-type', 'image/jpeg');
-              res.setHeader('Cache-Control', 'max-age=3600');
-              res.send(resizedBuffer);
-            }
-          } catch (e) {
-            console.log('Failed reading resized image:', e);
-            res.status(500).send('Failed reading resized image');
-          } finally {
-            void unlink(tmpFile);
-          }
-        },
-      );
+    if (contentType.startsWith('image/') && (width || height)) {
+      void sharp(image)
+        .rotate()
+        .resize({
+          width,
+          height,
+          fit: 'inside',
+          withoutEnlargement: true,
+        })
+        .jpeg()
+        .toBuffer()
+        .then(resizedBuffer => {
+          res.setHeader('Content-type', 'image/jpeg');
+          res.setHeader('Cache-Control', 'max-age=3600');
+          res.send(resizedBuffer);
+        })
+        .catch(async e => {
+          console.log('Failed resizing image:', e);
+          res.status(500).send(await readFile('assets/no-image_placeholder.png'));
+        });
     } else {
       res.setHeader('Content-type', contentType);
       res.setHeader('Cache-Control', 'max-age=3600');
