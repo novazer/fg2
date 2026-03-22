@@ -33,9 +33,7 @@ namespace fg {
   std::unique_ptr<AutomationController> createController(Fridgecloud& cloud) {
     return std::unique_ptr<AutomationController>(new ControllerController(cloud));
   }
-
-
-   void ControllerController::updateSensors() {
+  void ControllerController::updateSensors() {
 
     float temperature, humidity;
     uint16_t co2 = 0;
@@ -154,7 +152,20 @@ namespace fg {
   }
 
   void ControllerController::controlCo2() {
+    
+	if(!hasCo2Sensor()) {
+      Serial.println("CO2 deaktiviert - kein SCD Sensor");
 
+      if(out_co2.get()) {
+        out_co2.set(0);
+      }
+      co2_valve_close = 0;
+      co2_inject_end = xTaskGetTickCount();
+
+      return;
+    }
+	Serial.println("CO2 Regelung aktiv");
+	
     if (out_co2.get()) {
       state.out_co2 += xTaskGetTickCount() - co2_inject_start;
     }
@@ -356,9 +367,11 @@ namespace fg {
       out_heater.set(1);
     }
   }
-
+  
   ControllerController::ControllerController(Fridgecloud& cloud) :
-    cloud(cloud),
+	 
+ 
+	cloud(cloud),
     out_heater(PIN_HEATER),
     out_dehumidifier(PIN_DEHUMIDIFIER),
     out_co2(PIN_CO2),
@@ -444,6 +457,10 @@ namespace fg {
     Serial.printf("#################################################\n\r");
 
     settings = new_settings;
+	if(!hasCo2Sensor())
+	{
+      settings.co2.target = 0;
+	}
   }
 
   void ControllerController::saveAndUploadSettings() {
@@ -562,7 +579,7 @@ namespace fg {
           state.out_dehumidifier = dehumidifier;
           out_dehumidifier.set(dehumidifier);
         }
-        if(output.first == std::string("co2")) {
+        if(output.first == std::string("co2") && hasCo2Sensor()) {
           auto co2 = atoi(output.second.c_str());
           if(co2 != 0) {
             co2_valve_close = xTaskGetTickCount() + co2;
@@ -665,7 +682,7 @@ namespace fg {
     time = xTaskGetTickCount();
 
     if(!found_sensor) {
-      Wire.flush();
+      //Wire.flush();
       scd4x.begin(Wire);
       Wire.beginTransmission(SCD4X_I2C_ADDRESS);
       if (Wire.endTransmission() == 0) {
@@ -705,11 +722,16 @@ namespace fg {
     return found_sensor;
   }
 
+  bool ControllerController::hasCo2Sensor() {
+	return state.sensor_type == SENSOR_TYPE_SCD;
+  }
+
+
   void ControllerController::fastloop() {
     if(heater_turn_off < xTaskGetTickCount()) {
       out_heater.set(0);
     }
-    if(testmode_duration == 0 && out_co2.get()) {
+    if(testmode_duration == 0 && hasCo2Sensor() && out_co2.get()) {
       state.out_co2 += xTaskGetTickCount() - co2_inject_start;
       co2_inject_start = xTaskGetTickCount();
 
@@ -738,7 +760,6 @@ namespace fg {
     }
     else if(sensors_valid == false) {
       Serial.println("SENSOR ERROR!!! FAILSAVE MODE!!!");
-
       out_heater.set(0);
       state.out_heater = 0;
       out_dehumidifier.set(0);
@@ -752,7 +773,17 @@ namespace fg {
         Serial.println("MODE FULL");
         fridge_off_fanspeed = 0;
         fridge_on_fanspeed = 255;
-        controlCo2();
+		
+        if(hasCo2Sensor()) {
+          Serial.printf("CO2 CONTROL ACTIVE (sensor_type=%d)\n", state.sensor_type);
+		  controlCo2();
+        }
+        else {
+          Serial.printf("CO2 CONTROL DISABLED (SHT sensor detected, sensor_type=%d)\n", state.sensor_type);
+		  state.out_co2 = 0;
+          out_co2.set(0);
+        }
+		
         controlLight();
         controlDehumidifier();
         controlHeater();
@@ -762,7 +793,17 @@ namespace fg {
         Serial.println("MODE SMALL");
         fridge_off_fanspeed = 128;
         fridge_on_fanspeed = 255;
-        controlCo2();
+		
+        if(hasCo2Sensor()) {
+          Serial.printf("CO2 CONTROL ACTIVE (sensor_type=%d)\n", state.sensor_type);
+		  controlCo2();
+        }
+        else {
+          Serial.printf("CO2 CONTROL DISABLED (SHT sensor detected, sensor_type=%d)\n", state.sensor_type);
+		  state.out_co2 = 0;
+          out_co2.set(0);
+        }
+		
         controlLight();
         controlDehumidifier();
         controlHeater();
@@ -773,7 +814,17 @@ namespace fg {
         controlLight();
         controlCooling();
         controlHeater();
-        controlCo2();
+		
+        if(hasCo2Sensor()) {
+          Serial.printf("CO2 CONTROL ACTIVE (sensor_type=%d)\n", state.sensor_type);
+		  controlCo2();
+        }
+        else {
+          Serial.printf("CO2 CONTROL DISABLED (SHT sensor detected, sensor_type=%d)\n", state.sensor_type);
+		  state.out_co2 = 0;
+          out_co2.set(0);
+        }
+		
         out_fan_external.set(settings.fans.external * 2.55);
       }
       else if(settings.workmode == ControllerControllerSettings::MODE_DRY) {
@@ -812,57 +863,86 @@ namespace fg {
       if (settings.lights.maintenanceOn > 0 && xTaskGetTickCount() <= pause_until_tick) {
           state.out_light = 15.0f;
           out_light.set(255.0f * (state.out_light / 100.0f));
-       }
-
-      SmartSocketOutputStates socket_states;
-      socket_states.dehumidifier_on = state.out_dehumidifier > 0;
-      socket_states.heater_on = state.out_heater > 0;
-      socket_states.light_on = state.out_light > 0;
-      socket_states.secondary_light_on = state.out_light > 0;
-      socket_states.co2_on = state.out_co2 > 0;
-      wifiReportSmartSocketOutputs(socket_states);
-
-      if(state.co2 < CO2_LEVEL_CRITICAL) {
-        if(++co2_low_count >= 60) {
-          if(!co2_warning_triggered) {
-            cloud.log("message-co2-low");
-            co2_warning_triggered = true;
+      }
+	  if(hasCo2Sensor()){
+        if(state.co2 < CO2_LEVEL_CRITICAL) {
+          if(++co2_low_count >= 60) {
+            if(!co2_warning_triggered) {
+              cloud.log("message-co2-low");
+              co2_warning_triggered = true;
+            }
           }
         }
-      }
-      else {
-        co2_low_count = 0;
+        else {
+           co2_low_count = 0;
         co2_warning_triggered = true;
+        }
       }
-    }
-	
+	}  
+    Serial.printf(
+      "%s T:%.2f°C H:%.0f%%",
+      state.is_day ? "DAY" : "NIGHT",
+      state.temperature,
+      state.humidity
+	);
+
+	// CO2 nur anzeigen wenn SCD Sensor vorhanden
+	if(hasCo2Sensor())
+	{
+      Serial.printf(" CO2:%.0fppm", state.co2);
+	}
+
+	Serial.printf(" H:%.2f D:%.0f L:%.0f",
+      state.out_heater,
+      state.out_dehumidifier,
+      state.out_light
+	);
+    // CO2 Output nur anzeigen wenn vorhanden
+	if(hasCo2Sensor())
+	{
+      Serial.printf(" C:%.0f", state.out_co2);
+	}
+
+	Serial.printf("\n\r");
 
 
+	DynamicJsonDocument status(1024);
 
-    Serial.printf("%s T:%.2f°C H:%.0f%% CO2:%.0fppm H:%.2f D:%.0f L:%.0f C:%.0f\n\r",
-      state.is_day ? "DAY" : "NIGHT", state.temperature, state.humidity, state.co2,
-      state.out_heater, state.out_dehumidifier, state.out_light, state.out_co2);
-
-    DynamicJsonDocument status(1024);
-
-    status["sensors"]["temperature"] = state.temperature;
-    status["sensors"]["humidity"] = state.humidity;
-    status["sensors"]["co2"] = state.co2;
+	status["sensors"]["temperature"] = state.temperature;
+	status["sensors"]["humidity"] = state.humidity;
 	status["sensors"]["sensor_type"] = state.sensor_type;
 
-    status["outputs"]["co2"] = state.out_co2;
-    status["outputs"]["dehumidifier"] = state.out_dehumidifier;
-    status["outputs"]["heater"] = state.out_heater;
-    status["outputs"]["light"] = state.out_light;
-    status["outputs"]["secondary_light"] = state.out_light;
 
-    if(cloud.directMode()) {
+	// CO2 Sensorwert nur senden wenn SCD vorhanden
+	if(hasCo2Sensor())
+	{
+      status["sensors"]["co2"] = state.co2;
+	}
+
+
+	// Outputs
+	status["outputs"]["dehumidifier"] = state.out_dehumidifier;
+	status["outputs"]["heater"] = state.out_heater;
+	status["outputs"]["light"] = state.out_light;
+
+
+	// CO2 Output nur senden wenn vorhanden
+	if(hasCo2Sensor())
+	{
+      status["outputs"]["co2"] = state.out_co2;
+	}
+
+
+	if(cloud.directMode())
+	{
       status["outputs"]["fan-internal"] = out_fan_internal.get() / 255.0f;
       status["outputs"]["fan-external"] = out_fan_external.get() / 255.0f;
       status["outputs"]["fan-backwall"] = out_fan_backwall.get() / 255.0f;
-    }
+	}
 
-    if (cloud.updateStatus(status)) {
+
+	if (cloud.updateStatus(status) && hasCo2Sensor())
+    {
       state.out_co2 = 0;
     }
 
@@ -946,6 +1026,9 @@ namespace fg {
           ui->pop();
           ui->pop();
           initSettingsMenu(ui);
+		  if(!hasCo2Sensor()) {
+            settings.co2.target = 0;
+          }
           saveAndUploadSettings();
         });
       });
@@ -1009,14 +1092,22 @@ namespace fg {
         });
       }
 
-      if(settings.workmode == ControllerControllerSettings::MODE_TEMP || settings.workmode == ControllerControllerSettings::MODE_FULL || settings.workmode == ControllerControllerSettings::MODE_SMALL) {
+      if(hasCo2Sensor() && (
+        settings.workmode == ControllerControllerSettings::MODE_TEMP
+        || settings.workmode == ControllerControllerSettings::MODE_FULL
+        || settings.workmode == ControllerControllerSettings::MODE_SMALL
+      )) {
         menu->addOption("CO2", ICON_HUMIDITY, [ui, this](){
           ui->push<FloatInput>("CO2", settings.co2.target, "PPM", 100, 2000, 50, 0, [ui, this](float value) {
             settings.co2.target = value;
+			Serial.printf("CO2 TARGET SET: %.0f ppm\n", value);
             saveAndUploadSettings();
             ui->pop();
           });
         });
+      }
+	  else {
+        Serial.println("SettingsMenu: CO2 hidden (no CO2 sensor)"); //SHT oder SCD
       }
 
       if(settings.workmode == ControllerControllerSettings::MODE_TEMP || settings.workmode == ControllerControllerSettings::MODE_FULL || settings.workmode == ControllerControllerSettings::MODE_SMALL) {
@@ -1055,8 +1146,18 @@ namespace fg {
   }
 
   void ControllerController::initStatusMenu(UserInterface* ui) {
-    ui->push<Dashboard>(&state.temperature, &state.humidity, &state.co2, &state.out_heater, &state.out_dehumidifier, &state.out_light, &state.out_co2, &state.is_day, &state.sensor_type)
-    ->onEnter([ui, this](){
+	float dummy_co2 = 0.0f;  
+    ui->push<Dashboard>(
+	  &state.temperature,
+	  &state.humidity,
+	  state.sensor_type == SENSOR_TYPE_SCD ? &state.co2 : &dummy_co2,
+	  &state.out_heater,
+	  &state.out_dehumidifier,
+	  &state.out_light,
+	  &state.out_co2,
+	  &state.is_day,
+	  &state.sensor_type
+    )->onEnter([ui, this](){
       initSettingsMenu(ui);
     });
   }

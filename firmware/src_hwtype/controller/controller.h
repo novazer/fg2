@@ -190,9 +190,9 @@ namespace fg {
     void controlDehumidifierExperimental();
     void controlCooling();
     void controlHeater();
-	bool initSensor(); //plug
-	
-	void checkLimits(uint8_t output); //plug
+	bool initSensor();
+	bool hasCo2Sensor();
+	void checkLimits(uint8_t output);
 
   public:
     ControllerController(Fridgecloud& cloud);

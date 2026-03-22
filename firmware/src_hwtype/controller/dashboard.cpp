@@ -48,11 +48,12 @@ namespace fg {
     UserInterface::display.write(value_print.str().c_str());
 
     value_print.str(std::string());
-    UserInterface::display.drawBitmap(1, 21, ICON_HUMIDITY, 16, 16, SSD1306_WHITE);
-    value_print << std::fixed << std::setprecision(0) << *co2 << "ppm";
-    UserInterface::display.setCursor(18, 25);
-    UserInterface::display.write(value_print.str().c_str());
-
+	if(*sensor_type == SENSOR_TYPE_SCD) {											// SHT oder SCD
+      UserInterface::display.drawBitmap(1, 21, ICON_HUMIDITY, 16, 16, SSD1306_WHITE);
+      value_print << std::fixed << std::setprecision(0) << *co2 << "ppm";
+      UserInterface::display.setCursor(18, 25);
+      UserInterface::display.write(value_print.str().c_str());
+    }																				// SHT oder SCD
     // value_print.str(std::string());
     // UserInterface::display.drawBitmap(1, 48, ICON_FAN, 16, 16, SSD1306_WHITE);
     // UserInterface::display.setCursor(18, 52);
