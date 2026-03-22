@@ -40,3 +40,7 @@
   }
 }
 
+/* Let item labels wrap instead of truncating, especially in forms with long translations. */
+ion-item ion-label {
+  max-width: 100% !important;
+}
