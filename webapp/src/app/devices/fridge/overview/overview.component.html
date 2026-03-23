@@ -178,7 +178,7 @@
         <div class="current">{{data.measure(device_id, 'out_dehumidifier') | async | onoff | translate}}</div>
       </div>
     </ion-col>
-    <ion-col size="6" size-sm="2" size-xl="1">
+    <ion-col size="6" size-sm="2" size-xl="1" *ngIf="showCo2Display">
       <div
         class="onoff co2"
         [class.on]="(data.measure(device_id, 'out_co2') | async) != 0"
