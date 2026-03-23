@@ -920,27 +920,14 @@ namespace fg {
 	status["sensors"]["temperature"] = state.temperature;
 	status["sensors"]["humidity"] = state.humidity;
 	status["sensors"]["sensor_type"] = state.sensor_type;
-
-
-	// CO2 Sensorwert nur senden wenn SCD vorhanden
-	if(hasCo2Sensor())
-	{
-      status["sensors"]["co2"] = state.co2;
-	}
+    status["sensors"]["co2"] = hasCo2Sensor() ? state.co2 : -1;
 
 
 	// Outputs
 	status["outputs"]["dehumidifier"] = state.out_dehumidifier;
 	status["outputs"]["heater"] = state.out_heater;
 	status["outputs"]["light"] = state.out_light;
-
-
-	// CO2 Output nur senden wenn vorhanden
-	if(hasCo2Sensor())
-	{
-      status["outputs"]["co2"] = state.out_co2;
-	}
-
+	status["outputs"]["co2"] = hasCo2Sensor() ? state.out_co2 : -1;
 
 	if(cloud.directMode())
 	{

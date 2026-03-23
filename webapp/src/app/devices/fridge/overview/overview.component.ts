@@ -91,7 +91,7 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
       this.data.measureAvg(this.device_id, 'co2')
     ]).subscribe(([co2Current, co2Avg]) => {
       const co2Loaded = Number.isFinite(co2Current) && Number.isFinite(co2Avg);
-      this.showCo2Display = !(this.device_type === 'controller' && co2Loaded && co2Current === 0 && co2Avg === 0);
+      this.showCo2Display = !(this.device_type === 'controller' && co2Loaded && co2Current < 0 && co2Avg < 0);
     });
 
     // Compute VPD and online state from live measurements
