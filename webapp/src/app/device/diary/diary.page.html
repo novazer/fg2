@@ -10,7 +10,7 @@
   <ng-container>
     <ion-card>
       <ion-card-content>
-        <ion-button color="primary" (click)="openEntryModal()">
+        <ion-button *ngIf="canEdit" color="primary" (click)="openEntryModal()">
           <ion-icon name="add-circle-outline"></ion-icon>&nbsp;
           {{'diary.addEntry' | translate}}
         </ion-button>
@@ -38,12 +38,14 @@
     <app-grow-report
       *ngIf="selectedReport === 'growreport'"
       [deviceId]="deviceId"
+      [isPublic]="isPublic"
       [lastUpdated]="lastUpdated"
     ></app-grow-report>
 
     <app-diary-entries-report
       *ngIf="selectedReport === 'entries'"
       [deviceId]="deviceId"
+      [readOnly]="!canEdit"
       [lastUpdated]="lastUpdated"
     ></app-diary-entries-report>
   </ng-container>

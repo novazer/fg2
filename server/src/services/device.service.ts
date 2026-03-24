@@ -1,4 +1,4 @@
-import { Alarm, CloudSettings, Device, DeviceClass, DeviceFirmware, DeviceFirmwareBinary } from '@fg2/shared-types';
+import { Alarm, CloudSettings, Device, DeviceAccessInfo, DeviceClass, DeviceFirmware, DeviceFirmwareBinary } from '@fg2/shared-types';
 import deviceModel from '@models/device.model';
 import deviceLogModel from '@models/devicelog.model';
 import deviceClassModel from '@/models/deviceclass.model';
@@ -446,7 +446,7 @@ class DeviceService {
 
   public async getDeviceLogs(
     device_id: string,
-    user_id: string,
+    user_id: string | undefined,
     is_admin: boolean,
     timestampFrom: number,
     timestampTo: number,
@@ -456,8 +456,10 @@ class DeviceService {
     let device;
     if (is_admin) {
       device = await deviceModel.findOne({ device_id: device_id }, { device_id: 1 });
-    } else {
+    } else if (user_id) {
       device = await deviceModel.findOne({ device_id: device_id, owner_id: user_id }, { device_id: 1 });
+    } else {
+      device = await deviceModel.findOne({ device_id: device_id, 'cloudSettings.publicRead': true }, { device_id: 1 });
     }
     if (device) {
       const logs = await deviceLogModel
@@ -873,29 +875,73 @@ class DeviceService {
     return device.alarms ?? [];
   }
 
+  private normalizeCloudSettings(cloudSettings: CloudSettings | undefined, firmwareSettings?: { autoUpdate?: boolean }) {
+    const settings: CloudSettings = cloudSettings ?? { autoFirmwareUpdate: firmwareSettings?.autoUpdate ?? false };
+
+    if (settings.publicRead === undefined) {
+      settings.publicRead = false;
+    }
+
+    if (!settings.vpdLeafTempOffsetDay) {
+      settings.vpdLeafTempOffsetDay = -2;
+    }
+
+    if (!settings.vpdLeafTempOffsetNight) {
+      settings.vpdLeafTempOffsetNight = 0;
+    }
+
+    if (settings.logRtspStreamErrors === undefined) {
+      settings.logRtspStreamErrors = true;
+    }
+
+    if (!settings.rtspStreamTransport) {
+      settings.rtspStreamTransport = 'tcp';
+    }
+
+    return settings;
+  }
+
   public async getDeviceCloudSettings(device_id: string) {
     const device = await deviceModel.findOne({ device_id: device_id }, { firmwareSettings: 1, cloudSettings: 1 });
-    if (!device.cloudSettings) {
-      device.cloudSettings = { autoFirmwareUpdate: device.firmwareSettings?.autoUpdate ?? false };
+    return this.normalizeCloudSettings(device?.cloudSettings, device?.firmwareSettings);
+  }
+
+  public async getDeviceAccessInfo(device_id: string, user_id?: string, is_admin = false): Promise<DeviceAccessInfo | null> {
+    const device = await deviceModel.findOne(
+      { device_id: device_id },
+      { firmwareSettings: 1, cloudSettings: 1, device_type: 1, name: 1, owner_id: 1 },
+    );
+    if (!device) {
+      return null;
     }
 
-    if (!device?.cloudSettings.vpdLeafTempOffsetDay) {
-      device.cloudSettings.vpdLeafTempOffsetDay = -2;
+    const cloudSettings = this.normalizeCloudSettings(device.cloudSettings, device.firmwareSettings);
+    const isOwned = is_admin || (!!user_id && device.owner_id === user_id);
+
+    if (isOwned) {
+      return {
+        device_id: device_id,
+        device_type: device.device_type,
+        name: device.name,
+        isPublic: false,
+        cloudSettings,
+      };
     }
 
-    if (!device?.cloudSettings.vpdLeafTempOffsetNight) {
-      device.cloudSettings.vpdLeafTempOffsetNight = 0;
+    if (!cloudSettings.publicRead) {
+      return null;
     }
 
-    if (device?.cloudSettings.logRtspStreamErrors === undefined) {
-      device.cloudSettings.logRtspStreamErrors = true;
-    }
-
-    if (!device?.cloudSettings.rtspStreamTransport) {
-      device.cloudSettings.rtspStreamTransport = 'tcp';
-    }
-
-    return device.cloudSettings;
+    return {
+      device_id: device_id,
+      device_type: device.device_type,
+      name: device.name,
+      isPublic: true,
+      cloudSettings: {
+        ...cloudSettings,
+        rtspStream: cloudSettings.rtspStream ? '1' : undefined,
+      },
+    };
   }
 
   public async listClasses(): Promise<DeviceClass[]> {

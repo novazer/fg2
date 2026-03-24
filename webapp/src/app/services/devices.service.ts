@@ -6,6 +6,7 @@ import { AuthService } from '../auth/auth.service';
 import type {
   CloudSettings,
   DiaryEntryData,
+  DeviceAccessInfo,
   DeviceLog,
   DeviceClass,
   Recipe,
@@ -146,8 +147,28 @@ export class DeviceService {
     return await firstValueFrom( this.http.get<string>(environment.API_URL + '/device/alarms/' + device_id) )
   }
 
-  public async getCloudSettings(device_id:string) {
-    return await firstValueFrom( this.http.get<string>(environment.API_URL + '/device/cloudsettings/' + device_id) )
+  public async getCloudSettings(device_id:string): Promise<CloudSettings> {
+    return (await this.getDeviceAccessInfo(device_id)).cloudSettings;
+  }
+
+  public async getDeviceAccessInfo(device_id: string): Promise<DeviceAccessInfo> {
+    return await firstValueFrom(this.http.get<DeviceAccessInfo>(environment.API_URL + '/device/cloudsettings/' + device_id));
+  }
+
+  public async resolveDeviceAccessInfo(device_id: string): Promise<DeviceAccessInfo> {
+    const ownedDevice = this.devices.getValue().find(device => device.device_id === device_id);
+
+    if (ownedDevice) {
+      return {
+        device_id: ownedDevice.device_id,
+        device_type: ownedDevice.device_type,
+        name: ownedDevice.name,
+        isPublic: false,
+        cloudSettings: ownedDevice.cloudSettings ?? {},
+      };
+    }
+
+    return this.getDeviceAccessInfo(device_id);
   }
 
   public async getRecipe(device_id:string): Promise<Recipe | null> {
@@ -166,7 +187,9 @@ export class DeviceService {
   }
 
   public async getDeviceImageUrl(device_id: string, format: 'mp4' | 'jpeg' | 'user/jpeg', timestamp?: number, duration?: string, imageId?: string): Promise<string> {
-    return `${environment.API_URL}/image/${device_id}?timestamp=${timestamp ?? (imageId ? '' : (Math.ceil(Date.now()/5000)*5000))}&token=${await this.auth.getImageToken()}&format=${format}&duration=${duration ?? ''}&image_id=${imageId ?? ''}`;
+    const token = await this.auth.getImageToken();
+    const tokenQuery = token ? `&token=${token}` : '';
+    return `${environment.API_URL}/image/${device_id}?timestamp=${timestamp ?? (imageId ? '' : (Math.ceil(Date.now()/5000)*5000))}${tokenQuery}&format=${format}&duration=${duration ?? ''}&image_id=${imageId ?? ''}`;
   }
 
   public async uploadDeviceImage(device_id: string, file: File, timestamp?: number): Promise<string> {

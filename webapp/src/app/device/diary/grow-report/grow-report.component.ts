@@ -65,6 +65,7 @@ type GrowCycleTimeline = GrowCycle & {
 export class GrowReportComponent implements OnInit, OnDestroy, OnChanges {
   @Input() deviceId = '';
   @Input() lastUpdated: number | undefined;
+  @Input() isPublic = false;
 
   private devicesSubscription: Subscription | undefined;
 

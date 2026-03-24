@@ -111,6 +111,8 @@
     "vpdLeafTempOffsetNight": "Night VPD leaf temp. offset",
     "autoFirmwareUpdate": "Automatic Firmware Updates",
     "betaFeatures": "Beta features",
+    "publicRead": "Public read",
+    "publicReadHint": "If enabled, other people can view the charts page, diary page, and all webcam images when they have the link.",
     "rtspStream": "Webcam stream URL",
     "rtspStreamHint": "Enter the URL of your webcam here to enable webcam streaming in the portal, e.g. \"rtsp://user:password@my-public-hostname-or-ip.com:554/\". The input here must be processable by FFMPEG.",
     "rtspStreamTransport": "RTSP transport protocol",

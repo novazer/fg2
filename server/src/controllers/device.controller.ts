@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
-import { Device, Recipe } from '@fg2/shared-types';
+import { Device, DeviceAccessInfo, Recipe } from '@fg2/shared-types';
 import { deviceService } from '@services/device.service';
 import { RequestWithUser } from '@/interfaces/auth.interface';
 import { AddDeviceClassDto, TestDeviceDto } from '@dtos/device.dto';
-import { isUserDeviceMiddelware } from '@/middlewares/auth.middleware';
+import { isUserDeviceMiddelware, isUserDeviceOrPublicReadMiddelware } from '@/middlewares/auth.middleware';
 import deviceModel from '@models/device.model';
 import recipeModel from '@models/recipe.model';
 import { isNumeric } from 'influx/lib/src/grammar';
@@ -182,8 +182,11 @@ class DeviceController {
 
   public getDeviceCloudSettings = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
-      if (await isUserDeviceMiddelware(req, res, req.params.device_id)) {
-        const settings = await deviceService.getDeviceCloudSettings(req.params.device_id);
+      if (await isUserDeviceOrPublicReadMiddelware(req, res, req.params.device_id)) {
+        const settings: DeviceAccessInfo | null = await deviceService.getDeviceAccessInfo(req.params.device_id, req.user_id, !!req.is_admin);
+        if (!settings) {
+          return res.status(404).json({ status: 'not found' });
+        }
         res.status(200).json(settings);
       }
     } catch (error) {
@@ -330,11 +333,11 @@ class DeviceController {
 
   public getDeviceLogs = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
-      if (await isUserDeviceMiddelware(req, res, req.params.device_id)) {
+      if (await isUserDeviceOrPublicReadMiddelware(req, res, req.params.device_id)) {
         const logs = await deviceService.getDeviceLogs(
           req.params.device_id,
           req.user_id,
-          req.is_admin,
+          !!req.is_admin,
           Number(req.query.from ?? 0),
           Number(req.query.to ?? 0),
           Boolean(req.query.deleted ?? false),

@@ -1,16 +1,7 @@
-import {Component, ElementRef, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {HttpClient} from '@angular/common/http';
-import {ChartConfiguration, ChartEvent, ChartType} from 'chart.js';
-import {BaseChartDirective} from 'ng2-charts';
-import {firstValueFrom, Subscription} from 'rxjs';
+import {Component, OnInit} from '@angular/core';
 import 'chartjs-adapter-luxon';
-import {ActivatedRoute, Router} from '@angular/router';
-import {environment} from 'src/environments/environment';
-import {DataService} from 'src/app/services/data.service';
-import * as Highcharts from 'highcharts/highstock';
+import {ActivatedRoute} from '@angular/router';
 import {DeviceService} from 'src/app/services/devices.service';
-import {PlotLineOrBand, XAxisPlotLinesOptions} from "highcharts";
-import {YAxisOptions} from "highcharts/highstock";
 import { ModalController } from '@ionic/angular';
 import {DiaryEntryModalComponent} from './diary-entry-modal/diary-entry-modal.component';
 import {OverlayEventDetail} from "@ionic/core/components";
@@ -21,19 +12,17 @@ import type { DiaryEntry } from '@fg2/shared-types';
   templateUrl: './diary.page.html',
   styleUrls: ['./diary.page.scss'],
 })
-export class DiaryPage implements OnInit, OnDestroy {
+export class DiaryPage implements OnInit {
   public deviceId: string = '';
   public cloudSettings: any = {};
   public lastUpdated: number | undefined;
+  public isPublic = false;
+  public canEdit = true;
 
   public selectedReport: 'co2report' | 'entries' | 'growreport' = 'entries';
 
-  private devicesSub: Subscription | undefined;
-
   constructor(
     private route: ActivatedRoute,
-    private router: Router,
-    private data: DataService,
     private devices: DeviceService,
     private modalController: ModalController
   ) {
@@ -42,18 +31,24 @@ export class DiaryPage implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.deviceId = this.route.snapshot.paramMap.get('device_id') || '';
 
-    this.devicesSub = this.devices.devices.subscribe((devices) => {
-      const device = devices.find((device) => device.device_id == this.deviceId);
-      this.cloudSettings = device?.cloudSettings || {};
-    });
-  }
-
-  ngOnDestroy(): void {
-    this.devicesSub?.unsubscribe();
-    this.devicesSub = undefined;
+    void this.devices.resolveDeviceAccessInfo(this.deviceId)
+      .then(deviceAccessInfo => {
+        this.isPublic = deviceAccessInfo.isPublic;
+        this.canEdit = !deviceAccessInfo.isPublic;
+        this.cloudSettings = deviceAccessInfo.cloudSettings || {};
+      })
+      .catch(() => {
+        this.isPublic = false;
+        this.canEdit = false;
+        this.cloudSettings = {};
+      });
   }
 
   async openEntryModal() {
+    if (!this.canEdit) {
+      return;
+    }
+
     const modal = await this.modalController.create({
       component: DiaryEntryModalComponent,
       backdropDismiss: false,

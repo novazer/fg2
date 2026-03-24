@@ -175,7 +175,14 @@ class DeviceRoute implements Routes {
      */
     this.router.get(`${this.path}/config/:device_id`, authMiddleware, this.deviceController.getDeviceConfig);
     this.router.get(`${this.path}/alarms/:device_id`, authMiddleware, this.deviceController.getDeviceAlarms);
-    this.router.get(`${this.path}/cloudsettings/:device_id`, authMiddleware, this.deviceController.getDeviceCloudSettings);
+    /**
+     * @api {get} /device/cloudsettings/:device_id get device access info and cloud settings
+     * @apiName get device access info
+     * @apiGroup device
+     *
+     * @apiDescription Returns a single unified payload containing device metadata, whether the current viewer is public, and the effective cloud settings. If the device has public read enabled, this endpoint can also be used without authentication for read-only access.
+     */
+    this.router.get(`${this.path}/cloudsettings/:device_id`, this.deviceController.getDeviceCloudSettings);
 
     // Recipe endpoints
     this.router.get(`${this.path}/recipe/:device_id`, authMiddleware, this.deviceController.getRecipe);
@@ -220,14 +227,14 @@ class DeviceRoute implements Routes {
      * @apiName get device logs
      * @apiGroup device
      *
-     * @apiUse authentication
+     * @apiDescription Returns logs for owned devices and also for devices with public read enabled.
      *
      * @apiParam {String} [device_id] device uuid
      *
      * @apiSuccess array of device log entries
      *
      */
-    this.router.get(`${this.path}/logs/:device_id`, authMiddleware, this.deviceController.getDeviceLogs);
+    this.router.get(`${this.path}/logs/:device_id`, this.deviceController.getDeviceLogs);
 
     /**
      * @api {delete} /device/logs/:device_id clear device logs

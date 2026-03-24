@@ -4,12 +4,19 @@ import { SECRET_KEY } from '@config';
 import { HttpException } from '@exceptions/HttpException';
 import { DataStoredInToken, RequestWithUser } from '@interfaces/auth.interface';
 import deviceModel from '@/models/device.model';
-import { Device } from '@/interfaces/device.interface';
+import { Device } from '@fg2/shared-types';
+
+const getAuthorization = (req: RequestWithUser) =>
+  req.cookies['Authorization'] || (req.header('Authorization') ? req.header('Authorization').split('Bearer ')[1] : null) || req.query.token;
+
+const hasPublicReadAccess = async (device_id: string): Promise<boolean> => {
+  const device = await deviceModel.findOne({ device_id, 'cloudSettings.publicRead': true }, { device_id: 1 });
+  return !!device;
+};
 
 export const authMiddleware = async (req: RequestWithUser, res: Response, next: NextFunction) => {
   try {
-    const Authorization =
-      req.cookies['Authorization'] || (req.header('Authorization') ? req.header('Authorization').split('Bearer ')[1] : null) || req.query.token;
+    const Authorization = getAuthorization(req);
 
     if (Authorization) {
       const secretKey: string = SECRET_KEY;
@@ -60,8 +67,7 @@ export const isUserDeviceMiddelware = async (
   tokenType: DataStoredInToken['token_type'] = 'user',
 ) => {
   try {
-    const Authorization =
-      req.cookies['Authorization'] || (req.header('Authorization') ? req.header('Authorization').split('Bearer ')[1] : null) || req.query.token;
+    const Authorization = getAuthorization(req);
 
     if (Authorization) {
       const secretKey: string = SECRET_KEY;
@@ -91,4 +97,43 @@ export const isUserDeviceMiddelware = async (
     res.status(401).send('Wrong authentication token');
     return false;
   }
+};
+
+export const isUserDeviceOrPublicReadMiddelware = async (
+  req: RequestWithUser,
+  res: Response,
+  device_id: string,
+  tokenType: DataStoredInToken['token_type'] = 'user',
+) => {
+  const Authorization = getAuthorization(req);
+
+  if (Authorization) {
+    try {
+      const secretKey: string = SECRET_KEY;
+      const verificationResponse = (await verify(Authorization, secretKey)) as DataStoredInToken;
+
+      if (verificationResponse.user_id && verificationResponse.token_type === tokenType) {
+        req.user_id = verificationResponse.user_id;
+        req.is_admin = verificationResponse.is_admin;
+
+        if (req.is_admin) {
+          return true;
+        }
+
+        const devices: Device[] = await deviceModel.find({ owner_id: req.user_id, device_id: device_id }, { device_id: 1 });
+        if (devices.length > 0) {
+          return true;
+        }
+      }
+    } catch (_error) {
+      // Fall back to public-read check.
+    }
+  }
+
+  if (await hasPublicReadAccess(device_id)) {
+    return true;
+  }
+
+  res.status(401).send(Authorization ? 'Wrong authentication token or no access to device' : 'Authentication token missing');
+  return false;
 };

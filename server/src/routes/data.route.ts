@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import { Routes } from '@interfaces/routes.interface';
-import validationMiddleware from '@/middlewares/validation.middleware';
 import DataController from '@/controllers/data.controller';
 
 class DataRoute implements Routes {
@@ -18,7 +17,7 @@ class DataRoute implements Routes {
      * @apiName data series
      * @apiGroup data
      *
-     * @apiUse authentication
+     * @apiDescription Returns series data for owned devices and also for devices with public read enabled.
      *
      * @apiSuccess {Array} list of devices paired to user account
      * @apiParam {String} device_id device uuid
@@ -50,7 +49,7 @@ class DataRoute implements Routes {
      * @apiName data latest
      * @apiGroup data
      *
-     * @apiUse authentication
+     * @apiDescription Returns the latest value for owned devices and also for devices with public read enabled.
      *
      * @apiSuccess {Array} list of devices paired to user account
      * @apiParam {String} device_id device uuid

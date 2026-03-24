@@ -23,6 +23,7 @@ export type LogEntry = DeviceLog & {
 export class DiaryEntriesReportComponent implements OnInit, OnChanges {
   @Input() deviceId = '';
   @Input() lastUpdated: number | undefined;
+  @Input() readOnly = false;
 
   public logs: LogEntry[] = [];
   private allLogs: LogEntry[] = [];
@@ -89,6 +90,10 @@ export class DiaryEntriesReportComponent implements OnInit, OnChanges {
   }
 
   async openEditModal(log: LogEntry): Promise<void> {
+    if (this.readOnly) {
+      return;
+    }
+
     if (!this.isEditableLog(log)) {
       return;
     }
@@ -140,6 +145,10 @@ export class DiaryEntriesReportComponent implements OnInit, OnChanges {
   }
 
   async deleteLog(log: DeviceLog): Promise<void> {
+    if (this.readOnly) {
+      return;
+    }
+
     const confirmMessage = this.translate.instant('diary.confirmDelete');
     if (!confirm(confirmMessage)) {
       return;

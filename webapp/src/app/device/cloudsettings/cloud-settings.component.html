@@ -110,6 +110,25 @@
         (ngModelChange)="cloudSettingsChange.emit(cloudSettings); onFirmwareUpdateChanged()"
       ></ion-checkbox>
     </ion-item>
+    <ion-item lines="none" *ngIf="cloudSettings.betaFeatures">
+      <ion-label>
+        {{'settings.publicRead' | translate}}
+        <ion-button fill="clear" id="cloudSettings-publicRead-popover">
+          <ion-icon name="help-circle-outline"></ion-icon>
+        </ion-button>
+      </ion-label>
+      <ion-checkbox
+        [(ngModel)]="cloudSettings.publicRead"
+        (ngModelChange)="cloudSettingsChange.emit(cloudSettings)"
+      ></ion-checkbox>
+      <ion-popover trigger="cloudSettings-publicRead-popover" [dismissOnSelect]="true">
+        <ng-template>
+          <ion-content>
+            {{'settings.publicReadHint' | translate}}
+          </ion-content>
+        </ng-template>
+      </ion-popover>
+    </ion-item>
     <ion-item lines="none">
       <ion-label>{{'settings.betaFeatures' | translate}}</ion-label>
       <ion-checkbox
@@ -120,7 +139,7 @@
     <ion-item-divider />
     <ion-item lines="none">
       <ion-label>{{'settings.dangerZone' | translate}}</ion-label>
-      <ion-button color="danger" (click)="deleteDevice()" slod="end">
+      <ion-button color="danger" (click)="deleteDevice()" slot="end">
         {{'settings.deleteDevice' | translate}}
       </ion-button>
     </ion-item>

@@ -31,6 +31,7 @@ export interface FirmwareSettings {
 
 export interface CloudSettings {
   autoFirmwareUpdate?: boolean;
+  publicRead?: boolean;
   vpdLeafTempOffsetDay?: number;
   vpdLeafTempOffsetNight?: number;
   betaFeatures?: boolean;
@@ -39,6 +40,14 @@ export interface CloudSettings {
   logRtspStreamErrors?: boolean;
   tunnelRtspStream?: boolean;
   maintenanceWebcamOff?: boolean;
+}
+
+export interface DeviceAccessInfo {
+  device_id: string;
+  device_type: string;
+  name?: string;
+  isPublic: boolean;
+  cloudSettings: CloudSettings;
 }
 
 export type DiaryLifecycleStage = 'germination' | 'seedling' | 'vegetative' | 'flowering' | 'drying' | 'curing';

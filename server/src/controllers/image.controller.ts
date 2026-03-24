@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { RequestWithUser } from '@/interfaces/auth.interface';
-import { isUserDeviceMiddelware } from '@/middlewares/auth.middleware';
+import { isUserDeviceMiddelware, isUserDeviceOrPublicReadMiddelware } from '@/middlewares/auth.middleware';
 import { imageService } from '@services/image.service';
 import { readFile } from 'node:fs/promises';
 import sharp from 'sharp';
@@ -26,7 +26,7 @@ function parseResizeDimension(value: unknown, max = 4096): number | undefined {
 class ImageController {
   public getDeviceImage = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
-      if (await isUserDeviceMiddelware(req, res, req.params.device_id, 'image')) {
+      if (await isUserDeviceOrPublicReadMiddelware(req, res, req.params.device_id, 'image')) {
         const image = await imageService.getDeviceImage(
           req.params.device_id,
           String(req.query.format),

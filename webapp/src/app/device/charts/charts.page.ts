@@ -1,7 +1,6 @@
 import {Component, ElementRef, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {ChartType} from 'chart.js';
 import {BaseChartDirective} from 'ng2-charts';
-import {Subscription} from 'rxjs';
 import 'chartjs-adapter-luxon';
 import {ActivatedRoute, Router} from '@angular/router';
 import {DataService} from 'src/app/services/data.service';
@@ -63,7 +62,6 @@ export class ChartsPage implements OnInit, OnDestroy {
   updateFlag: boolean = false;
   chartOptions: Highcharts.Options;
 
-  private devicesSub: Subscription | undefined;
   private themeObserver?: MutationObserver;
 
   public timespans = [
@@ -152,6 +150,7 @@ export class ChartsPage implements OnInit, OnDestroy {
   public device_id: string = "";
   public device_type: string = "";
   public cloudSettings: any = {};
+  public isPublic = false;
 
   public autoUpdate: boolean = false;
 
@@ -494,36 +493,39 @@ export class ChartsPage implements OnInit, OnDestroy {
     });
     this.themeObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
 
-    this.devicesSub = this.devices.devices.subscribe((devices) => {
-      const device = devices.find((device) => device.device_id == this.device_id);
-      this.device_type = device?.device_type || '';
-      this.cloudSettings = device?.cloudSettings || {};
+    void this.devices.resolveDeviceAccessInfo(this.device_id)
+      .then(deviceAccessInfo => {
+        this.isPublic = deviceAccessInfo.isPublic;
+        this.device_type = deviceAccessInfo.device_type || '';
+        this.cloudSettings = deviceAccessInfo.cloudSettings || {};
 
-      if (this.device_type != "") {
-        this.filtered_measures = this.measures
-          .filter((measure) => measure.types.includes(this.device_type));
+        if (this.device_type != "") {
+          this.filtered_measures = this.measures
+            .filter((measure) => measure.types.includes(this.device_type));
 
-        if (!this.cloudSettings.rtspStream) {
-          this.showImage = false;
-        }
-
-        setTimeout(() => this.loadData(), 10)
-        if (this.interval) {
-          clearInterval(this.interval);
-        }
-
-        this.interval = setInterval(() => {
-          if (this.autoUpdate) {
-            this.selectedDate = '';
-            this.currentImageTimestamp = undefined;
-            this.selectedLogs.splice(0, this.selectedLogs.length);
-            void this.loadDeviceImage();
-            void this.loadData();
+          if (!this.cloudSettings.rtspStream) {
+            this.showImage = false;
           }
-        }, 10000)
-      }
 
-    });
+          setTimeout(() => this.loadData(), 10)
+          if (this.interval) {
+            clearInterval(this.interval);
+          }
+
+          this.interval = setInterval(() => {
+            if (this.autoUpdate) {
+              this.selectedDate = '';
+              this.currentImageTimestamp = undefined;
+              this.selectedLogs.splice(0, this.selectedLogs.length);
+              void this.loadDeviceImage();
+              void this.loadData();
+            }
+          }, 10000)
+        }
+      })
+      .catch(() => {
+        this.loaded = true;
+      });
   }
 
   ngOnDestroy() {
@@ -535,8 +537,6 @@ export class ChartsPage implements OnInit, OnDestroy {
     this.themeObserver?.disconnect();
     this.themeObserver = undefined;
 
-    this.devicesSub?.unsubscribe();
-    this.devicesSub = undefined;
   }
 
   public getAvailableTimespans() {

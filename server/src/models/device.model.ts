@@ -102,6 +102,7 @@ const deviceSchema: Schema = new Schema({
   cloudSettings: {
     type: {
       autoFirmwareUpdate: { type: Boolean, required: false },
+      publicRead: { type: Boolean, required: false },
       vpdLeafTempOffsetDay: { type: Number, required: false },
       vpdLeafTempOffsetNight: { type: Number, required: false },
       betaFeatures: { type: Boolean, required: false },
