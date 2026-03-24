@@ -3,8 +3,16 @@ import {DeviceService} from "../../../services/devices.service";
 import {Subscription} from "rxjs";
 import {defaultDiaryEntries} from "../diary-entry-modal/diary-entry-modal.component";
 import {collectLogCategories, filterLogsByCategory, LogEntryViewerLog} from "../../log-entry-viewer/log-entry-viewer.component";
-import {Router} from "@angular/router";
+import {ActivatedRoute, Router} from "@angular/router";
 import type { DiaryEntryData, DeviceLog } from '@fg2/shared-types';
+import {
+  DEFAULT_GROW_CATEGORIES,
+  mergeDiaryQueryParams,
+  parseNumberQueryParam,
+  parseStringArrayQueryParam,
+  serializeNumberQueryParam,
+  serializeStringArrayQueryParam,
+} from '../diary-query-params';
 
 export const LIFECYCLE_EVENT_ORDER: Record<DiaryEntryData['newLifecycleStage'], number> = {
   germination: 0,
@@ -68,6 +76,8 @@ export class GrowReportComponent implements OnInit, OnDestroy, OnChanges {
   @Input() isPublic = false;
 
   private devicesSubscription: Subscription | undefined;
+  private queryParamsSubscription: Subscription | undefined;
+  private requestedCycleStart?: number;
 
   public growCycles: GrowCycle[] = [];
   public cycleTimelines: GrowCycleTimeline[] = [];
@@ -80,10 +90,21 @@ export class GrowReportComponent implements OnInit, OnDestroy, OnChanges {
   private lifecycleLogs: LogEntryViewerLog[] = [];
   private static readonly LIFECYCLE_CATEGORIES = ['diary-plant-lifecycle', 'plant-lifecycle'] as const;
 
-  constructor(private devices: DeviceService, private router: Router) {
+  constructor(private devices: DeviceService, private router: Router, private route: ActivatedRoute) {
   }
 
   ngOnInit() {
+    this.queryParamsSubscription = this.route.queryParamMap.subscribe(params => {
+      this.selectedLogCategories = parseStringArrayQueryParam(params.get('growCategories')) ?? [...DEFAULT_GROW_CATEGORIES];
+      this.requestedCycleStart = parseNumberQueryParam(params.get('growCycle'));
+
+      if (this.growCycles.length > 0) {
+        this.ensureSelectedCategories();
+        this.applyRequestedCycleSelection();
+        this.rebuildTimelines();
+      }
+    });
+
     this.devicesSubscription = this.devices.devices.subscribe(async() => {
       void this.loadData();
     });
@@ -91,6 +112,7 @@ export class GrowReportComponent implements OnInit, OnDestroy, OnChanges {
 
   ngOnDestroy() {
     this.devicesSubscription?.unsubscribe();
+    this.queryParamsSubscription?.unsubscribe();
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -142,23 +164,35 @@ export class GrowReportComponent implements OnInit, OnDestroy, OnChanges {
 
       this.allLogs = logs;
       this.availableLogCategories = collectLogCategories(logs);
-      this.selectedCycleIndex = 0;
       this.ensureSelectedCategories();
+      this.applyRequestedCycleSelection();
       this.rebuildTimelines();
+      void this.syncQueryParams();
     } finally {
       this.loading = false;
     }
   }
 
   private getLifecycleTimeframe(): { timestampFrom: number; timestampTo: number } {
-    const start = new Date(this.growCycles[0]?.timestampStart ?? this.lifecycleLogs[0]?.time ?? new Date());
-    const end = this.growCycles[this.growCycles.length - 1]?.timestampEnd
-      ? new Date(this.growCycles[this.growCycles.length - 1].timestampEnd as Date)
-      : new Date();
+    const lifecycleTimestamps = this.lifecycleLogs
+      .map(log => new Date(log.time).getTime())
+      .filter(timestamp => Number.isFinite(timestamp));
+
+    const cycleStartTimestamps = this.growCycles
+      .map(cycle => new Date(cycle.timestampStart).getTime())
+      .filter(timestamp => Number.isFinite(timestamp));
+
+    const cycleEndTimestamps = this.growCycles
+      .map(cycle => cycle.timestampEnd ? new Date(cycle.timestampEnd).getTime() : Date.now())
+      .filter(timestamp => Number.isFinite(timestamp));
+
+    const fallbackNow = Date.now();
+    const timestampFrom = Math.min(...(lifecycleTimestamps.length > 0 ? lifecycleTimestamps : cycleStartTimestamps.length > 0 ? cycleStartTimestamps : [fallbackNow]));
+    const timestampTo = Math.max(...(cycleEndTimestamps.length > 0 ? cycleEndTimestamps : lifecycleTimestamps.length > 0 ? lifecycleTimestamps : [fallbackNow]));
 
     return {
-      timestampFrom: start.getTime(),
-      timestampTo: end.getTime(),
+      timestampFrom: Math.min(timestampFrom, timestampTo),
+      timestampTo: Math.max(timestampFrom, timestampTo),
     };
   }
 
@@ -167,6 +201,7 @@ export class GrowReportComponent implements OnInit, OnDestroy, OnChanges {
       ? selectedCategories
       : (this.availableLogCategories.includes('diary') ? ['diary'] : []);
     this.rebuildTimelines();
+    void this.syncQueryParams();
   }
 
   private ensureSelectedCategories(): void {
@@ -178,6 +213,23 @@ export class GrowReportComponent implements OnInit, OnDestroy, OnChanges {
     if (!this.selectedLogCategories.length || !this.selectedLogCategories.some(cat => this.availableLogCategories.includes(cat))) {
       this.selectedLogCategories = this.availableLogCategories.includes('diary') ? ['diary'] : [...this.availableLogCategories];
     }
+  }
+
+  private applyRequestedCycleSelection(): void {
+    if (!this.growCycles.length) {
+      this.selectedCycleIndex = 0;
+      return;
+    }
+
+    if (this.requestedCycleStart !== undefined) {
+      const requestedIndex = this.growCycles.findIndex(cycle => new Date(cycle.timestampStart).getTime() === this.requestedCycleStart);
+      if (requestedIndex >= 0) {
+        this.selectedCycleIndex = requestedIndex;
+        return;
+      }
+    }
+
+    this.selectedCycleIndex = Math.min(this.selectedCycleIndex, this.growCycles.length - 1);
   }
 
   private rebuildTimelines(): void {
@@ -637,6 +689,14 @@ export class GrowReportComponent implements OnInit, OnDestroy, OnChanges {
 
   onCycleSelected(event: any) {
     this.selectedCycleIndex = event.detail.value;
+    void this.syncQueryParams();
+  }
+
+  private async syncQueryParams(): Promise<void> {
+    await mergeDiaryQueryParams(this.router, this.route, {
+      growCategories: serializeStringArrayQueryParam(this.selectedLogCategories, DEFAULT_GROW_CATEGORIES),
+      growCycle: serializeNumberQueryParam(this.selectedCycle ? new Date(this.selectedCycle.timestampStart).getTime() : undefined),
+    });
   }
 
 }

@@ -1,18 +1,20 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import 'chartjs-adapter-luxon';
-import {ActivatedRoute} from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
+import { Subscription } from 'rxjs';
 import {DeviceService} from 'src/app/services/devices.service';
 import { ModalController } from '@ionic/angular';
 import {DiaryEntryModalComponent} from './diary-entry-modal/diary-entry-modal.component';
 import {OverlayEventDetail} from "@ionic/core/components";
 import type { DiaryEntry } from '@fg2/shared-types';
+import { DEFAULT_DIARY_REPORT, mergeDiaryQueryParams, parseDiaryReport } from './diary-query-params';
 
 @Component({
   selector: 'app-diary',
   templateUrl: './diary.page.html',
   styleUrls: ['./diary.page.scss'],
 })
-export class DiaryPage implements OnInit {
+export class DiaryPage implements OnInit, OnDestroy {
   public deviceId: string = '';
   public cloudSettings: any = {};
   public lastUpdated: number | undefined;
@@ -21,8 +23,11 @@ export class DiaryPage implements OnInit {
 
   public selectedReport: 'co2report' | 'entries' | 'growreport' = 'entries';
 
+  private queryParamsSubscription?: Subscription;
+
   constructor(
     private route: ActivatedRoute,
+    private router: Router,
     private devices: DeviceService,
     private modalController: ModalController
   ) {
@@ -30,6 +35,10 @@ export class DiaryPage implements OnInit {
 
   ngOnInit(): void {
     this.deviceId = this.route.snapshot.paramMap.get('device_id') || '';
+
+    this.queryParamsSubscription = this.route.queryParamMap.subscribe(params => {
+      this.selectedReport = parseDiaryReport(params.get('report'));
+    });
 
     void this.devices.resolveDeviceAccessInfo(this.deviceId)
       .then(deviceAccessInfo => {
@@ -42,6 +51,10 @@ export class DiaryPage implements OnInit {
         this.canEdit = false;
         this.cloudSettings = {};
       });
+  }
+
+  ngOnDestroy(): void {
+    this.queryParamsSubscription?.unsubscribe();
   }
 
   async openEntryModal() {
@@ -79,6 +92,8 @@ export class DiaryPage implements OnInit {
   }
 
   reportSelected() {
-
+    void mergeDiaryQueryParams(this.router, this.route, {
+      report: this.selectedReport === DEFAULT_DIARY_REPORT ? null : this.selectedReport,
+    });
   }
 }

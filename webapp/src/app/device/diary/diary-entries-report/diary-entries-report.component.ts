@@ -1,6 +1,8 @@
-import {Component, Input, OnChanges, OnInit, SimpleChanges} from '@angular/core';
+import {Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges} from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import {DeviceService} from '../../../services/devices.service';
 import {ModalController} from '@ionic/angular';
+import { Subscription } from 'rxjs';
 import {
   DiaryEntryModalComponent,
   defaultDiaryEntries,
@@ -9,6 +11,7 @@ import {TranslateService} from '@ngx-translate/core';
 import type { DiaryEntry, DeviceLog } from '@fg2/shared-types';
 
 import { collectLogCategories } from '../../log-entry-viewer/log-entry-viewer.component';
+import { DEFAULT_ENTRY_CATEGORIES, mergeDiaryQueryParams, parseStringArrayQueryParam, serializeStringArrayQueryParam } from '../diary-query-params';
 
 export type LogEntry = DeviceLog & {
   imageUrls?: undefined | Promise<string>[];
@@ -20,7 +23,7 @@ export type LogEntry = DeviceLog & {
   templateUrl: './diary-entries-report.component.html',
   styleUrls: ['./diary-entries-report.component.scss'],
 })
-export class DiaryEntriesReportComponent implements OnInit, OnChanges {
+export class DiaryEntriesReportComponent implements OnInit, OnChanges, OnDestroy {
   @Input() deviceId = '';
   @Input() lastUpdated: number | undefined;
   @Input() readOnly = false;
@@ -31,15 +34,27 @@ export class DiaryEntriesReportComponent implements OnInit, OnChanges {
   public availableLogCategories: string[] = [];
   public selectedLogCategories: string[] = ['diary'];
 
+  private queryParamsSubscription?: Subscription;
+
   constructor(
     private devices: DeviceService,
     private modalController: ModalController,
     private translate: TranslateService,
+    private route: ActivatedRoute,
+    private router: Router,
   ) {
   }
 
   ngOnInit(): void {
+    this.queryParamsSubscription = this.route.queryParamMap.subscribe(params => {
+      this.selectedLogCategories = parseStringArrayQueryParam(params.get('entryCategories')) ?? [...DEFAULT_ENTRY_CATEGORIES];
+    });
+
     void this.loadData();
+  }
+
+  ngOnDestroy(): void {
+    this.queryParamsSubscription?.unsubscribe();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -72,6 +87,7 @@ export class DiaryEntriesReportComponent implements OnInit, OnChanges {
       }
 
       this.logs = this.allLogs;
+      void this.syncQueryParams();
     } finally {
       this.loading = false;
     }
@@ -83,6 +99,7 @@ export class DiaryEntriesReportComponent implements OnInit, OnChanges {
 
   logCategoryChanged(selectedCategories?: string[]): void {
     this.selectedLogCategories = selectedCategories && selectedCategories.length > 0 ? selectedCategories : ['diary'];
+    void this.syncQueryParams();
   }
 
   isEditableLog(log: DeviceLog): boolean {
@@ -184,5 +201,11 @@ export class DiaryEntriesReportComponent implements OnInit, OnChanges {
 
   disableLogGrouping(): void {
     // Placeholder for future grouping logic if needed in diary report
+  }
+
+  private async syncQueryParams(): Promise<void> {
+    await mergeDiaryQueryParams(this.router, this.route, {
+      entryCategories: serializeStringArrayQueryParam(this.selectedLogCategories, DEFAULT_ENTRY_CATEGORIES),
+    });
   }
 }
