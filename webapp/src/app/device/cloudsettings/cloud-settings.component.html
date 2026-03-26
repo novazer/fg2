@@ -110,7 +110,7 @@
         (ngModelChange)="cloudSettingsChange.emit(cloudSettings); onFirmwareUpdateChanged()"
       ></ion-checkbox>
     </ion-item>
-    <ion-item lines="none" *ngIf="cloudSettings.betaFeatures">
+    <ion-item lines="none">
       <ion-label>
         {{'settings.publicRead' | translate}}
         <ion-button fill="clear" id="cloudSettings-publicRead-popover">
