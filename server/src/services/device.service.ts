@@ -882,11 +882,11 @@ class DeviceService {
       settings.publicRead = false;
     }
 
-    if (!settings.vpdLeafTempOffsetDay) {
+    if (settings.vpdLeafTempOffsetDay === undefined) {
       settings.vpdLeafTempOffsetDay = -2;
     }
 
-    if (!settings.vpdLeafTempOffsetNight) {
+    if (settings.vpdLeafTempOffsetNight === undefined) {
       settings.vpdLeafTempOffsetNight = 0;
     }
 
