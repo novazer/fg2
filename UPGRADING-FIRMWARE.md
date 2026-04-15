@@ -26,7 +26,8 @@ Alternatively, you can use a wildcard DNS entry for `*.plantalytix-app.com` to p
 
 We are providing a public DNS server, which resolves the required domains to the upgrade-server:
 - `77.42.21.234` (IPv4)
-- `2a01:4f9:c013:7d4d::` (IPv6)
+- `2a01:4f9:c013:7d4d::` (IPv6 short)
+- `2a01:04f9:c013:7d4d:0000:0000:0000:0000` (IPv6 long)
 
 You can debug the DNS resolution, by checking the following website:
 http://77.42.21.234/log.php
