@@ -28,6 +28,7 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
   @Input() device_type:string = "";
   @Input() maintenance_mode_until:number = 0;
   @Input() cloud_settings:any = {};
+  @Input() hardware_info: Record<string, string> | undefined = {};
   @ViewChild("nameedit", { read: ElementRef }) private nameInput: ElementRef | undefined;
   @ViewChild(IonModal) modal!: IonModal;
 
@@ -55,7 +56,6 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
   public workmode:string = 'loading';
   public recipe:any = null;
   private refreshLogsTimer: NodeJS.Timeout|undefined = undefined;
-  private co2VisibilitySubscription: Subscription | undefined = undefined;
   public showCo2Display:boolean = true;
 
   // timer used to refresh remaining time every second
@@ -82,17 +82,13 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
 
   async ngOnInit() {
     if(this.device_name == "" || this.device_name == undefined) {
-      this.device_name = "Plantalytix Fridgegrow 2.0"
+      this.device_name = "Fridgegrow 2.0"
     }
 
-    // Hide CO2 tile for controllers only after both values are loaded and both are exactly zero.
-    this.co2VisibilitySubscription = combineLatest([
-      this.data.measure(this.device_id, 'co2'),
-      this.data.measureAvg(this.device_id, 'co2')
-    ]).subscribe(([co2Current, co2Avg]) => {
-      const co2Loaded = Number.isFinite(co2Current) && Number.isFinite(co2Avg);
-      this.showCo2Display = !(this.device_type === 'controller' && co2Loaded && co2Current < 0 && co2Avg < 0);
-    });
+    // Hide CO2 tile for controllers only when hardware reports no CO2 sensor
+    if (this.device_type === 'controller') {
+      this.showCo2Display = this.hardware_info?.['co2'] !== 'off';
+    }
 
     // Compute VPD and online state from live measurements
     combineLatest([
@@ -191,7 +187,6 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     clearInterval(this.refreshLogsTimer);
     clearInterval(this.timerId);
-    this.co2VisibilitySubscription?.unsubscribe();
   }
 
   showLogs() {

@@ -134,10 +134,14 @@ class DeviceService {
               break;
             case 'log':
               const msg = JSON.parse(message.message);
-              await this.logMessage(device.device_id, {
-                categories: ['device', ...(DEVICE_MESSAGE_CATEGORY_MAPPING[msg?.message?.split(':')?.[0]] ?? [])],
-                ...msg,
-              });
+              if (msg?.message?.startsWith('hardware-info:')) {
+                await this.logHardwareInfo(device.device_id, msg.message.slice('hardware-info:'.length));
+              } else {
+                await this.logMessage(device.device_id, {
+                  categories: ['device', ...(DEVICE_MESSAGE_CATEGORY_MAPPING[msg?.message?.split(':')?.[0]] ?? [])],
+                  ...msg,
+                });
+              }
               break;
             case 'configuration':
               await this.settingsMessage(device, JSON.parse(message.message));
@@ -410,6 +414,14 @@ class DeviceService {
     }
   }
 
+  private async logHardwareInfo(deviceId: string, infoPayload: string) {
+    // Parse "key=value" pairs, e.g. "co2=on"
+    const [infoKey, infoValue] = infoPayload.split('=');
+    if (infoKey && infoValue !== undefined) {
+      await deviceModel.findOneAndUpdate({ device_id: deviceId }, { $set: { [`hardwareInfo.${infoKey}`]: infoValue } });
+    }
+  }
+
   public async logMessage(
     deviceId: string,
     msg: {
@@ -424,7 +436,6 @@ class DeviceService {
       time?: string;
     },
   ) {
-    //console.log("\nLOG\n", message)
     const [messageKey, value] = msg.message.split(':');
     if (messageKey?.startsWith('message-maintenance-mode-activated') && isNumeric(value)) {
       await alarmService.maintenanceActivatedForDevice(deviceId, parseInt(value));
@@ -580,7 +591,7 @@ class DeviceService {
   public async findUserDevices(user_id: string): Promise<Device[]> {
     const devices: Device[] = await deviceModel.find(
       { owner_id: user_id },
-      { device_id: 1, configuration: 1, device_type: 1, name: 1, maintenance_mode_until: 1, cloudSettings: 1 },
+      { device_id: 1, configuration: 1, device_type: 1, name: 1, maintenance_mode_until: 1, cloudSettings: 1, hardwareInfo: 1 },
     );
     // const users: Device[] = await deviceModel.aggregate([{$match: {owner_id: user_id}}, {$lookup: {from: 'deviceclasses', localField:'class_id', foreignField: 'class_id', as:'device_class'}}]);
     return devices;

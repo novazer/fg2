@@ -143,6 +143,10 @@ const deviceSchema: Schema = new Schema({
     },
     required: false,
   },
+  hardwareInfo: {
+    type: Schema.Types.Mixed,
+    required: false,
+  },
 });
 
 const deviceModel = model<Device & Document>('Device', deviceSchema);

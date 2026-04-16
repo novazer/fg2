@@ -750,7 +750,16 @@ namespace fg {
   void ControllerController::loop() {
     updateSensors();
     checkDayCycle();
-    
+
+    {
+      static int last_co2_sensor_logged = -1;
+      int co2_sensor_now = hasCo2Sensor() ? 1 : 0;
+      if(co2_sensor_now != last_co2_sensor_logged) {
+        cloud.log(co2_sensor_now ? "hardware-info:co2=on" : "hardware-info:co2=off");
+        last_co2_sensor_logged = co2_sensor_now;
+      }
+    }
+
 	if(testmode_duration > 0) {
       testmode_duration--;
       Serial.println("TESTMODE ACTIVE!");

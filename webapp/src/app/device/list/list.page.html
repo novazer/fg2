@@ -21,6 +21,7 @@
         [device_type]="device.device_type"
         [maintenance_mode_until]="device.maintenance_mode_until ?? 0"
         [cloud_settings]="device.cloudSettings"
+        [hardware_info]="device.hardwareInfo"
         *ngSwitchCase="'fridge2'"></fridge-overview>
       <fridge-overview
         [device_id]="device.device_id"
@@ -28,6 +29,7 @@
         [device_type]="device.device_type"
         [maintenance_mode_until]="device.maintenance_mode_until ?? 0"
         [cloud_settings]="device.cloudSettings"
+        [hardware_info]="device.hardwareInfo"
         *ngSwitchCase="'fridge'"></fridge-overview>
       <fridge-overview
         [device_id]="device.device_id"
@@ -35,6 +37,7 @@
         [device_type]="device.device_type"
         [maintenance_mode_until]="device.maintenance_mode_until ?? 0"
         [cloud_settings]="device.cloudSettings"
+        [hardware_info]="device.hardwareInfo"
         *ngSwitchCase="'controller'"></fridge-overview>
       <light-overview
         [device_id]="device.device_id"

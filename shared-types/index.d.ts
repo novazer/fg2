@@ -118,6 +118,7 @@ export interface Device {
   cloudSettings?: CloudSettings;
   maintenance_mode_until?: number;
   recipe?: Recipe;
+  hardwareInfo?: Record<string, string>;
 }
 
 export interface DeviceClass {
