@@ -157,7 +157,8 @@ namespace fg {
       Serial.println("CO2 deaktiviert - kein SCD Sensor");
 
       if(out_co2.get()) {
-        out_co2.set(0);
+        state.out_co2 = 0;
+		out_co2.set(state.out_co2);
       }
       co2_valve_close = 0;
       co2_inject_end = xTaskGetTickCount();
@@ -174,7 +175,8 @@ namespace fg {
     if(state.is_day) {
       if(co2_inject_end < xTaskGetTickCount()) {
         if((co2_avg.avg() < settings.co2.target && xTaskGetTickCount() > pause_until_tick)) {
-          out_co2.set(1);
+          state.out_co2 = 1;
+		  out_co2.set(state.out_co2);
           co2_valve_close = co2_inject_start + co2_inject_count * CO2_INJECT_DURATION;
           co2_inject_count = co2_inject_count < CO2_INJECT_MAX_COUNT ? co2_inject_count * 2 : co2_inject_count;
         }
@@ -187,12 +189,14 @@ namespace fg {
     else {
       co2_inject_end = xTaskGetTickCount();
       co2_valve_close = 0;
-      out_co2.set(0);
+      state.out_co2 = 0;
+	  out_co2.set(state.out_co2);
     }
 
     if(co2_avg.avg() > settings.co2.target + CO2_OVERSWING_ABORT) {
       co2_valve_close = 0;
-      out_co2.set(0);
+      state.out_co2 = 0;
+	  out_co2.set(state.out_co2);
     }
   }
 
@@ -361,10 +365,12 @@ namespace fg {
     heater_turn_off = (float)xTaskGetTickCount() + (float)configTICK_RATE_HZ * state.out_heater;
 
     if (xTaskGetTickCount() < pause_until_tick) {
-      out_heater.set(0);
+      state.out_heater = 0;
+	  out_heater.set(state.out_heater);
     }
     else {
-      out_heater.set(1);
+      state.out_heater = 1;
+	  out_heater.set(state.out_heater);
     }
   }
   
