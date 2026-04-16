@@ -49,6 +49,7 @@ Here you can see an example of how to set up the DNS server in a Fritz!Box route
 
 ## Triggering the Upgrade
 
-Once the DNS is set up correctly, you can trigger the upgrade by restarting your device (power off => power on).
+Once the DNS is set up correctly, you can trigger the upgrade by restarting your device (power off => power on). (In my case: Reboot router, wait for internet connection, reboot device)
+
 If the upgrade doesn't start automatically after that, please contact the admins in the Telegram channel to help you 
 further.
