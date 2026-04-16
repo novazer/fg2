@@ -600,16 +600,22 @@ class DeviceService {
 
     const device_class = await deviceClassModel.findOne({ name: info.device_type });
 
-    const existingDevice = await deviceModel.findOne({
-      device_id: info.device_id,
-      username: info.username,
-      password: info.password,
-      device_type: info.device_type,
-    });
+    const existingDevice = await deviceModel.findOneAndUpdate(
+      {
+        device_id: info.device_id,
+        username: info.username,
+        password: info.password,
+        device_type: info.device_type,
+      },
+      {
+        pending_firmware: device_class.firmware_id,
+        'cloudSettings.autoFirmwareUpdate': false,
+      },
+    );
 
     if (existingDevice) {
       console.log('Re-registered existing device:', existingDevice);
-      return { fw: existingDevice.pending_firmware || device_class.firmware_id };
+      return { fw: device_class.firmware_id };
     }
 
     let serial = 0;
