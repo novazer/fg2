@@ -86,9 +86,7 @@ export class FridgeOverviewComponent implements OnInit, OnDestroy {
     }
 
     // Hide CO2 tile for controllers only when hardware reports no CO2 sensor
-    if (this.device_type === 'controller') {
-      this.showCo2Display = this.hardware_info?.['co2'] !== 'off';
-    }
+    this.showCo2Display = this.hardware_info?.['co2'] !== 'off';
 
     // Compute VPD and online state from live measurements
     combineLatest([
