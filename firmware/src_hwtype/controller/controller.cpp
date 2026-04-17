@@ -369,7 +369,6 @@ namespace fg {
 	  out_heater.set(state.out_heater);
     }
     else {
-      state.out_heater = 1;
 	  out_heater.set(state.out_heater);
     }
   }
