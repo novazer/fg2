@@ -539,7 +539,7 @@ class DeviceController {
         });
       }
 
-      const updated = await deviceModel.findOneAndUpdate({ device_id }, { $set: { recipe: recipePayload } }, { new: true, useFindAndModify: false });
+      const updated = await deviceModel.findOneAndUpdate({ device_id }, { $set: { recipe: recipePayload } }, { new: true });
 
       if (!updated) {
         return res.status(404).json({ error: 'Device not found' });

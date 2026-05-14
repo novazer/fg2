@@ -4,7 +4,7 @@ import { Routes } from '@interfaces/routes.interface';
 import { mqttAuthSecretMiddleware } from '@middlewares/mqttauth.middleware';
 
 class MqttAuthRoute implements Routes {
-  public path = '/mqttauth/';
+  public path = '/mqttauth/:secret/';
   public router = Router();
   public authController = new MqttAuthController();
 

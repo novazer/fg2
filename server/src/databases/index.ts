@@ -9,9 +9,6 @@ export const dbConnection = {
     authSource: 'admin',
     user: DB_USER,
     pass: DB_PASSWORD,
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    useFindAndModify: false,
   },
 };
 

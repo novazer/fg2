@@ -3,8 +3,6 @@ import { timingSafeEqual } from 'crypto';
 import { MQTTAUTH_SHARED_SECRET } from '@config';
 import { logger } from '@utils/logger';
 
-export const HEADER_NAME = 'x-mqtt-auth-secret';
-
 export const mqttAuthSecretMiddleware = (req: Request, res: Response, next: NextFunction) => {
   const expected = MQTTAUTH_SHARED_SECRET;
   if (!expected) {
@@ -13,7 +11,7 @@ export const mqttAuthSecretMiddleware = (req: Request, res: Response, next: Next
     return;
   }
 
-  const provided = req.header(HEADER_NAME);
+  const provided = req.params.secret;
   if (typeof provided !== 'string') {
     res.status(401).send('deny');
     return;
@@ -28,4 +26,3 @@ export const mqttAuthSecretMiddleware = (req: Request, res: Response, next: Next
 
   next();
 };
-

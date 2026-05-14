@@ -110,8 +110,8 @@ export interface Device {
   device_type: string;
   configuration: string;
   owner_id: string;
-  serialnumber: Number;
-  lastseen: Number;
+  serialnumber: number;
+  lastseen: number;
   current_firmware: string;
   pending_firmware: string;
   fwupdate_start: number;
