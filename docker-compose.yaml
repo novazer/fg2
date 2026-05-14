@@ -21,6 +21,8 @@ services:
       ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGODB_ADMINUSERNAME}
       ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGODB_ADMINPASSWORD}
       ME_CONFIG_MONGODB_SERVER: "mongodb"
+      ME_CONFIG_BASICAUTH_USERNAME: ${MONGOEXPRESS_USERNAME:-admin}
+      ME_CONFIG_BASICAUTH_PASSWORD: ${MONGOEXPRESS_PASSWORD:-pass}
 
   influxdb:
     image: ${DOCKER_INFLUXDB_IMAGE:-influxdb}
@@ -52,6 +54,8 @@ services:
       - ${MQTT_MANAGEMENT_PORT_EXTERNAL:-8072}:15672
     networks:
       - main
+    environment:
+      MQTTAUTH_SHARED_SECRET: ${MQTTAUTH_SHARED_SECRET:-terpcontrol}
 
   webapp:
     build:
@@ -111,6 +115,7 @@ services:
       SMTP_USER: ${SMTP_USER}
       SMTP_SECURE: ${SMTP_SECURE}
       SMTP_PASSWORD: ${SMTP_PASSWORD}
+      MQTTAUTH_SHARED_SECRET: ${MQTTAUTH_SHARED_SECRET:-terpcontrol}
 
 networks:
   main:

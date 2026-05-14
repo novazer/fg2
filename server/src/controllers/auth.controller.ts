@@ -6,6 +6,7 @@ import AuthService from '@services/auth.service';
 import { SECRET_KEY } from '@/config';
 import { verify } from 'jsonwebtoken';
 import { HttpException } from '@exceptions/HttpException';
+import { logger } from '@utils/logger';
 
 class AuthController {
   public authService = new AuthService();
@@ -57,6 +58,9 @@ class AuthController {
         userToken: userToken,
       });
     } catch (error) {
+      if (error instanceof HttpException && error.status === 401) {
+        logger.warn(`[/tokenlogin] auth failure from ip=${req.ip} ua="${req.get('user-agent') ?? ''}"`);
+      }
       next(error);
     }
   };

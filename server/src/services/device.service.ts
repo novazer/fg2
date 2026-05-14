@@ -24,6 +24,7 @@ import { isNumeric } from 'influx/lib/src/grammar';
 import { mailTransport } from '@services/auth.service';
 import { imageService } from '@services/image.service';
 import { tunnelService } from '@services/tunnel.service';
+import { timingSafeEqual } from 'crypto';
 
 export type StatusMessage = {
   sensors: {
@@ -826,7 +827,24 @@ class DeviceService {
     return code;
   }
 
-  public async getClaimCode(device_id: string) {
+  public async getClaimCode(device_id: string, password?: string): Promise<{ claim_code: string } | false> {
+    const device = await deviceModel.findOne({ device_id: device_id });
+    if (!device) {
+      return false;
+    }
+
+    const requiresAuth = device.hardwareInfo && (device.hardwareInfo as any).claimcode_auth === 'on';
+    if (requiresAuth) {
+      if (typeof password !== 'string' || typeof device.password !== 'string') {
+        return false;
+      }
+      const a = Buffer.from(password);
+      const b = Buffer.from(device.password);
+      if (a.length !== b.length || !timingSafeEqual(a, b)) {
+        return false;
+      }
+    }
+
     let code = '';
     let doc = null;
     do {

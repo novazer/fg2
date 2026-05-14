@@ -124,6 +124,8 @@ namespace fg {
     std::string boot_msg = "message-device-booted:";
     boot_msg += resetReasonStr(esp_reset_reason());
     log(boot_msg);
+
+    log("hardware-info:claimcode_auth=on");
   }
 
   void Fridgecloud::connect() {
@@ -131,12 +133,6 @@ namespace fg {
 
     client->setMaxPacketSize(1024);
 
-    // Each of the following subscribe()/publish() calls may invoke
-    // WiFiClient::write() which, in case of a stuck TCP send buffer, can
-    // block for ~10s while retrying. Doing 6 subscribes + 1 publish back to
-    // back can therefore exceed the 25s task watchdog and reboot the device.
-    // Feed the watchdog between each call so a temporarily slow link does
-    // not become a reset.
     esp_task_wdt_reset();
 
     client->subscribe(topic_configuration.c_str(), [&](const String & topic, const String & payload) {
@@ -582,6 +578,7 @@ namespace fg {
     http.addHeader("Content-Type", "application/json");
     DynamicJsonDocument request(1024);
     request["device_id"] = device_id;
+    request["password"] = mqtt_password;
     std::stringstream stream;
     serializeJson(request, stream);
     auto res = http.POST(stream.str().c_str());

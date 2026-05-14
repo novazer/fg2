@@ -1,9 +1,18 @@
 import { Router } from 'express';
+import rateLimit from 'express-rate-limit';
 import AuthController from '@controllers/auth.controller';
 import { LoginDto, SignupDto, ActivationDto, PasswordResetDto } from '@dtos/users.dto';
 import { Routes } from '@interfaces/routes.interface';
 import { authMiddleware } from '@middlewares/auth.middleware';
 import validationMiddleware from '@middlewares/validation.middleware';
+
+const tokenLoginLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many token-login attempts, please try again later.' },
+});
 
 class AuthRoute implements Routes {
   public path = '/';
@@ -88,7 +97,7 @@ class AuthRoute implements Routes {
      *
      */
     this.router.post(`${this.path}login`, validationMiddleware(LoginDto, 'body'), this.authController.logIn);
-    this.router.post(`${this.path}tokenlogin`, this.authController.loginWithToken);
+    this.router.post(`${this.path}tokenlogin`, tokenLoginLimiter, this.authController.loginWithToken);
 
     /**
      * @api {post} /refresh refresh userTiken

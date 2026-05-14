@@ -81,7 +81,11 @@ class DeviceController {
 
   public getClaimCode = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
-      const code = await deviceService.getClaimCode(req.body.device_id);
+      const code = await deviceService.getClaimCode(req.body.device_id, req.body.password);
+      if (code === false) {
+        res.status(401).json({ status: 'unauthorized' });
+        return;
+      }
       res.status(200).json(code);
     } catch (error) {
       next(error);
@@ -194,13 +198,29 @@ class DeviceController {
     }
   };
 
-  public testMode = async (req: any, res: Response, next: NextFunction) => {
-    const outputs: TestDeviceDto = req.body;
-    await deviceService.testOutputs(req.params.device_id, outputs);
+  public testMode = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+    try {
+      if (!(await isUserDeviceMiddelware(req, res, req.params.device_id))) {
+        return;
+      }
+      const outputs: TestDeviceDto = req.body;
+      await deviceService.testOutputs(req.params.device_id, outputs);
+      res.status(200).json({ status: 'ok' });
+    } catch (error) {
+      next(error);
+    }
   };
 
-  public stopTest = async (req: any, res: Response, next: NextFunction) => {
-    await deviceService.stopTest(req.params.device_id);
+  public stopTest = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+    try {
+      if (!(await isUserDeviceMiddelware(req, res, req.params.device_id))) {
+        return;
+      }
+      await deviceService.stopTest(req.params.device_id);
+      res.status(200).json({ status: 'ok' });
+    } catch (error) {
+      next(error);
+    }
   };
 
   public createClass = async (req: any, res: Response, next: NextFunction) => {

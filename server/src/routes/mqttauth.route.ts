@@ -1,8 +1,7 @@
 import { Router } from 'express';
 import MqttAuthController from '@controllers/mqttauth.controller';
-import { AuthResourceDto, AuthTopicDto, AuthUserDto, AuthVhostDto } from '@dtos/mqttauth.dto';
 import { Routes } from '@interfaces/routes.interface';
-import validationMiddleware from '@middlewares/validation.middleware';
+import { mqttAuthSecretMiddleware } from '@middlewares/mqttauth.middleware';
 
 class MqttAuthRoute implements Routes {
   public path = '/mqttauth/';
@@ -14,6 +13,7 @@ class MqttAuthRoute implements Routes {
   }
 
   private initializeRoutes() {
+    this.router.use(this.path, mqttAuthSecretMiddleware);
     this.router.post(`${this.path}user`, this.authController.user);
     this.router.post(`${this.path}vhost`, this.authController.vhost);
     this.router.post(`${this.path}topic`, this.authController.topic);

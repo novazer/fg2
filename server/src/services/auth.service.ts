@@ -1,5 +1,6 @@
 import { compare, hash } from 'bcrypt';
 import { sign } from 'jsonwebtoken';
+import { timingSafeEqual } from 'node:crypto';
 import {
   API_URL_EXTERNAL,
   AUTOMATION_TOKEN,
@@ -138,7 +139,18 @@ class AuthService {
   }
 
   public async loginWithToken(token: string): Promise<{ userToken: TokenData }> {
-    if (token != AUTOMATION_TOKEN) {
+    const expected = AUTOMATION_TOKEN;
+    if (!expected) {
+      throw new HttpException(401, 'Wrong authentication token');
+    }
+
+    const supplied = typeof token === 'string' ? token : '';
+    const len = Math.max(expected.length, supplied.length, 32);
+    const a = Buffer.alloc(len);
+    const b = Buffer.alloc(len);
+    a.write(supplied, 0, 'utf8');
+    b.write(expected, 0, 'utf8');
+    if (!timingSafeEqual(a, b) || supplied.length !== expected.length) {
       throw new HttpException(401, 'Wrong authentication token');
     }
 

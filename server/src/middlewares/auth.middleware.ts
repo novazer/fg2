@@ -6,8 +6,24 @@ import { DataStoredInToken, RequestWithUser } from '@interfaces/auth.interface';
 import deviceModel from '@/models/device.model';
 import { Device } from '@fg2/shared-types';
 
-const getAuthorization = (req: RequestWithUser) =>
-  req.cookies['Authorization'] || (req.header('Authorization') ? req.header('Authorization').split('Bearer ')[1] : null) || req.query.token;
+const isImageQueryTokenAllowed = (req: RequestWithUser): boolean => req.method === 'GET' && req.path.startsWith('/image/');
+
+const getAuthorization = (req: RequestWithUser) => {
+  const fromCookie = req.cookies['Authorization'];
+  if (fromCookie) return fromCookie;
+
+  const header = req.header('Authorization');
+  if (header) {
+    const parts = header.split('Bearer ');
+    if (parts[1]) return parts[1];
+  }
+
+  if (isImageQueryTokenAllowed(req) && typeof req.query.token === 'string') {
+    return req.query.token;
+  }
+
+  return null;
+};
 
 const hasPublicReadAccess = async (device_id: string): Promise<boolean> => {
   const device = await deviceModel.findOne({ device_id, 'cloudSettings.publicRead': true }, { device_id: 1 });

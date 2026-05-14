@@ -36,4 +36,5 @@ export const {
   SMTP_SERVER,
   SMTP_PORT,
   SMTP_PASSWORD,
+  MQTTAUTH_SHARED_SECRET,
 } = process.env;
