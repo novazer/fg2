@@ -49,6 +49,14 @@ static const char* resetReasonStr(esp_reset_reason_t r) {
 // the health log once MQTT is up.
 static esp_reset_reason_t g_last_reset_reason = ESP_RST_UNKNOWN;
 
+// Survives a software reset (ESP.restart()) but is cleared on power-on.
+// Set to true just before a connection-watchdog reboot so the next boot
+// knows not to reboot again if the outage is still ongoing (prevents the
+// device from rebooting in a loop when the broker / internet is just down).
+// Cleared when MQTT actually connects (re-arms the watchdog) or when the
+// reset reason is not ESP_RST_SW (WDT, panic, brownout, power-on).
+RTC_DATA_ATTR static bool g_connection_reboot = false;
+
 // Per-phase exception accounting. The previous bare catch(...) in loop()
 // swallowed *every* C++ exception with no clue about origin, type, or
 // system state. When a single phase starts throwing every tick (typical
@@ -221,6 +229,12 @@ void setup()
   // radio TX power spikes draw current the supply can't deliver), POWERON
   // means the device actually lost power.
   g_last_reset_reason = esp_reset_reason();
+  // Only keep the "no-reboot-yet" flag across our own soft resets.
+  // Any other reset type (WDT, panic, brownout, power-on) should re-arm
+  // the watchdog so the device can recover from future connection problems.
+  if(g_last_reset_reason != ESP_RST_SW) {
+    g_connection_reboot = false;
+  }
   Serial.printf("[boot] reset_reason=%s (%d)\n", resetReasonStr(g_last_reset_reason),
                 (int)g_last_reset_reason);
   Serial.printf("[boot] heap free=%u largest_block=%u min_free=%u\n",
@@ -346,6 +360,25 @@ void loop()
   runPhase(g_phase_stats[1], []{ control->fastloop(); });
   runPhase(g_phase_stats[2], []{ wifiTick(); });
   runPhase(g_phase_stats[3], []{ fgc.loop(); });
+
+  // Connection watchdog: reboot once if the cloud has been unreachable for
+  // 15 min. g_connection_reboot prevents a reboot-loop if the outage persists
+  // after the reboot; it is cleared when MQTT actually reconnects.
+  {
+    static constexpr TickType_t CONNECTION_WATCHDOG_TICKS = 15UL * 60 * configTICK_RATE_HZ;
+    static TickType_t last_connected_tick = xTaskGetTickCount();
+    if(fgc.isConnected()) {
+      last_connected_tick = xTaskGetTickCount();
+      g_connection_reboot = false;
+    }
+    if(!g_connection_reboot && (xTaskGetTickCount() - last_connected_tick) > CONNECTION_WATCHDOG_TICKS) {
+      Serial.println("[watchdog] no cloud connection for 15 min, rebooting");
+      Serial.flush();
+      g_connection_reboot = true;
+      ESP.restart();
+    }
+  }
+
   esp_task_wdt_reset();
 
   if(Serial.available()) {

@@ -115,6 +115,7 @@ namespace fg {
     void handleTunnelReads();
     void notePublishFailure();
     inline bool directMode() { return custom_mqtt; }
+    inline bool isConnected() const { return connected; }
   };
 
 }
