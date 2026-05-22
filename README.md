@@ -1,5 +1,8 @@
 # Fridge Grow Software Stack - Forked from Plantalytix
 
+> **⚠️ This repository has moved to [terpcontrol/terpcontrol.cloud](https://github.com/terpcontrol/terpcontrol.cloud).**
+> Please update your remotes and refer to the new location for the latest changes.
+
 See also:
 - [Running on Raspberry PI](RASPBERRY-PI.md)
 - [Upgrading an older firmware](UPGRADING-FIRMWARE.md)
