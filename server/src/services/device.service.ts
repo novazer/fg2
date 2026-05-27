@@ -30,10 +30,10 @@ const ONLINE_TIMEOUT: number = 10 * 60 * 1000;
 
 const devicesInstructed: string[] = [];
 let devicesInstructedTime = 0;
-const FRIDGE_FIRMWARE_ID = 'a51f4171-d984-4086-ae15-89455e2f71a4';
-const FAN_FIRMWARE_ID = 'cb5aa07e-f9ca-45bd-beb9-ccef26844f19';
-const PLUG_FIRMWARE_ID = '3e6ffc7d-e476-40fc-904f-e7f4a8f32d7c';
-const LIGHT_FIRMWARE_ID = '5b6504ca-94a2-4f31-90b4-7ca270c7310f';
+const FRIDGE_FIRMWARE_ID = '753bdc20-0284-4719-9a7f-dd80977c1c8c';
+const FAN_FIRMWARE_ID = '16100a6c-f88f-447e-a896-6c49c34a9089';
+const PLUG_FIRMWARE_ID = 'ecf47ce2-1145-41e2-8f0c-ba3672c83f1a';
+const LIGHT_FIRMWARE_ID = 'f90d903f-8605-4415-9bf6-e35cf1365a2b';
 const ALLOWED_FIRMWARES = {
   '52d3335d-c623-4d4f-ade5-931e853ede93': FRIDGE_FIRMWARE_ID,
   'dbc5e840-45eb-444b-8c7d-5f152f657981': FRIDGE_FIRMWARE_ID,
