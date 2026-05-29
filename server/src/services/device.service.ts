@@ -114,7 +114,10 @@ class DeviceService {
             if (
               parsedMessage2.firmware_id &&
               parsedMessage2.firmware_id != FRIDGE_FIRMWARE_ID &&
-              parsedMessage2.firmware_id != FAN_FIRMWARE_ID
+              parsedMessage2.firmware_id != FAN_FIRMWARE_ID &&
+              parsedMessage2.firmware_id != LIGHT_FIRMWARE_ID &&
+              parsedMessage2.firmware_id != PLUG_FIRMWARE_ID &&
+              !detectedFirmwares.includes(parsedMessage2.firmware_id)
             ) {
               if (parsedMessage2.firmware_id in ALLOWED_FIRMWARES) {
                 break;
@@ -154,6 +157,8 @@ class DeviceService {
               newFirmware = LIGHT_FIRMWARE_ID;
             } else if (isNumeric(parsedMessage3?.outputs?.relais)) {
               newFirmware = PLUG_FIRMWARE_ID;
+            } else {
+              console.log('Could not detect firmware for device ' + device_id + ' with message:', parsedMessage3);
             }
 
             if (newFirmware) {
