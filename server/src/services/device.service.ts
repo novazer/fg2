@@ -40,6 +40,7 @@ const ALLOWED_FIRMWARES = {
   '901f7cfa-55e2-4176-83aa-627da26792e4': FRIDGE_FIRMWARE_ID,
   'e0d76fc7-38b1-414c-90ba-be0056955586': FRIDGE_FIRMWARE_ID,
   '13cacbc9-af0c-433c-adc9-bcbd1c5a76b2': FAN_FIRMWARE_ID,
+  '81d145e8-faba-41c8-8959-bb6f18ba99b8': LIGHT_FIRMWARE_ID,
 };
 const detectedFirmwares = [];
 
