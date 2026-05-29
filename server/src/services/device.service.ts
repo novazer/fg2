@@ -153,7 +153,7 @@ class DeviceService {
               newFirmware = FRIDGE_FIRMWARE_ID;
             } else if (isNumeric(parsedMessage3?.sensors?.rpm) && isNumeric(parsedMessage3?.outputs?.fan)) {
               newFirmware = FAN_FIRMWARE_ID;
-            } else if (isNumeric(parsedMessage3?.outputs?.lights)) {
+            } else if (isNumeric(parsedMessage3?.outputs?.lights) || isNumeric(parsedMessage3?.outputs?.light)) {
               newFirmware = LIGHT_FIRMWARE_ID;
             } else if (isNumeric(parsedMessage3?.outputs?.relais)) {
               newFirmware = PLUG_FIRMWARE_ID;
